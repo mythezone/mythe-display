@@ -179,8 +179,9 @@ public/themes/neon-dark/hero/mythenas-core.png
 
 - 默认占用一个标准网格块。
 - 主题资源包提供透明角色图：`mascot.assistant`。
-- 运行时通过 CSS class 切换动作，不要求主题包提供多张动作图。
+- 运行时通过 CSS class 切换 PNG fallback 动作，不要求主题包提供多张动作图。
 - 如果主题资源包提供 `mascot.rive.enabled=true` 和本地 `.riv` 文件，运行时优先使用 Rive canvas 骨架动画。
+- 如果主题资源包提供 `mascot.codexPet.enabled=true` 和 `pet.json`，运行时使用 Codex/Petdex sprite atlas。
 - Rive 加载失败时必须回退到 PNG/CSS，不能让整个页面空白。
 - 默认每 `300000ms`，也就是 5 分钟，随机切换一次动作和格言。
 - 格言在角色头部气泡中显示，长度应短，避免遮挡主体。
@@ -195,6 +196,12 @@ scan
 celebrate
 patrol
 focus
+sleep
+type
+guard
+alert
+boot
+nod
 ```
 
 主题资源：
@@ -220,5 +227,5 @@ public/themes/neon-dark/mascot/assistant.png
 
 后续路线：
 
-- Live2D、Spine 或 sprite sheet 应作为 `core.liveMascot` 或插件组件处理。
+- Live2D、Spine 或自定义 JS 应作为 `core.liveMascot` 或插件组件处理。
 - 第三方模型或看板娘素材必须先做许可证和再分发审查。

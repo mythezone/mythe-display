@@ -255,6 +255,23 @@ type ThemeResourcePack = {
       stateMachine?: string;
       stateMachines?: string | string[];
     };
+    codexPet?: {
+      enabled: boolean;
+      manifest?: string;
+      spritesheet?: string;
+      columns?: number;
+      rows?: number;
+      frameWidth?: number;
+      frameHeight?: number;
+      frames?: number;
+      fps?: number;
+      scale?: number;
+      actionRows?: Record<string, number>;
+    };
+    actions?: {
+      action: string;
+      quote?: string;
+    }[];
   };
 };
 

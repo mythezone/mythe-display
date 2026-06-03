@@ -125,3 +125,23 @@ Agent 像素角色推荐流程：
 - [OpenGameArt CC0 Walk Cycles](https://opengameart.org/content/cc0-walk-cycles)：收集了大量 CC0 行走动画资源，适合后续筛选统一风格的 sprite sheet。
 - [OpenGameArt Character Walking](https://opengameart.org/content/character-walking)：页面标注 CC0，提供简单 4 帧行走图。
 - [itch.io CC0 Pixel Art Sprites](https://itch.io/game-assets/free/tag-cc0/tag-pixel-art/tag-sprites)：可筛选 CC0 像素角色资源，下载前仍要逐个确认具体页面授权。
+
+## Codex/Petdex Pet 包
+
+链接：
+
+- [codex-pet](https://codex-pet.com/)
+- [codex-pet CLI 文档](https://codex-pet.com/docs)
+- [Petdex GitHub](https://github.com/crafter-station/petdex)
+
+评估：
+
+- codex-pet CLI 会把 pet 安装到 `~/.codex/pets/<name>/`，包含 `pet.json` 和 `spritesheet.webp`。
+- 提交说明要求 `pet.json` 和 `spritesheet.{webp,png}`，并要求提交者确认有权使用作品。
+- 适合本项目以导入方式兼容，不适合把第三方素材直接打进默认主题。
+
+当前实现：
+
+- `core.mascotAssistant` 支持 `mascot.codexPet`。
+- `scripts/import-codex-pet.py` 可以导入本地目录或 zip。
+- `mdp pet <package|id|zip>` 会导入并在 kiosk 运行时刷新页面。

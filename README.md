@@ -37,6 +37,7 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 - [主题资源包规范草案](docs/development/theme-resource-pack.md)
 - [组件系统草案](docs/development/component-system.md)
 - [标准组件草案](docs/development/standard-widgets.md)
+- [Codex Pet 兼容规范草案](docs/development/codex-pet-compat.md)
 - [像素 Agent 组件规范草案](docs/development/pixel-agent-widget.md)
 - [插件式扩展模型草案](docs/development/plugin-extension-model.md)
 - [Web kiosk 测试说明](docs/development/web-kiosk-test.md)
@@ -160,6 +161,13 @@ sudo systemctl reload mythe-display-kiosk
 mdp reload
 mdp status
 mdp logs
+```
+
+导入已下载的 Codex/Petdex pet 包：
+
+```bash
+mdp pet ~/.codex/pets/<pet-name> --force
+mdp reload
 ```
 
 Chromium 控制端口默认只绑定本机：

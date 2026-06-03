@@ -509,11 +509,35 @@
         filter: drop-shadow(0 0 28px rgba(10, 132, 255, 0.24));
       }
 
+      .mascot-sprite {
+        display: none;
+        width: var(--pet-display-width, 220px);
+        height: var(--pet-display-height, 238px);
+        align-self: end;
+        background-image: var(--pet-spritesheet);
+        background-repeat: no-repeat;
+        background-size: calc(var(--pet-columns, 8) * 100%) calc(var(--pet-rows, 9) * 100%);
+        background-position: 0 calc(var(--pet-row, 0) * -100%);
+        image-rendering: pixelated;
+        filter: drop-shadow(0 0 24px rgba(10, 132, 255, 0.26));
+        transform-origin: 50% 92%;
+        animation: mascot-sprite-frames var(--pet-duration, 900ms) steps(var(--pet-frames, 8), end) infinite;
+      }
+
       .mascot-panel[data-runtime="rive"] .mascot-img {
         display: none;
       }
 
       .mascot-panel[data-runtime="rive"] .mascot-rive {
+        display: block;
+      }
+
+      .mascot-panel[data-runtime="codex-pet"] .mascot-img,
+      .mascot-panel[data-runtime="codex-pet"] .mascot-rive {
+        display: none;
+      }
+
+      .mascot-panel[data-runtime="codex-pet"] .mascot-sprite {
         display: block;
       }
 
@@ -545,10 +569,45 @@
         animation: mascot-focus 2.8s ease-in-out infinite;
       }
 
+      .mascot-panel[data-action="sleep"] .mascot-img {
+        animation: mascot-sleep 5.2s ease-in-out infinite;
+      }
+
+      .mascot-panel[data-action="type"] .mascot-img {
+        animation: mascot-type 0.72s steps(2, end) infinite;
+      }
+
+      .mascot-panel[data-action="guard"] .mascot-img {
+        animation: mascot-guard 2.4s ease-in-out infinite;
+      }
+
+      .mascot-panel[data-action="alert"] .mascot-img {
+        animation: mascot-alert 0.5s steps(2, end) infinite;
+      }
+
+      .mascot-panel[data-action="boot"] .mascot-img {
+        animation: mascot-boot 1.4s cubic-bezier(0.2, 0.9, 0.18, 1) infinite;
+      }
+
+      .mascot-panel[data-action="nod"] .mascot-img {
+        animation: mascot-nod 1.8s ease-in-out infinite;
+      }
+
       .mascot-panel[data-action="scan"] .mascot-stage::after,
-      .mascot-panel[data-action="focus"] .mascot-stage::after {
+      .mascot-panel[data-action="focus"] .mascot-stage::after,
+      .mascot-panel[data-action="alert"] .mascot-stage::after,
+      .mascot-panel[data-action="boot"] .mascot-stage::after {
         animation-duration: 1.8s;
         opacity: 0.92;
+      }
+
+      @keyframes mascot-sprite-frames {
+        from {
+          background-position: 0 calc(var(--pet-row, 0) * -100%);
+        }
+        to {
+          background-position: calc(var(--pet-frames, 8) * -100%) calc(var(--pet-row, 0) * -100%);
+        }
       }
 
       @keyframes mascot-idle {
@@ -635,6 +694,71 @@
         }
         50% {
           transform: scaleX(1.08);
+        }
+      }
+
+      @keyframes mascot-sleep {
+        0%,
+        100% {
+          transform: translateY(0) scale(0.985);
+          filter: drop-shadow(0 0 16px rgba(10, 132, 255, 0.18));
+        }
+        50% {
+          transform: translateY(3px) scale(0.965);
+          filter: drop-shadow(0 0 24px rgba(191, 90, 242, 0.18));
+        }
+      }
+
+      @keyframes mascot-type {
+        from {
+          transform: translateX(-2px) translateY(0);
+        }
+        to {
+          transform: translateX(2px) translateY(-2px);
+        }
+      }
+
+      @keyframes mascot-guard {
+        0%,
+        100% {
+          transform: translateX(-6px) rotate(-1deg);
+        }
+        50% {
+          transform: translateX(6px) rotate(1deg);
+        }
+      }
+
+      @keyframes mascot-alert {
+        from {
+          transform: translateX(-4px) rotate(-2deg);
+          filter: drop-shadow(0 0 24px rgba(255, 69, 58, 0.3));
+        }
+        to {
+          transform: translateX(4px) rotate(2deg);
+          filter: drop-shadow(0 0 36px rgba(255, 214, 10, 0.34));
+        }
+      }
+
+      @keyframes mascot-boot {
+        0%,
+        100% {
+          transform: translateY(0) scale(1);
+        }
+        45% {
+          transform: translateY(-10px) scale(1.035);
+        }
+      }
+
+      @keyframes mascot-nod {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        40% {
+          transform: rotate(2deg) translateY(1px);
+        }
+        68% {
+          transform: rotate(-1deg);
         }
       }
 
@@ -1188,6 +1312,7 @@
         <div class="mascot-stage">
           <div class="mascot-quote" id="mascot-quote">loading</div>
           <canvas class="mascot-rive" id="mascot-rive" aria-hidden="true"></canvas>
+          <div class="mascot-sprite" id="mascot-sprite" role="img" aria-label="MytheNAS pet"></div>
           <img class="mascot-img" id="mascot-img" alt="MytheNAS assistant" />
         </div>
         <div class="chart-legend">
@@ -1272,6 +1397,7 @@
       const mascotPanel = document.getElementById("mascot-panel");
       const mascotImg = document.getElementById("mascot-img");
       const mascotRiveCanvas = document.getElementById("mascot-rive");
+      const mascotSprite = document.getElementById("mascot-sprite");
       const mascotQuote = document.getElementById("mascot-quote");
       const mascotAction = document.getElementById("mascot-action");
       const telemetryChart = document.getElementById("telemetry-chart");
@@ -1289,6 +1415,8 @@
       let riveMascot = null;
       let riveMascotResizeBound = false;
       let themeAssetVersion = initialAssetCacheBust;
+      let mascotActionRows = {};
+      let mascotSpriteConfig = null;
 
       const fallbackAgents = [
         { id: "planner", name: "Planner", project: "mythe-display", status: "thinking", activity: "mapping widget API", progress: 72 },
@@ -1309,7 +1437,7 @@
         offline: "var(--md-text-muted)"
       };
 
-      const mascotStates = [
+      const defaultMascotStates = [
         { action: "idle", quote: "稳定先于华丽。" },
         { action: "wave", quote: "先备份，再冒险。" },
         { action: "think", quote: "慢查询不会自己消失。" },
@@ -1320,8 +1448,48 @@
         { action: "wave", quote: "今天也要让服务安静运行。" },
         { action: "celebrate", quote: "自动化省下的时间，应该还给思考。" },
         { action: "patrol", quote: "巡检不是仪式，是发现变化。" },
-        { action: "focus", quote: "先看趋势，再判断噪声。" }
+        { action: "focus", quote: "先看趋势，再判断噪声。" },
+        { action: "sleep", quote: "低负载时也要保持清醒的日志。" },
+        { action: "type", quote: "配置写清楚，服务少猜测。" },
+        { action: "guard", quote: "守住边界，比补救更可靠。" },
+        { action: "alert", quote: "异常出现时，先保留证据。" },
+        { action: "boot", quote: "启动链路越短，恢复越快。" },
+        { action: "nod", quote: "确认之后再切换。" }
       ];
+      let mascotStates = defaultMascotStates;
+
+      const codexPetDefaultRows = {
+        idle: 0,
+        runRight: 1,
+        runningRight: 1,
+        right: 1,
+        runLeft: 2,
+        runningLeft: 2,
+        left: 2,
+        wave: 3,
+        waving: 3,
+        jump: 4,
+        jumping: 4,
+        celebrate: 4,
+        boot: 4,
+        fail: 5,
+        failed: 5,
+        alert: 5,
+        guard: 5,
+        wait: 6,
+        waiting: 6,
+        think: 6,
+        sleep: 6,
+        run: 7,
+        running: 7,
+        patrol: 7,
+        review: 8,
+        reviewing: 8,
+        focus: 8,
+        scan: 8,
+        type: 8,
+        nod: 0
+      };
 
       function tokenToCssVar(token) {
         return `--md-${token.replaceAll(".", "-")}`;
@@ -1387,10 +1555,29 @@
       function applyHero(config = {}, mascotConfig = {}) {
         const logo = config.logo ? resolveThemeAsset(config.logo) : "";
         heroLogo.src = logo;
+        applyMascotActions(mascotConfig.actions);
         if (mascotConfig.assistant) {
           mascotImg.src = resolveThemeAsset(mascotConfig.assistant);
         }
         initMascotRuntime(mascotConfig);
+      }
+
+      function applyMascotActions(actions) {
+        if (!Array.isArray(actions) || actions.length === 0) {
+          mascotStates = defaultMascotStates;
+          return;
+        }
+        const normalized = actions
+          .map((entry) => {
+            if (typeof entry === "string") return { action: entry, quote: entry };
+            if (!entry || typeof entry !== "object") return null;
+            return {
+              action: String(entry.action || entry.name || "idle"),
+              quote: String(entry.quote || entry.text || entry.action || "idle")
+            };
+          })
+          .filter(Boolean);
+        mascotStates = normalized.length ? normalized : defaultMascotStates;
       }
 
       function loadScriptOnce(src) {
@@ -1417,6 +1604,11 @@
       }
 
       async function initMascotRuntime(mascotConfig = {}) {
+        const codexPetConfig = mascotConfig.codexPet || mascotConfig.pet || {};
+        if (codexPetConfig.enabled && codexPetConfig.manifest && mascotSprite) {
+          if (await initCodexPetRuntime(codexPetConfig)) return;
+        }
+
         const riveConfig = mascotConfig.rive || {};
         if (!riveConfig.enabled || !riveConfig.src || !mascotRiveCanvas) {
           mascotPanel.dataset.runtime = "png";
@@ -1449,6 +1641,84 @@
           console.warn("Rive mascot unavailable, using PNG fallback", error);
           mascotPanel.dataset.runtime = "png";
         }
+      }
+
+      function normalizeRowMap(raw = {}) {
+        return Object.fromEntries(
+          Object.entries(raw)
+            .map(([key, value]) => [String(key), Number(value)])
+            .filter(([, value]) => Number.isFinite(value))
+        );
+      }
+
+      function rowsFromManifest(manifest = {}) {
+        const rows = {};
+        const states = manifest.states || manifest.animations || manifest.animationStates;
+        if (Array.isArray(states)) {
+          states.forEach((entry, index) => {
+            const name = typeof entry === "string" ? entry : entry?.name || entry?.id || entry?.action;
+            const row = typeof entry === "object" && Number.isFinite(Number(entry.row)) ? Number(entry.row) : index;
+            if (name) rows[String(name)] = row;
+          });
+        } else if (states && typeof states === "object") {
+          Object.entries(states).forEach(([name, value], index) => {
+            const row = typeof value === "object" ? value.row ?? value.index ?? index : value;
+            if (Number.isFinite(Number(row))) rows[name] = Number(row);
+          });
+        }
+        return rows;
+      }
+
+      async function initCodexPetRuntime(config = {}) {
+        try {
+          const manifestUrl = resolveThemeAsset(config.manifest);
+          const manifest = await fetchJson(manifestUrl);
+          const manifestBase = new URL(".", manifestUrl);
+          const spritesheetPath = manifest.spritesheetPath || manifest.spritesheet || config.spritesheet || "spritesheet.webp";
+          const spritesheetUrl = new URL(spritesheetPath, manifestBase);
+          if (themeAssetVersion) {
+            spritesheetUrl.searchParams.set("assetCacheBust", themeAssetVersion);
+          }
+
+          const columns = Number(config.columns || manifest.columns || manifest.frameColumns || 8);
+          const rows = Number(config.rows || manifest.rows || manifest.frameRows || 9);
+          const frames = Number(config.frames || manifest.framesPerState || manifest.frames || columns || 8);
+          const frameWidth = Number(config.frameWidth || manifest.frameWidth || 192);
+          const frameHeight = Number(config.frameHeight || manifest.frameHeight || 208);
+          const scale = Number(config.scale || 1.05);
+          const fps = Number(config.fps || manifest.fps || 9);
+          const duration = Math.max(300, Math.round((frames / Math.max(1, fps)) * 1000));
+
+          mascotActionRows = {
+            ...codexPetDefaultRows,
+            ...rowsFromManifest(manifest),
+            ...normalizeRowMap(config.actionRows || config.rowsByAction || {})
+          };
+          mascotSpriteConfig = { columns, rows, frames, duration };
+          mascotSprite.style.setProperty("--pet-spritesheet", `url("${spritesheetUrl.toString()}")`);
+          mascotSprite.style.setProperty("--pet-columns", String(columns));
+          mascotSprite.style.setProperty("--pet-rows", String(rows));
+          mascotSprite.style.setProperty("--pet-frames", String(frames));
+          mascotSprite.style.setProperty("--pet-duration", `${duration}ms`);
+          mascotSprite.style.setProperty("--pet-display-width", `${Math.round(frameWidth * scale)}px`);
+          mascotSprite.style.setProperty("--pet-display-height", `${Math.round(frameHeight * scale)}px`);
+          mascotSprite.setAttribute("aria-label", manifest.displayName || manifest.name || "Codex pet");
+          mascotPanel.dataset.runtime = "codex-pet";
+          setMascotSpriteAction(mascotPanel.dataset.action || "idle");
+          return true;
+        } catch (error) {
+          console.warn("Codex pet mascot unavailable, using fallback", error);
+          mascotPanel.dataset.runtime = "png";
+          mascotSpriteConfig = null;
+          mascotActionRows = {};
+          return false;
+        }
+      }
+
+      function setMascotSpriteAction(action) {
+        if (mascotPanel.dataset.runtime !== "codex-pet" || !mascotSpriteConfig) return;
+        const row = mascotActionRows[action] ?? mascotActionRows.idle ?? 0;
+        mascotSprite.style.setProperty("--pet-row", String(Math.max(0, Math.min(row, mascotSpriteConfig.rows - 1))));
       }
 
       function drawTelemetryChart() {
@@ -1558,6 +1828,7 @@
         mascotPanel.dataset.action = state.action;
         mascotAction.textContent = state.action;
         mascotQuote.textContent = state.quote;
+        setMascotSpriteAction(state.action);
       }
 
       function renderDisks(payload) {

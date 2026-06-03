@@ -27,3 +27,4 @@
 - 新增 `scripts/kiosk-control.py`，支持 `list/current/switch/open/reload` 控制运行中的 Chromium kiosk；systemd 模板新增 `ExecReload`，可用 `sudo systemctl reload mythe-display-kiosk` 刷新当前界面而不重启服务。
 - 新增 `/usr/bin/mdp` 短命令入口和 `scripts/install-mdp-command.sh`，支持 `mdp reload`、`mdp switch`、`mdp start`、`mdp status`、`mdp logs` 等常用操作。
 - 增强 `mdp`：`mdp start` 在 systemd unit 缺失时会自动安装服务，`mdp reload/switch/theme` 在控制端口不可用时会先尝试确保 kiosk 服务已安装并启动。
+- 增强 Pet/Assistant 组件：新增更多 PNG fallback 动作，增加 Codex/Petdex `pet.json` + spritesheet atlas 兼容层，并新增 `scripts/import-codex-pet.py` 与 `mdp pet` 导入命令。

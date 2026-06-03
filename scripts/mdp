@@ -41,6 +41,7 @@ CONTROL="$ROOT_DIR/scripts/kiosk-control.py"
 RUN_KIOSK="$ROOT_DIR/scripts/run-kiosk-web-test.sh"
 INSTALL_SERVICE="$ROOT_DIR/scripts/install-kiosk-service.sh"
 INSTALL_COMMAND="$ROOT_DIR/scripts/install-mdp-command.sh"
+PET_IMPORT="$ROOT_DIR/scripts/import-codex-pet.py"
 
 usage() {
   cat <<EOF
@@ -54,6 +55,7 @@ Display:
   mdp list                         列出 Chromium page target
   mdp current                      查看当前页面
   mdp theme <theme-json-url>       切换到指定主题资源包
+  mdp pet <package|id|zip>         导入 Codex/Petdex pet 包并刷新
 
 Service:
   mdp start                        启动 systemd kiosk 服务
@@ -74,6 +76,7 @@ Examples:
   mdp switch /kiosk-test/
   mdp switch 'https://example.com'
   mdp theme ../themes/neon-dark/theme.json
+  mdp pet ~/.codex/pets/example
 EOF
 }
 
@@ -216,6 +219,19 @@ case "${1:-help}" in
       exit 2
     fi
     control_with_service switch "/kiosk-test/?theme=$1" --cache-bust
+    ;;
+  pet)
+    shift
+    if [[ -z "${1:-}" ]]; then
+      echo "用法: mdp pet <package|id|zip> [--force]" >&2
+      exit 2
+    fi
+    "$PET_IMPORT" "$@"
+    if "$CONTROL" list --json >/dev/null 2>&1; then
+      "$CONTROL" reload || true
+    else
+      echo "pet 已导入。kiosk 未运行时，之后执行 mdp start；正在运行时可执行 mdp reload。" >&2
+    fi
     ;;
   control)
     shift

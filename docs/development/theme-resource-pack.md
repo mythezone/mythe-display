@@ -159,7 +159,7 @@ Hero 的动态效果由运行时提供：
 public/themes/neon-dark/mascot/assistant.png
 ```
 
-该资源应是透明 PNG/WebP。动作由运行时通过 CSS 动画实现，第一版不要求主题包提供多张动作图。
+该资源应是透明 PNG/WebP。动作由运行时通过 CSS 动画实现；默认主题已经提供 `idle`、`wave`、`think`、`scan`、`celebrate`、`patrol`、`focus`、`sleep`、`type`、`guard`、`alert`、`boot`、`nod` 等动作名。
 
 主题可以选择提供 Rive 骨架动画资源：
 
@@ -183,7 +183,40 @@ public/themes/neon-dark/mascot/assistant.png
 - `mascot.rive.src` 必须指向主题包内部的 `.riv` 文件。
 - `runtime` 建议指向本地 vendored runtime，避免 kiosk 开机时依赖外网；测试阶段也可以使用 CDN。
 - Rive 加载失败时，运行时必须回退到 `mascot.assistant`。
-- Live2D、Spine 或多帧 sprite sheet 应作为单独组件或插件能力声明，不让主题包执行任意 JS。
+- Live2D、Spine 或自定义 JS 应作为单独组件或插件能力声明，不让主题包执行任意 JS。
+
+主题可以选择提供 Codex/Petdex 风格资源：
+
+```json
+{
+  "mascot": {
+    "codexPet": {
+      "enabled": true,
+      "manifest": "mascot/pets/fox/pet.json",
+      "columns": 8,
+      "rows": 9,
+      "frameWidth": 192,
+      "frameHeight": 208,
+      "frames": 8,
+      "fps": 9,
+      "actionRows": {
+        "idle": 0,
+        "wave": 3,
+        "alert": 5,
+        "scan": 8
+      }
+    }
+  }
+}
+```
+
+导入命令：
+
+```bash
+mdp pet ~/.codex/pets/fox --force
+```
+
+详见：[Codex Pet 兼容规范草案](codex-pet-compat.md)。
 
 ## Agent 精灵资源
 
