@@ -160,7 +160,8 @@ public/kiosk-test/telemetry.mock.json
 
 - 主题资源包提供 `hero.logo`。
 - 测试页对图标叠加 CSS 发光和环形动画。
-- Hero 背景优先使用 Three.js 绘制低透明度几何体，加载失败时降级到原生 Canvas 动态几何。
+- Hero 背景使用本地 Canvas 三角网格动画：随机点缓慢运动，近邻点连线并填充半透明三角面。
+- 默认不依赖 CDN 或 WebGL，适合 NAS 开机后无桌面 kiosk 自动启动。
 
 主题资源：
 
@@ -179,6 +180,8 @@ public/themes/neon-dark/hero/mythenas-core.png
 - 默认占用一个标准网格块。
 - 主题资源包提供透明角色图：`mascot.assistant`。
 - 运行时通过 CSS class 切换动作，不要求主题包提供多张动作图。
+- 如果主题资源包提供 `mascot.rive.enabled=true` 和本地 `.riv` 文件，运行时优先使用 Rive canvas 骨架动画。
+- Rive 加载失败时必须回退到 PNG/CSS，不能让整个页面空白。
 - 默认每 `300000ms`，也就是 5 分钟，随机切换一次动作和格言。
 - 格言在角色头部气泡中显示，长度应短，避免遮挡主体。
 
@@ -189,6 +192,9 @@ idle
 wave
 think
 scan
+celebrate
+patrol
+focus
 ```
 
 主题资源：
@@ -197,7 +203,22 @@ scan
 public/themes/neon-dark/mascot/assistant.png
 ```
 
+可选 Rive 资源：
+
+```json
+{
+  "mascot": {
+    "rive": {
+      "enabled": true,
+      "src": "mascot/assistant.riv",
+      "runtime": "vendor/rive/rive.js",
+      "stateMachine": "AssistantState"
+    }
+  }
+}
+```
+
 后续路线：
 
-- 如果引入 Live2D、Spine 或 sprite sheet，应作为 `core.liveMascot` 或插件组件处理。
+- Live2D、Spine 或 sprite sheet 应作为 `core.liveMascot` 或插件组件处理。
 - 第三方模型或看板娘素材必须先做许可证和再分发审查。

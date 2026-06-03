@@ -104,6 +104,8 @@ public/themes/neon-dark/
   theme.json
   backgrounds/
   sprites/
+  hero/
+  mascot/
 ```
 
 当前默认资源包支持：
@@ -111,7 +113,9 @@ public/themes/neon-dark/
 - 多层背景：`wallpaper.layers`。
 - 纯色 fallback：`wallpaper.fallback`。
 - 内置循环动画：`drift-slow`、`drift-medium`、`pulse`。
-- 像素 Agent 基础状态精灵：`idle`、`working`、`error`、`offline`。
+- Hero 图标和本地 Canvas 三角网格背景配置。
+- 看板娘透明 PNG fallback 和可选 Rive `.riv` 骨架动画配置。
+- 像素 Agent 基础状态精灵：`idle`、`walking`、`working`、`thinking`、`building`、`reviewing`、`blocked`、`error`、`offline`。
 
 如果资源包没有提供动态背景，运行时必须退回纯色背景，不能让页面空白。
 

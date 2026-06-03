@@ -8,6 +8,7 @@
 - [显示输出方案](research/display-output-options.md)
 - [当前本机显示设备记录](research/current-hardware-display.md)
 - [OpenClaw / 像素 Agent 可视化参考调研](research/openclaw-pixel-agent-options.md)
+- [骨架动画与动态背景方案调研](research/animation-and-background-options.md)
 
 ## 架构决策
 

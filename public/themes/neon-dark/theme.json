@@ -1,7 +1,7 @@
 {
   "id": "core.neon-dark",
   "name": "Neon Dark",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "适合 3840x1100 长条副屏的暗色霓虹资源包。",
   "tokens": {
     "surface.canvas": "#05070a",
@@ -46,17 +46,31 @@
     "effects": ["scanlines", "vignette"]
   },
   "hero": {
-    "logo": "hero/mythenas-core.png"
+    "logo": "hero/mythenas-core.png",
+    "background": {
+      "engine": "canvas-triangle-mesh",
+      "pointCount": "auto",
+      "motion": "slow"
+    }
   },
   "mascot": {
-    "assistant": "mascot/assistant.png"
+    "assistant": "mascot/assistant.png",
+    "rive": {
+      "enabled": false,
+      "src": "",
+      "runtime": "https://unpkg.com/@rive-app/canvas@2.21.0/rive.js",
+      "stateMachine": ""
+    }
   },
   "sprites": {
     "agent": {
       "idle": "sprites/agent-idle.svg",
+      "walking": "sprites/agent-walking.svg",
       "working": "sprites/agent-working.svg",
-      "reviewing": "sprites/agent-working.svg",
-      "blocked": "sprites/agent-error.svg",
+      "thinking": "sprites/agent-thinking.svg",
+      "building": "sprites/agent-building.svg",
+      "reviewing": "sprites/agent-reviewing.svg",
+      "blocked": "sprites/agent-blocked.svg",
       "error": "sprites/agent-error.svg",
       "offline": "sprites/agent-offline.svg"
     }

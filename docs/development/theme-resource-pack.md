@@ -15,6 +15,8 @@ public/themes/neon-dark/
   theme.json
   backgrounds/
   sprites/
+  hero/
+  mascot/
 ```
 
 ## 最小结构
@@ -60,17 +62,31 @@ public/themes/<theme-id>/
     "effects": ["scanlines", "vignette"]
   },
   "hero": {
-    "logo": "hero/mythenas-core.png"
+    "logo": "hero/mythenas-core.png",
+    "background": {
+      "engine": "canvas-triangle-mesh",
+      "pointCount": "auto",
+      "motion": "slow"
+    }
   },
   "mascot": {
-    "assistant": "mascot/assistant.png"
+    "assistant": "mascot/assistant.png",
+    "rive": {
+      "enabled": false,
+      "src": "",
+      "runtime": "https://unpkg.com/@rive-app/canvas@2.21.0/rive.js",
+      "stateMachine": ""
+    }
   },
   "sprites": {
     "agent": {
       "idle": "sprites/agent-idle.svg",
+      "walking": "sprites/agent-walking.svg",
       "working": "sprites/agent-working.svg",
-      "reviewing": "sprites/agent-working.svg",
-      "blocked": "sprites/agent-error.svg",
+      "thinking": "sprites/agent-thinking.svg",
+      "building": "sprites/agent-building.svg",
+      "reviewing": "sprites/agent-reviewing.svg",
+      "blocked": "sprites/agent-blocked.svg",
       "error": "sprites/agent-error.svg",
       "offline": "sprites/agent-offline.svg"
     }
@@ -130,8 +146,8 @@ public/themes/neon-dark/hero/mythenas-core.png
 Hero 的动态效果由运行时提供：
 
 - CSS 发光和环形动画。
-- Three.js 几何背景。
-- Three.js 加载失败时的 Canvas fallback。
+- 本地 Canvas 三角网格背景，效果是随机点缓慢运动、近邻点连线并填充半透明三角面。
+- `hero.background.engine` 当前支持 `canvas-triangle-mesh`。如果省略，运行时仍可使用默认背景。
 
 主题资源包只提供图片资源，不执行任意代码。
 
@@ -143,7 +159,31 @@ Hero 的动态效果由运行时提供：
 public/themes/neon-dark/mascot/assistant.png
 ```
 
-该资源应是透明 PNG/WebP。动作由运行时通过 CSS 动画实现，第一版不要求主题包提供多张动作图。后续如果要接 Live2D、Spine 或多帧 sprite sheet，应作为单独组件能力声明，而不是让主题包执行任意代码。
+该资源应是透明 PNG/WebP。动作由运行时通过 CSS 动画实现，第一版不要求主题包提供多张动作图。
+
+主题可以选择提供 Rive 骨架动画资源：
+
+```json
+{
+  "mascot": {
+    "assistant": "mascot/assistant.png",
+    "rive": {
+      "enabled": true,
+      "src": "mascot/assistant.riv",
+      "runtime": "vendor/rive/rive.js",
+      "artboard": "Assistant",
+      "stateMachine": "AssistantState"
+    }
+  }
+}
+```
+
+规则：
+
+- `mascot.rive.src` 必须指向主题包内部的 `.riv` 文件。
+- `runtime` 建议指向本地 vendored runtime，避免 kiosk 开机时依赖外网；测试阶段也可以使用 CDN。
+- Rive 加载失败时，运行时必须回退到 `mascot.assistant`。
+- Live2D、Spine 或多帧 sprite sheet 应作为单独组件或插件能力声明，不让主题包执行任意 JS。
 
 ## Agent 精灵资源
 
@@ -151,19 +191,25 @@ public/themes/neon-dark/mascot/assistant.png
 
 ```text
 sprites.agent.idle
+sprites.agent.walking
 sprites.agent.working
+sprites.agent.thinking
+sprites.agent.building
+sprites.agent.reviewing
+sprites.agent.blocked
 sprites.agent.error
 sprites.agent.offline
 ```
 
-推荐额外状态：
+推荐额外状态可继续扩展，例如：
 
 ```text
-sprites.agent.reviewing
-sprites.agent.blocked
+sprites.agent.celebrating
+sprites.agent.sleeping
+sprites.agent.deploying
 ```
 
-如果主题没有提供额外状态，运行时可以回退到 `working` 或 `offline` 精灵。
+如果主题没有提供某个状态，运行时可以回退到 `working` 或 `offline` 精灵。默认资源包中的精灵是仓库自有 SVG；第三方 sprite sheet 必须先确认许可证允许再分发。
 
 ## 用户修改方式
 

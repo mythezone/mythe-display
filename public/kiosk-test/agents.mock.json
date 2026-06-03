@@ -5,33 +5,33 @@
       "id": "planner",
       "name": "Planner",
       "project": "mythe-display",
-      "status": "working",
-      "activity": "planning widget bridge",
+      "status": "thinking",
+      "activity": "mapping widget API",
       "progress": 72
     },
     {
       "id": "builder",
       "name": "Builder",
       "project": "runtime",
-      "status": "idle",
-      "activity": "waiting for next task",
-      "progress": 18
+      "status": "building",
+      "activity": "building display shell",
+      "progress": 46
     },
     {
       "id": "reviewer",
       "name": "Reviewer",
       "project": "docs",
-      "status": "error",
-      "activity": "schema mismatch",
-      "progress": 44
+      "status": "reviewing",
+      "activity": "checking schema",
+      "progress": 54
     },
     {
       "id": "ops",
       "name": "Ops",
       "project": "nas",
-      "status": "offline",
-      "activity": "gateway offline",
-      "progress": 0
+      "status": "walking",
+      "activity": "patrolling services",
+      "progress": 28
     }
   ]
 }

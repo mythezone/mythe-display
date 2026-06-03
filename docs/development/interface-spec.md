@@ -239,9 +239,22 @@ type ThemeResourcePack = {
   };
   hero?: {
     logo?: string;
+    background?: {
+      engine?: "canvas-triangle-mesh" | string;
+      pointCount?: "auto" | number;
+      motion?: "slow" | "normal" | "fast";
+    };
   };
   mascot?: {
     assistant?: string;
+    rive?: {
+      enabled: boolean;
+      src?: string;
+      runtime?: string;
+      artboard?: string;
+      stateMachine?: string;
+      stateMachines?: string | string[];
+    };
   };
 };
 
@@ -261,7 +274,10 @@ type WallpaperLayer = {
 ```ts
 type PixelAgentStatus =
   | "idle"
+  | "walking"
   | "working"
+  | "thinking"
+  | "building"
   | "reviewing"
   | "blocked"
   | "error"
@@ -272,6 +288,7 @@ type PixelAgent = {
   name: string;
   project?: string;
   status: PixelAgentStatus;
+  action?: PixelAgentStatus;
   activity?: string;
   progress?: number;
   health?: "ok" | "warn" | "bad" | "unknown";

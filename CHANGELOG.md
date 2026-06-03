@@ -22,3 +22,5 @@
 - 新增 `public/kiosk-test/disks.mock.json`、`docker.mock.json`、`telemetry.mock.json`，并新增 `scripts/collect-disk-snapshot.py` 用于生成真实磁盘快照。
 - 新增标准组件草案，定义 `core.diskMatrix`、`core.dockerTui`、`core.telemetryTrend` 和 `core.systemHero` 的数据契约与刷新策略。
 - 将 Telemetry 调整为单格组件，增加 CPU/Memory/Network 颜色图例与坐标轴；新增 `core.mascotAssistant` 看板娘组件原型，并把 MytheNAS LOGO 改为透明 PNG。
+- 将 MytheNAS Hero 背景改为本地 Canvas 三角网格动画；为看板娘预留 Rive `.riv` 骨架动画接口并保留 PNG/CSS fallback；放大 Agent 像素角色并新增 walking/thinking/building/reviewing/blocked 状态精灵。
+- 新增骨架动画与动态背景调研文档，记录 Rive、Live2D、Vanta.js、tsParticles、Trianglify 的取舍。

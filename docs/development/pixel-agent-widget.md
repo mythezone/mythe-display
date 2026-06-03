@@ -19,7 +19,10 @@
 ```ts
 type PixelAgentStatus =
   | "idle"
+  | "walking"
   | "working"
+  | "thinking"
+  | "building"
   | "reviewing"
   | "blocked"
   | "error"
@@ -30,6 +33,7 @@ type PixelAgent = {
   name: string;
   project?: string;
   status: PixelAgentStatus;
+  action?: PixelAgentStatus;
   activity?: string;
   progress?: number;
   health?: "ok" | "warn" | "bad" | "unknown";
@@ -65,7 +69,10 @@ type PixelAgentSnapshot = {
 ## 状态语义
 
 - `idle`：在线但没有正在执行的动作。
+- `walking`：巡视、搬运、切换上下文或在像素办公室中移动。
 - `working`：正在调用工具、执行任务、生成内容或处理队列。
+- `thinking`：正在分析、规划或等待模型推理。
+- `building`：正在生成代码、构建、打包或执行命令。
 - `reviewing`：等待人工确认、代码审查或策略判断。
 - `blocked`：被外部条件阻塞，例如凭据缺失、依赖失败、权限不足。
 - `error`：任务执行失败或适配器报告异常。
@@ -114,6 +121,8 @@ OpenClaw Gateway / plugin
 
 ```text
 OpenClaw session active/tool_call/running -> working
+OpenClaw model reasoning/planning        -> thinking
+OpenClaw command/build/test running      -> building
 OpenClaw pending approval/input needed    -> reviewing
 OpenClaw waiting/complete                 -> idle
 OpenClaw blocked by permission/config     -> blocked
@@ -153,6 +162,21 @@ OpenClaw gateway unreachable              -> offline
 }
 ```
 
+## 第三方像素资源接入
+
+默认主题使用仓库自有 SVG 精灵，保证可以随项目直接分发。后续要接入第三方行走图或动作图，推荐流程：
+
+1. 从 OpenGameArt、itch.io 等来源筛选 CC0 或明确允许商用/再分发的 sprite sheet。
+2. 把资源放进主题包，例如 `public/themes/<theme-id>/sprites/agents/worker-walk.png`。
+3. 在 `theme.json` 中映射到 `sprites.agent.walking`、`sprites.agent.building` 等状态。
+4. 在主题 README 中记录来源链接、作者、许可证和是否修改过。
+
+参考资源入口：
+
+- [OpenGameArt CC0 Walk Cycles](https://opengameart.org/content/cc0-walk-cycles)
+- [OpenGameArt Character Walking](https://opengameart.org/content/character-walking)
+- [itch.io CC0 Pixel Art Sprites](https://itch.io/game-assets/free/tag-cc0/tag-pixel-art/tag-sprites)
+
 ## 第一版实现范围
 
 已完成：
@@ -162,6 +186,7 @@ OpenClaw gateway unreachable              -> offline
 - 每 3 秒轮询一次，可用 `?agentsRefreshMs=1000` 调整。
 - 状态颜色跟随主题 token。
 - Agent 精灵从主题资源包读取。
+- 默认主题内置更大的自有像素 SVG 精灵，覆盖 `idle`、`walking`、`working`、`thinking`、`building`、`reviewing`、`blocked`、`error`、`offline`。
 
 未完成：
 

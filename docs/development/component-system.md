@@ -108,8 +108,8 @@ type DisplayComponentProps<TConfig, TData> = {
 - `core.network`：吞吐、IP、网卡状态。
 - `core.telemetryTrend`：合并 CPU、Memory、Network 的动态折线趋势。
 - `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读状态方块。
-- `core.systemHero`：设备标题、主题图标和动态几何背景。
-- `core.mascotAssistant`：透明看板娘资源、CSS 动作状态和随机格言。
+- `core.systemHero`：设备标题、主题图标和本地 Canvas 三角网格背景。
+- `core.mascotAssistant`：透明看板娘资源、CSS 动作状态、随机格言和可选 Rive 骨架动画。
 - `core.gpu`：NVIDIA/AMD/Intel 指标，按可用性提供。
 - `core.temperatures`：lm-sensors 标签和值。
 - `core.fans`：可用时显示风扇转速和曲线。
