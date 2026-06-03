@@ -125,10 +125,20 @@ scripts/run-kiosk-web-test.sh https://example.com
 运行后动态切换当前 kiosk 页面：
 
 ```bash
-scripts/kiosk-switch-url.py --list
-scripts/kiosk-switch-url.py /kiosk-test/?theme=../themes/neon-dark/theme.json
-scripts/kiosk-switch-url.py https://example.com
+scripts/kiosk-control.py list
+scripts/kiosk-control.py current
+scripts/kiosk-control.py switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
+scripts/kiosk-control.py switch https://example.com
+scripts/kiosk-control.py reload
 ```
+
+安装为 systemd 后，刷新当前界面不需要重启服务：
+
+```bash
+sudo systemctl reload mythe-display-kiosk
+```
+
+`reload` 会通过 Chromium DevTools 控制当前页面，并追加 `assetCacheBust` 参数，让主题资源重新加载。它不会执行 `systemctl restart`，因此不会重新抢占 DRM seat。
 
 Chromium 控制端口默认只绑定本机：
 

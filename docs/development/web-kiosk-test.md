@@ -90,7 +90,7 @@ Chromium 同时会禁用翻译 UI，并打开本机控制端口：
 --remote-debugging-port=23458
 ```
 
-动态切换页面依赖 Chromium DevTools 控制端口。Firefox kiosk 可作为显示回退方案，但当前不支持 `scripts/kiosk-switch-url.py`。
+动态切换页面依赖 Chromium DevTools 控制端口。Firefox kiosk 可作为显示回退方案，但当前不支持 `scripts/kiosk-control.py`。
 
 ### Systemd 服务模式
 
@@ -173,9 +173,11 @@ scripts/run-kiosk-web-test.sh https://example.com
 kiosk 运行后可以使用 DevTools 控制端口切换当前页面：
 
 ```bash
-scripts/kiosk-switch-url.py --list
-scripts/kiosk-switch-url.py /kiosk-test/
-scripts/kiosk-switch-url.py https://example.com
+scripts/kiosk-control.py list
+scripts/kiosk-control.py current
+scripts/kiosk-control.py switch /kiosk-test/
+scripts/kiosk-control.py switch https://example.com
+scripts/kiosk-control.py reload
 ```
 
 默认控制端口：
@@ -185,6 +187,14 @@ MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
 ```
 
 该端口只绑定 `127.0.0.1`。如果未来要提供局域网控制入口，应由 Mythe Display 后端提供鉴权 API，再由后端调用本地控制端口。
+
+安装为 systemd 服务后，可以直接刷新当前页面而不重启服务：
+
+```bash
+sudo systemctl reload mythe-display-kiosk
+```
+
+该命令对应服务模板中的 `ExecReload=scripts/kiosk-control.py reload`。它会创建一个刷新后的 Chromium page target，并关闭旧 target；这比 `systemctl restart` 更适合正在占用 HDMI/DRM 的 kiosk。
 
 ## 主题和数据源预览参数
 

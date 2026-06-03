@@ -1263,6 +1263,9 @@
       const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 300000);
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 5000);
       const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
+      const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
+      const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
+      const initialAssetCacheBust = params.get("assetCacheBust") || "";
 
       const wallpaper = document.getElementById("wallpaper");
       const heroLogo = document.getElementById("hero-logo");
@@ -1285,6 +1288,7 @@
       let telemetry = null;
       let riveMascot = null;
       let riveMascotResizeBound = false;
+      let themeAssetVersion = initialAssetCacheBust;
 
       const fallbackAgents = [
         { id: "planner", name: "Planner", project: "mythe-display", status: "thinking", activity: "mapping widget API", progress: 72 },
@@ -1324,7 +1328,11 @@
       }
 
       function resolveThemeAsset(path) {
-        return new URL(path, themeBaseUrl).toString();
+        const url = new URL(path, themeBaseUrl);
+        if (themeAssetVersion) {
+          url.searchParams.set("assetCacheBust", themeAssetVersion);
+        }
+        return url.toString();
       }
 
       function formatBytes(value) {
@@ -1703,7 +1711,10 @@
         renderAgents();
       }
 
-      async function loadTheme() {
+      async function loadTheme(options = {}) {
+        if (options.cacheBust) {
+          themeAssetVersion = String(Date.now());
+        }
         try {
           const response = await fetch(themeUrl, { cache: "no-store" });
           if (!response.ok) throw new Error(`theme ${response.status}`);
@@ -1870,6 +1881,12 @@
       setInterval(animateTelemetry, Math.max(2000, telemetryRefreshMs));
       setInterval(loadAgents, Math.max(1000, agentRefreshMs));
       setInterval(updateMascot, Math.max(60000, mascotActionMs));
+      if (themeRefreshMs > 0) {
+        setInterval(() => loadTheme({ cacheBust: true }), Math.max(1000, themeRefreshMs));
+      }
+      if (pageRefreshMs > 0) {
+        setInterval(() => window.location.reload(), Math.max(60000, pageRefreshMs));
+      }
       window.addEventListener("resize", drawTelemetryChart);
     </script>
   </body>

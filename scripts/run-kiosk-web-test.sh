@@ -34,7 +34,9 @@ Usage:
   sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 
 运行后动态切换页面:
-  scripts/kiosk-switch-url.py http://127.0.0.1:23456/kiosk-test/
+  scripts/kiosk-control.py list
+  scripts/kiosk-control.py switch /kiosk-test/
+  scripts/kiosk-control.py reload
   该能力依赖 Chromium DevTools 控制端口，Firefox kiosk 暂不支持。
 EOF
   exit 0

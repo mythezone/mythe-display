@@ -16,6 +16,7 @@ Environment=WLR_DRM_DEVICES=/dev/dri/card0
 Environment=WLR_LIBINPUT_NO_DEVICES=1
 Environment=MYTHE_DISPLAY_BROWSER=chromium-browser
 ExecStart=/home/mythezone/services/mythe/mythe-display/scripts/run-kiosk-web-test.sh
+ExecReload=/home/mythezone/services/mythe/mythe-display/scripts/kiosk-control.py reload
 Restart=on-failure
 RestartSec=3
 

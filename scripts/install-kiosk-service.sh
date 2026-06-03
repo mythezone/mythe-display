@@ -31,6 +31,14 @@ cat <<EOF
 查看日志:
   journalctl -u $UNIT_NAME -f
 
+刷新当前界面，不重启服务:
+  sudo systemctl reload $UNIT_NAME
+  scripts/kiosk-control.py reload
+
+动态切换当前界面:
+  scripts/kiosk-control.py switch /kiosk-test/
+  scripts/kiosk-control.py switch https://example.com
+
 设置开机自启:
   sudo systemctl enable $UNIT_NAME
 

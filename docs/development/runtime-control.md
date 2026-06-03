@@ -19,37 +19,51 @@ Mythe Display 启动后，应支持通过命令或本地 API 动态切换显示�
 
 控制端口只绑定 `127.0.0.1`，避免直接暴露到局域网。
 
-该能力依赖 Chromium DevTools HTTP API。Firefox kiosk 可以作为显示回退方案，但当前不支持 `scripts/kiosk-switch-url.py` 动态切换。
+该能力依赖 Chromium DevTools HTTP API。Firefox kiosk 可以作为显示回退方案，但当前不支持 `scripts/kiosk-control.py` 动态切换。
 
-切换脚本：
+控制脚本：
 
 ```bash
-scripts/kiosk-switch-url.py http://127.0.0.1:23456/kiosk-test/
+scripts/kiosk-control.py switch http://127.0.0.1:23456/kiosk-test/
 ```
 
 查看当前页面：
 
 ```bash
-scripts/kiosk-switch-url.py --list
+scripts/kiosk-control.py list
+scripts/kiosk-control.py current
 ```
 
 切换到本地相对路径：
 
 ```bash
-scripts/kiosk-switch-url.py /kiosk-test/?theme=../themes/neon-dark/theme.json
+scripts/kiosk-control.py switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
 ```
 
 切换到外部网页：
 
 ```bash
-scripts/kiosk-switch-url.py https://example.com
+scripts/kiosk-control.py switch https://example.com
 ```
+
+刷新当前页面，不重启服务：
+
+```bash
+scripts/kiosk-control.py reload
+```
+
+`reload` 默认会追加 `assetCacheBust=<timestamp>` 查询参数，配合测试页重新加载主题资源。它通过创建新 page target 并关闭旧 target 实现，不会重启 `cage`、Chromium 或 systemd 服务。
 
 默认会关闭旧的 page target，只保留新页面。如果需要保留旧页面：
 
 ```bash
-scripts/kiosk-switch-url.py --keep-existing https://example.com
+scripts/kiosk-control.py switch --keep-existing https://example.com
+scripts/kiosk-control.py reload --keep-existing
 ```
+
+注意：如果使用 zsh，带 `?`、`&` 的 URL 需要加引号，避免被 shell 当作通配符。
+
+旧兼容脚本 `scripts/kiosk-switch-url.py` 仍可使用，但新开发默认使用 `scripts/kiosk-control.py`。
 
 ## 环境变量
 
@@ -61,6 +75,34 @@ MYTHE_DISPLAY_REMOTE_DEBUG_HOST=127.0.0.1
 ```
 
 systemd 服务模板也使用同样默认值。
+
+systemd 服务模板包含：
+
+```ini
+ExecReload=/home/mythezone/services/mythe/mythe-display/scripts/kiosk-control.py reload
+```
+
+因此服务安装后可以这样刷新当前界面：
+
+```bash
+sudo systemctl reload mythe-display-kiosk
+```
+
+这不是重启服务，不会释放再重新抢占 DRM seat。
+
+## 测试页自动刷新参数
+
+测试页支持可选 URL 参数：
+
+```text
+themeRefreshMs=30000
+pageRefreshMs=900000
+assetCacheBust=<timestamp>
+```
+
+- `themeRefreshMs`：定期重新读取 `theme.json`，并刷新主题资源 URL。
+- `pageRefreshMs`：定期刷新整个页面，最小间隔为 60000ms。
+- `assetCacheBust`：手动给主题资源追加 cache-bust 参数，常由 `kiosk-control.py reload` 自动添加。
 
 ## 设计边界
 

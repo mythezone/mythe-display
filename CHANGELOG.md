@@ -24,3 +24,4 @@
 - 将 Telemetry 调整为单格组件，增加 CPU/Memory/Network 颜色图例与坐标轴；新增 `core.mascotAssistant` 看板娘组件原型，并把 MytheNAS LOGO 改为透明 PNG。
 - 将 MytheNAS Hero 背景改为本地 Canvas 三角网格动画；为看板娘预留 Rive `.riv` 骨架动画接口并保留 PNG/CSS fallback；放大 Agent 像素角色并新增 walking/thinking/building/reviewing/blocked 状态精灵。
 - 新增骨架动画与动态背景调研文档，记录 Rive、Live2D、Vanta.js、tsParticles、Trianglify 的取舍。
+- 新增 `scripts/kiosk-control.py`，支持 `list/current/switch/open/reload` 控制运行中的 Chromium kiosk；systemd 模板新增 `ExecReload`，可用 `sudo systemctl reload mythe-display-kiosk` 刷新当前界面而不重启服务。
