@@ -18,6 +18,10 @@
 
 - 默认主题资源包：`public/themes/neon-dark/theme.json`。
 - 多层循环背景和纯色 fallback。
+- MytheNAS hero 图标和动态几何背景。
+- CPU、Memory、Network 合并趋势图 mock：`public/kiosk-test/telemetry.mock.json`。
+- 磁盘矩阵 mock：`public/kiosk-test/disks.mock.json`。
+- LazyDocker 风格 Docker 方块 mock：`public/kiosk-test/docker.mock.json`。
 - 像素 Agent mock：`public/kiosk-test/agents.mock.json`。
 - 页面级禁翻译标记：`translate="no"` 和 `notranslate`。
 
@@ -181,12 +185,42 @@ MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
 
 该端口只绑定 `127.0.0.1`。如果未来要提供局域网控制入口，应由 Mythe Display 后端提供鉴权 API，再由后端调用本地控制端口。
 
-## 主题和 Agent 预览参数
+## 主题和数据源预览参数
 
 切换主题：
 
 ```text
 http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
+```
+
+切换磁盘数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
+```
+
+磁盘组件默认一小时刷新一次：
+
+```text
+http://<server-ip>:23456/kiosk-test/?disksRefreshMs=3600000
+```
+
+生成真实磁盘快照：
+
+```bash
+scripts/collect-disk-snapshot.py --out public/runtime/disks.json --pretty
+```
+
+切换 Docker 状态数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?docker=/api/docker/summary
+```
+
+切换 Telemetry 趋势数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?telemetry=/api/system/telemetry
 ```
 
 切换 Agent 状态数据源：

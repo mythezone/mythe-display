@@ -18,3 +18,6 @@
 - Web kiosk 测试页现在读取主题资源包，支持动态背景 fallback，并读取 `agents.mock.json` 渲染像素 Agent 原型。
 - 新增运行时 URL 切换脚本 `scripts/kiosk-switch-url.py`，通过本机 Chromium DevTools 端口动态切换当前 kiosk 页面。
 - 新增主题资源包、像素 Agent 组件、运行时控制和 OpenClaw/像素 Agent 参考项目调研文档。
+- 优化 Web kiosk 主界面：新增 MytheNAS 生成式科技图标、Hero 动态几何背景、CPU/Memory/Network 合并趋势图、紧凑磁盘矩阵和 LazyDocker 风格 Docker 方块。
+- 新增 `public/kiosk-test/disks.mock.json`、`docker.mock.json`、`telemetry.mock.json`，并新增 `scripts/collect-disk-snapshot.py` 用于生成真实磁盘快照。
+- 新增标准组件草案，定义 `core.diskMatrix`、`core.dockerTui`、`core.telemetryTrend` 和 `core.systemHero` 的数据契约与刷新策略。

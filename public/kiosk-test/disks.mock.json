@@ -1,0 +1,27 @@
+{
+  "updatedAt": "2026-06-03T00:00:00Z",
+  "refreshMs": 3600000,
+  "summary": {
+    "totalBytes": 217000000000000,
+    "usedBytes": 138900000000000,
+    "diskCount": 16
+  },
+  "disks": [
+    { "id": "bay01", "name": "Bay 01", "type": "hdd", "role": "array", "mount": "/mnt/tank/d01", "usedPercent": 71, "totalBytes": 18000000000000, "usedBytes": 12780000000000, "status": "ok" },
+    { "id": "bay02", "name": "Bay 02", "type": "hdd", "role": "array", "mount": "/mnt/tank/d02", "usedPercent": 69, "totalBytes": 18000000000000, "usedBytes": 12420000000000, "status": "ok" },
+    { "id": "bay03", "name": "Bay 03", "type": "hdd", "role": "array", "mount": "/mnt/tank/d03", "usedPercent": 74, "totalBytes": 18000000000000, "usedBytes": 13320000000000, "status": "ok" },
+    { "id": "bay04", "name": "Bay 04", "type": "hdd", "role": "array", "mount": "/mnt/tank/d04", "usedPercent": 63, "totalBytes": 18000000000000, "usedBytes": 11340000000000, "status": "ok" },
+    { "id": "bay05", "name": "Bay 05", "type": "hdd", "role": "array", "mount": "/mnt/tank/d05", "usedPercent": 78, "totalBytes": 18000000000000, "usedBytes": 14040000000000, "status": "warn" },
+    { "id": "bay06", "name": "Bay 06", "type": "hdd", "role": "array", "mount": "/mnt/tank/d06", "usedPercent": 58, "totalBytes": 18000000000000, "usedBytes": 10440000000000, "status": "ok" },
+    { "id": "bay07", "name": "Bay 07", "type": "hdd", "role": "array", "mount": "/mnt/tank/d07", "usedPercent": 66, "totalBytes": 18000000000000, "usedBytes": 11880000000000, "status": "ok" },
+    { "id": "bay08", "name": "Bay 08", "type": "hdd", "role": "array", "mount": "/mnt/tank/d08", "usedPercent": 82, "totalBytes": 18000000000000, "usedBytes": 14760000000000, "status": "warn" },
+    { "id": "bay09", "name": "Bay 09", "type": "hdd", "role": "array", "mount": "/mnt/tank/d09", "usedPercent": 55, "totalBytes": 18000000000000, "usedBytes": 9900000000000, "status": "ok" },
+    { "id": "bay10", "name": "Bay 10", "type": "hdd", "role": "array", "mount": "/mnt/tank/d10", "usedPercent": 61, "totalBytes": 18000000000000, "usedBytes": 10980000000000, "status": "ok" },
+    { "id": "nvme0", "name": "NVMe 0", "type": "nvme", "role": "cache", "mount": "/mnt/cache/a", "usedPercent": 37, "totalBytes": 4000000000000, "usedBytes": 1480000000000, "status": "ok" },
+    { "id": "nvme1", "name": "NVMe 1", "type": "nvme", "role": "cache", "mount": "/mnt/cache/b", "usedPercent": 42, "totalBytes": 4000000000000, "usedBytes": 1680000000000, "status": "ok" },
+    { "id": "usb0", "name": "USB 0", "type": "usb", "role": "backup", "mount": "/mnt/usb/backup-a", "usedPercent": 91, "totalBytes": 8000000000000, "usedBytes": 7280000000000, "status": "bad" },
+    { "id": "usb1", "name": "USB 1", "type": "usb", "role": "backup", "mount": "/mnt/usb/backup-b", "usedPercent": 46, "totalBytes": 8000000000000, "usedBytes": 3680000000000, "status": "ok" },
+    { "id": "ssd0", "name": "SSD 0", "type": "ssd", "role": "appdata", "mount": "/mnt/appdata", "usedPercent": 33, "totalBytes": 2000000000000, "usedBytes": 660000000000, "status": "ok" },
+    { "id": "ssd1", "name": "SSD 1", "type": "ssd", "role": "vm", "mount": "/mnt/vm", "usedPercent": 67, "totalBytes": 2000000000000, "usedBytes": 1340000000000, "status": "ok" }
+  ]
+}

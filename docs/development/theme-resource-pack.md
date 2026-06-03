@@ -24,6 +24,7 @@ public/themes/<theme-id>/
   theme.json
   backgrounds/        # 可选
   sprites/            # 可选
+  hero/               # 可选
   fonts/              # 可选
   icons/              # 可选
 ```
@@ -36,7 +37,7 @@ public/themes/<theme-id>/
 {
   "id": "core.neon-dark",
   "name": "Neon Dark",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "适合 3840x1100 长条副屏的暗色霓虹资源包。",
   "tokens": {
     "surface.canvas": "#05070a",
@@ -56,6 +57,9 @@ public/themes/<theme-id>/
       }
     ],
     "effects": ["scanlines", "vignette"]
+  },
+  "hero": {
+    "logo": "hero/mythenas-core.png"
   },
   "sprites": {
     "agent": {
@@ -108,6 +112,24 @@ shadow.panel
 - `canvas`：由主题或插件提供的安全前端背景模块。
 
 第一版只允许静态资源加内置 CSS 动画，避免主题包执行任意代码。
+
+## Hero 资源
+
+`hero.logo` 用于系统标题组件。默认资源：
+
+```text
+public/themes/neon-dark/hero/mythenas-core.png
+```
+
+标题文字仍由 HTML/CSS 渲染，图片只承担图标/视觉锚点角色。这样可以避免生成式图片中文字不准，也能让主题切换时保留统一排版。
+
+Hero 的动态效果由运行时提供：
+
+- CSS 发光和环形动画。
+- Three.js 几何背景。
+- Three.js 加载失败时的 Canvas fallback。
+
+主题资源包只提供图片资源，不执行任意代码。
 
 ## Agent 精灵资源
 

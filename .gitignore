@@ -28,6 +28,7 @@ logs/
 tmp/
 temp/
 .cache/
+public/runtime/
 
 # OS / editor noise
 .DS_Store

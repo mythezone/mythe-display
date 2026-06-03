@@ -1,7 +1,7 @@
 {
   "id": "core.neon-dark",
   "name": "Neon Dark",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "适合 3840x1100 长条副屏的暗色霓虹资源包。",
   "tokens": {
     "surface.canvas": "#05070a",
@@ -44,6 +44,9 @@
       }
     ],
     "effects": ["scanlines", "vignette"]
+  },
+  "hero": {
+    "logo": "hero/mythenas-core.png"
   },
   "sprites": {
     "agent": {

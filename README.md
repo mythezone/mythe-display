@@ -36,6 +36,7 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 - [主题系统规范草案](docs/development/theme-system.md)
 - [主题资源包规范草案](docs/development/theme-resource-pack.md)
 - [组件系统草案](docs/development/component-system.md)
+- [标准组件草案](docs/development/standard-widgets.md)
 - [像素 Agent 组件规范草案](docs/development/pixel-agent-widget.md)
 - [插件式扩展模型草案](docs/development/plugin-extension-model.md)
 - [Web kiosk 测试说明](docs/development/web-kiosk-test.md)
@@ -73,6 +74,9 @@ components/<component-id>/
 
 - [public/kiosk-test/index.html](public/kiosk-test/index.html)
 - [public/kiosk-test/agents.mock.json](public/kiosk-test/agents.mock.json)
+- [public/kiosk-test/disks.mock.json](public/kiosk-test/disks.mock.json)
+- [public/kiosk-test/docker.mock.json](public/kiosk-test/docker.mock.json)
+- [public/kiosk-test/telemetry.mock.json](public/kiosk-test/telemetry.mock.json)
 - [public/themes/neon-dark/theme.json](public/themes/neon-dark/theme.json)
 
 本地预览：
@@ -152,12 +156,35 @@ public/themes/neon-dark/
 
 - `theme.json`：语义 token、动态背景层、Agent 精灵映射。
 - `backgrounds/`：可循环播放的 SVG 背景层。
+- `hero/`：MytheNAS 科技感图标资源。
 - `sprites/`：像素 Agent 的 `idle`、`working`、`error`、`offline` 状态资源。
 
 用户可以复制整个目录创建新主题，并在预览 URL 中指定：
 
 ```text
 http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
+```
+
+## 标准组件原型
+
+测试页现在包含这些标准组件原型：
+
+- `core.systemHero`：MytheNAS 图标、动态发光和 Three.js 几何背景；Three.js 加载失败时降级到 Canvas。
+- `core.telemetryTrend`：CPU、Memory、Network 合并折线图。
+- `core.diskMatrix`：紧凑磁盘矩阵，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认一小时刷新。
+- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读方块。
+- `core.pixelAgents`：OpenClaw 兼容的像素 Agent 状态原型。
+
+真实磁盘快照可以这样生成：
+
+```bash
+scripts/collect-disk-snapshot.py --out public/runtime/disks.json --pretty
+```
+
+然后用真实数据预览：
+
+```text
+http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
 ```
 
 ## 像素 Agent 原型

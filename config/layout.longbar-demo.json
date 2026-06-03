@@ -4,61 +4,66 @@
   "grid": {
     "columns": 24,
     "rows": 6,
-    "gap": 18,
-    "padding": 36
+    "gap": 16,
+    "padding": 30
   },
   "widgets": [
     {
       "id": "system-hero",
       "widget": "core.systemHero",
       "area": { "x": 0, "y": 0, "w": 6, "h": 6 },
-      "config": { "hostname": "mythenas" }
+      "config": {
+        "hostname": "MytheNAS",
+        "heroAsset": "public/themes/neon-dark/hero/mythenas-core.png",
+        "geometry": "threejs-with-canvas-fallback"
+      }
     },
     {
-      "id": "cpu",
-      "widget": "core.cpu",
-      "area": { "x": 6, "y": 0, "w": 4, "h": 3 },
-      "config": { "variant": "radial" }
+      "id": "telemetry",
+      "widget": "core.telemetryTrend",
+      "area": { "x": 6, "y": 0, "w": 8, "h": 3 },
+      "config": {
+        "topics": ["system.cpu", "system.memory", "system.network"],
+        "mock": "public/kiosk-test/telemetry.mock.json",
+        "refreshMs": 5000
+      }
     },
     {
-      "id": "memory",
-      "widget": "core.memory",
-      "area": { "x": 10, "y": 0, "w": 4, "h": 3 },
-      "config": { "variant": "bar" }
-    },
-    {
-      "id": "network",
-      "widget": "core.network",
+      "id": "docker",
+      "widget": "core.dockerTui",
       "area": { "x": 14, "y": 0, "w": 5, "h": 3 },
-      "config": { "interface": "auto" }
+      "config": {
+        "style": "lazydocker",
+        "mock": "public/kiosk-test/docker.mock.json",
+        "refreshMs": 300000
+      }
     },
     {
-      "id": "storage",
-      "widget": "core.storage",
+      "id": "clock",
+      "widget": "core.clock",
       "area": { "x": 19, "y": 0, "w": 5, "h": 3 },
-      "config": { "mounts": ["/"] }
+      "config": { "showSeconds": true }
+    },
+    {
+      "id": "disk-matrix",
+      "widget": "core.diskMatrix",
+      "area": { "x": 6, "y": 3, "w": 13, "h": 3 },
+      "config": {
+        "source": "system.disks",
+        "mock": "public/kiosk-test/disks.mock.json",
+        "refreshMs": 3600000,
+        "maxVisible": 24
+      }
     },
     {
       "id": "openclaw-agents",
       "widget": "core.pixelAgents",
-      "area": { "x": 6, "y": 3, "w": 8, "h": 3 },
+      "area": { "x": 19, "y": 3, "w": 5, "h": 3 },
       "config": {
         "source": "openclaw.compat",
         "mock": "public/kiosk-test/agents.mock.json",
         "refreshMs": 3000
       }
-    },
-    {
-      "id": "temperatures",
-      "widget": "core.temperatures",
-      "area": { "x": 14, "y": 3, "w": 5, "h": 3 },
-      "config": { "source": "lm-sensors" }
-    },
-    {
-      "id": "clock",
-      "widget": "core.clock",
-      "area": { "x": 19, "y": 3, "w": 5, "h": 3 },
-      "config": { "showSeconds": true }
     }
   ]
 }

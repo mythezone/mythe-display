@@ -1,0 +1,21 @@
+{
+  "updatedAt": "2026-06-03T00:00:00Z",
+  "refreshMs": 300000,
+  "summary": {
+    "running": 18,
+    "stopped": 3,
+    "images": 42,
+    "volumes": 29,
+    "cpuPercent": 21,
+    "memoryPercent": 54,
+    "networkRx": "128 MB/s",
+    "networkTx": "42 MB/s"
+  },
+  "containers": [
+    { "name": "plex", "state": "running", "cpuPercent": 7.2, "memory": "1.8 GB" },
+    { "name": "immich-server", "state": "running", "cpuPercent": 5.6, "memory": "2.4 GB" },
+    { "name": "postgres", "state": "running", "cpuPercent": 3.1, "memory": "1.1 GB" },
+    { "name": "traefik", "state": "running", "cpuPercent": 0.8, "memory": "180 MB" },
+    { "name": "backup-agent", "state": "exited", "cpuPercent": 0, "memory": "0 MB" }
+  ]
+}

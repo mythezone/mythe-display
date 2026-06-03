@@ -237,6 +237,9 @@ type ThemeResourcePack = {
   sprites?: {
     agent?: Record<string, string>;
   };
+  hero?: {
+    logo?: string;
+  };
 };
 
 type WallpaperLayer = {
@@ -277,6 +280,86 @@ type PixelAgent = {
 type PixelAgentSnapshot = {
   updatedAt: string;
   agents: PixelAgent[];
+};
+```
+
+## DiskSnapshot
+
+磁盘矩阵组件使用低频快照，默认一小时刷新一次。
+
+```ts
+type DiskType = "hdd" | "nvme" | "ssd" | "usb";
+type DiskStatus = "ok" | "warn" | "bad" | "unknown";
+
+type DiskSnapshot = {
+  updatedAt: string;
+  refreshMs: number;
+  summary: {
+    totalBytes: number;
+    usedBytes: number;
+    diskCount: number;
+  };
+  disks: {
+    id: string;
+    name: string;
+    type: DiskType;
+    role?: string;
+    mount?: string | null;
+    model?: string;
+    usedPercent: number;
+    totalBytes: number;
+    usedBytes: number;
+    status: DiskStatus;
+  }[];
+};
+```
+
+## TelemetryTrendSnapshot
+
+CPU、Memory、Network 合并趋势组件使用同一份快照。
+
+```ts
+type TelemetryTrendSnapshot = {
+  updatedAt: string;
+  refreshMs: number;
+  series: {
+    cpu: number[];
+    memory: number[];
+    network: number[];
+  };
+  metrics: {
+    cpuPercent: number;
+    memoryPercent: number;
+    networkRx: string;
+    networkTx?: string;
+  };
+};
+```
+
+## DockerSnapshot
+
+Docker 方块组件参考 lazydocker 的信息结构，但只做只读监控。
+
+```ts
+type DockerSnapshot = {
+  updatedAt: string;
+  refreshMs: number;
+  summary: {
+    running: number;
+    stopped: number;
+    images: number;
+    volumes: number;
+    cpuPercent: number;
+    memoryPercent: number;
+    networkRx?: string;
+    networkTx?: string;
+  };
+  containers: {
+    name: string;
+    state: "running" | "exited" | "paused" | "restarting";
+    cpuPercent: number;
+    memory: string;
+  }[];
 };
 ```
 
@@ -321,10 +404,14 @@ type DataSnapshot = {
 - `system.cpu`
 - `system.memory`
 - `system.disk`
+- `system.disks`
 - `system.network`
 - `system.temperatures`
 - `system.gpu`
 - `system.processes`
+- `docker.summary`
+- `docker.containers`
+- `telemetry.trend`
 - `agents.pixel`
 - `time.now`
 - `app.status`
