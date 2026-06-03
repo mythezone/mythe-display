@@ -28,8 +28,11 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 
 - [开源项目调研](docs/research/open-source-options.md)
 - [显示输出方案](docs/research/display-output-options.md)
+- [当前本机显示设备记录](docs/research/current-hardware-display.md)
 - [推荐架构决策](docs/decisions/0001-build-custom-web-kiosk.md)
+- [无桌面 Ubuntu kiosk 可行性](docs/development/headless-kiosk-feasibility.md)
 - [组件系统草案](docs/development/component-system.md)
+- [插件式扩展模型草案](docs/development/plugin-extension-model.md)
 - [路线图](docs/development/roadmap.md)
 - [文档维护规范](docs/development/documentation-policy.md)
 - [更新记录](CHANGELOG.md)
@@ -58,6 +61,14 @@ components/<component-id>/
 
 ## 硬件建议
 
+当前本机已检测到 HDMI 长条屏：
+
+- connector：`card0-HDMI-A-2`
+- framebuffer：`/dev/fb0`
+- 分辨率：`3840x1100`
+- 色深：`32bpp`
+- framebuffer 驱动：`i915drmfb`
+
 优先选择：
 
 - 小尺寸 HDMI 屏，连接到独显、核显或主板 HDMI/DP 输出。
@@ -82,6 +93,20 @@ components/<component-id>/
 3. 在 `config/` 中配置显示屏几何信息和组件布局。
 4. 启动本地预览。
 5. 在生产环境安装 kiosk/systemd 服务。
+
+当前可用的底层屏幕测试命令：
+
+```bash
+python3 scripts/fb-color-test.py info
+sudo python3 scripts/fb-color-test.py fill --color '#0047ff' --duration 5 --restore
+sudo python3 scripts/fb-color-test.py bars --duration 5 --restore
+```
+
+如果不想每次写屏都使用 `sudo`，可以将运行用户加入图形设备相关组后重新登录或重启：
+
+```bash
+sudo usermod -aG video,render,input mythezone
+```
 
 ## 仓库规则
 
