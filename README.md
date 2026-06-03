@@ -30,9 +30,13 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 - [显示输出方案](docs/research/display-output-options.md)
 - [当前本机显示设备记录](docs/research/current-hardware-display.md)
 - [推荐架构决策](docs/decisions/0001-build-custom-web-kiosk.md)
+- [Web 主显示层决策](docs/decisions/0002-web-kiosk-runtime.md)
 - [无桌面 Ubuntu kiosk 可行性](docs/development/headless-kiosk-feasibility.md)
+- [接口规范草案](docs/development/interface-spec.md)
+- [主题系统规范草案](docs/development/theme-system.md)
 - [组件系统草案](docs/development/component-system.md)
 - [插件式扩展模型草案](docs/development/plugin-extension-model.md)
+- [Web kiosk 测试说明](docs/development/web-kiosk-test.md)
 - [路线图](docs/development/roadmap.md)
 - [文档维护规范](docs/development/documentation-policy.md)
 - [更新记录](CHANGELOG.md)
@@ -58,6 +62,36 @@ components/<component-id>/
 ```
 
 每个组件需要声明输入数据、刷新策略、尺寸约束、主题能力和降级状态。
+
+## Web Kiosk 测试
+
+当前仓库包含一个静态网页测试页面：
+
+- [public/kiosk-test/index.html](public/kiosk-test/index.html)
+
+本地预览：
+
+```bash
+python3 scripts/serve-web-test.py --host 0.0.0.0 --port 4173
+```
+
+浏览器访问：
+
+```text
+http://<server-ip>:4173/kiosk-test/
+```
+
+无浏览器控制条上屏需要安装 kiosk compositor 和浏览器。当前服务器尚未安装 `cage/weston/chromium/firefox`，安装后可运行：
+
+```bash
+scripts/run-kiosk-web-test.sh
+```
+
+也可以测试任意网页：
+
+```bash
+scripts/run-kiosk-web-test.sh https://example.com
+```
 
 ## 硬件建议
 

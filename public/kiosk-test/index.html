@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mythe Display Kiosk Test</title>
+    <style>
+      :root {
+        --md-surface-canvas: #05070a;
+        --md-surface-panel: rgba(18, 22, 30, 0.86);
+        --md-surface-panel-muted: rgba(18, 22, 30, 0.56);
+        --md-text-primary: #f4f7fb;
+        --md-text-secondary: #a8b3c7;
+        --md-text-muted: #657086;
+        --md-accent-primary: #0a84ff;
+        --md-accent-secondary: #bf5af2;
+        --md-metric-good: #30d158;
+        --md-metric-warn: #ffd60a;
+        --md-metric-bad: #ff453a;
+        --md-border-subtle: rgba(255, 255, 255, 0.12);
+        --md-shadow-panel: 0 18px 60px rgba(0, 0, 0, 0.34);
+        color-scheme: dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--md-surface-canvas);
+        color: var(--md-text-primary);
+      }
+
+      body {
+        display: grid;
+        place-items: stretch;
+      }
+
+      .screen {
+        width: 100vw;
+        height: 100vh;
+        min-width: 0;
+        min-height: 0;
+        padding: 36px;
+        display: grid;
+        grid-template-columns: 1.12fr 0.82fr 0.82fr 0.92fr 0.92fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 18px;
+        background:
+          radial-gradient(circle at 8% 18%, rgba(10, 132, 255, 0.18), transparent 30%),
+          radial-gradient(circle at 78% 28%, rgba(191, 90, 242, 0.16), transparent 28%),
+          linear-gradient(135deg, #05070a 0%, #0b1017 48%, #07090f 100%);
+      }
+
+      .panel {
+        min-width: 0;
+        min-height: 0;
+        border: 1px solid var(--md-border-subtle);
+        border-radius: 8px;
+        background: var(--md-surface-panel);
+        box-shadow: var(--md-shadow-panel);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%);
+        opacity: 0.65;
+      }
+
+      .hero {
+        grid-row: span 2;
+        padding: 34px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .eyebrow {
+        color: var(--md-text-secondary);
+        font-size: 22px;
+        line-height: 1.2;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .host {
+        align-self: center;
+      }
+
+      .host h1 {
+        margin: 0;
+        font-size: clamp(72px, 5vw, 132px);
+        line-height: 0.92;
+        letter-spacing: 0;
+      }
+
+      .host p {
+        margin: 22px 0 0;
+        color: var(--md-text-secondary);
+        font-size: clamp(24px, 1.6vw, 38px);
+      }
+
+      .status-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+
+      .status-chip {
+        border: 1px solid var(--md-border-subtle);
+        border-radius: 8px;
+        padding: 16px 18px;
+        background: var(--md-surface-panel-muted);
+      }
+
+      .status-chip strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 28px;
+      }
+
+      .status-chip span {
+        color: var(--md-text-muted);
+        font-size: 16px;
+      }
+
+      .metric {
+        padding: 28px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 16px;
+      }
+
+      .metric header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .metric h2 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.1;
+      }
+
+      .pill {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--md-text-secondary);
+        font-size: 16px;
+        white-space: nowrap;
+      }
+
+      .value {
+        align-self: center;
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(52px, 4vw, 96px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .value small {
+        color: var(--md-text-muted);
+        font-size: 0.34em;
+      }
+
+      .bar {
+        height: 14px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .bar span {
+        display: block;
+        width: var(--value);
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent), rgba(255, 255, 255, 0.76));
+      }
+
+      .wide {
+        grid-column: span 2;
+      }
+
+      .process-list {
+        align-self: stretch;
+        display: grid;
+        grid-template-rows: repeat(5, 1fr);
+        gap: 10px;
+      }
+
+      .process {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1.2fr 0.5fr 1.4fr;
+        align-items: center;
+        gap: 16px;
+        color: var(--md-text-secondary);
+        font-size: 18px;
+      }
+
+      .process strong {
+        overflow: hidden;
+        color: var(--md-text-primary);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .time {
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+
+      .time .clock {
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(62px, 5vw, 120px);
+        line-height: 0.9;
+      }
+
+      .time .date {
+        margin-top: 16px;
+        color: var(--md-text-secondary);
+        font-size: 24px;
+      }
+
+      @media (max-aspect-ratio: 2/1) {
+        .screen {
+          overflow: auto;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: auto;
+        }
+
+        .hero,
+        .wide {
+          grid-column: span 2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="screen" aria-label="Mythe Display 测试界面">
+      <section class="panel hero">
+        <div class="eyebrow">Mythe Display · Web Kiosk Test</div>
+        <div class="host">
+          <h1>mythenas</h1>
+          <p>3840 × 1100 · HDMI-A-2 · Web runtime</p>
+        </div>
+        <div class="status-row">
+          <div class="status-chip">
+            <strong>DRM</strong>
+            <span>KMS scanout ready</span>
+          </div>
+          <div class="status-chip">
+            <strong>WEB</strong>
+            <span>HTML/CSS content</span>
+          </div>
+          <div class="status-chip">
+            <strong>API</strong>
+            <span>Widget contract draft</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel metric">
+        <header>
+          <h2>CPU</h2>
+          <span class="pill">system.cpu</span>
+        </header>
+        <div class="value">37<small>%</small></div>
+        <div class="bar" style="--accent: var(--md-accent-primary)">
+          <span style="--value: 37%"></span>
+        </div>
+      </section>
+
+      <section class="panel metric">
+        <header>
+          <h2>Memory</h2>
+          <span class="pill">system.memory</span>
+        </header>
+        <div class="value">62<small>%</small></div>
+        <div class="bar" style="--accent: var(--md-accent-secondary)">
+          <span style="--value: 62%"></span>
+        </div>
+      </section>
+
+      <section class="panel metric">
+        <header>
+          <h2>Network</h2>
+          <span class="pill">eth0</span>
+        </header>
+        <div class="value">82<small>MB/s</small></div>
+        <div class="bar" style="--accent: var(--md-metric-good)">
+          <span style="--value: 74%"></span>
+        </div>
+      </section>
+
+      <section class="panel metric">
+        <header>
+          <h2>Storage</h2>
+          <span class="pill">root</span>
+        </header>
+        <div class="value">48<small>%</small></div>
+        <div class="bar" style="--accent: var(--md-metric-warn)">
+          <span style="--value: 48%"></span>
+        </div>
+      </section>
+
+      <section class="panel metric wide">
+        <header>
+          <h2>Processes</h2>
+          <span class="pill">mock data</span>
+        </header>
+        <div class="process-list">
+          <div class="process"><strong>mythe-display</strong><span>18%</span><div class="bar"><span style="--value: 18%; --accent: var(--md-accent-primary)"></span></div></div>
+          <div class="process"><strong>node</strong><span>11%</span><div class="bar"><span style="--value: 11%; --accent: var(--md-accent-secondary)"></span></div></div>
+          <div class="process"><strong>zfs</strong><span>8%</span><div class="bar"><span style="--value: 8%; --accent: var(--md-metric-good)"></span></div></div>
+          <div class="process"><strong>docker</strong><span>6%</span><div class="bar"><span style="--value: 6%; --accent: var(--md-metric-warn)"></span></div></div>
+          <div class="process"><strong>ssh</strong><span>2%</span><div class="bar"><span style="--value: 2%; --accent: var(--md-text-muted)"></span></div></div>
+        </div>
+      </section>
+
+      <section class="panel metric">
+        <header>
+          <h2>Temperature</h2>
+          <span class="pill">lm-sensors</span>
+        </header>
+        <div class="value">43<small>°C</small></div>
+        <div class="bar" style="--accent: var(--md-metric-good)">
+          <span style="--value: 43%"></span>
+        </div>
+      </section>
+
+      <section class="panel metric time">
+        <div>
+          <div class="clock" id="clock">--:--:--</div>
+          <div class="date" id="date">Loading</div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const clock = document.getElementById("clock");
+      const date = document.getElementById("date");
+
+      function tick() {
+        const now = new Date();
+        clock.textContent = new Intl.DateTimeFormat("zh-CN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false
+        }).format(now);
+        date.textContent = new Intl.DateTimeFormat("zh-CN", {
+          weekday: "long",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).format(now);
+      }
+
+      tick();
+      setInterval(tick, 1000);
+    </script>
+  </body>
+</html>

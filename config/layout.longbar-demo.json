@@ -1,0 +1,60 @@
+{
+  "id": "longbar-demo",
+  "displayId": "mythenas-longbar",
+  "grid": {
+    "columns": 24,
+    "rows": 6,
+    "gap": 18,
+    "padding": 36
+  },
+  "widgets": [
+    {
+      "id": "system-hero",
+      "widget": "core.systemHero",
+      "area": { "x": 0, "y": 0, "w": 6, "h": 6 },
+      "config": { "hostname": "mythenas" }
+    },
+    {
+      "id": "cpu",
+      "widget": "core.cpu",
+      "area": { "x": 6, "y": 0, "w": 4, "h": 3 },
+      "config": { "variant": "radial" }
+    },
+    {
+      "id": "memory",
+      "widget": "core.memory",
+      "area": { "x": 10, "y": 0, "w": 4, "h": 3 },
+      "config": { "variant": "bar" }
+    },
+    {
+      "id": "network",
+      "widget": "core.network",
+      "area": { "x": 14, "y": 0, "w": 5, "h": 3 },
+      "config": { "interface": "auto" }
+    },
+    {
+      "id": "storage",
+      "widget": "core.storage",
+      "area": { "x": 19, "y": 0, "w": 5, "h": 3 },
+      "config": { "mounts": ["/"] }
+    },
+    {
+      "id": "processes",
+      "widget": "core.processes",
+      "area": { "x": 6, "y": 3, "w": 8, "h": 3 },
+      "config": { "limit": 5 }
+    },
+    {
+      "id": "temperatures",
+      "widget": "core.temperatures",
+      "area": { "x": 14, "y": 3, "w": 5, "h": 3 },
+      "config": { "source": "lm-sensors" }
+    },
+    {
+      "id": "clock",
+      "widget": "core.clock",
+      "area": { "x": 19, "y": 3, "w": 5, "h": 3 },
+      "config": { "showSeconds": true }
+    }
+  ]
+}

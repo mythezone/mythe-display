@@ -1,0 +1,19 @@
+{
+  "id": "mythenas-longbar",
+  "name": "MytheNAS HDMI Long Bar",
+  "width": 3840,
+  "height": 1100,
+  "density": 1,
+  "rotation": 0,
+  "safeArea": {
+    "top": 0,
+    "right": 0,
+    "bottom": 0,
+    "left": 0
+  },
+  "output": {
+    "connector": "card0-HDMI-A-2",
+    "mode": "3840x1100",
+    "kioskUrl": "http://127.0.0.1:4173"
+  }
+}

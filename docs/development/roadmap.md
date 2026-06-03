@@ -15,10 +15,15 @@
 - 增加 framebuffer 颜色/色条测试工具。
 - 增加 DRM/KMS 颜色/色条测试工具，并确认真实 scanout 路径可用。
 - 初步定义插件式扩展模型。
+- 确认 Web 页面作为主显示层。
+- 定义接口规范、主题系统规范和长条屏示例配置。
+- 增加静态 Web kiosk 测试页和启动脚本。
 
 ## 阶段 1：最小可运行预览
 
 - 使用 DRM/KMS 颜色测试确认可控屏。
+- 先用静态 HTML 测试页面确认 Web 内容路径。
+- 安装并验证 `cage` + Chromium/Firefox kiosk 上屏。
 - 搭建 React + TypeScript 前端。
 - 增加本地指标服务。
 - 增加 WebSocket 数据总线。

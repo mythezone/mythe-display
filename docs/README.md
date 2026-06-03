@@ -11,11 +11,15 @@
 ## 架构决策
 
 - [ADR 0001：自研 Web kiosk 运行时](decisions/0001-build-custom-web-kiosk.md)
+- [ADR 0002：以 Web 页面作为主显示层](decisions/0002-web-kiosk-runtime.md)
 
 ## 开发文档
 
 - [无桌面 Ubuntu kiosk 可行性](development/headless-kiosk-feasibility.md)
+- [接口规范草案](development/interface-spec.md)
+- [主题系统规范草案](development/theme-system.md)
 - [组件系统草案](development/component-system.md)
 - [插件式扩展模型草案](development/plugin-extension-model.md)
+- [Web kiosk 测试说明](development/web-kiosk-test.md)
 - [路线图](development/roadmap.md)
 - [文档维护规范](development/documentation-policy.md)
