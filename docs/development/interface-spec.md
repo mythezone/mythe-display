@@ -97,7 +97,7 @@ type DisplayConfig = {
   "output": {
     "connector": "card0-HDMI-A-2",
     "mode": "3840x1100",
-    "kioskUrl": "http://127.0.0.1:4173"
+    "kioskUrl": "http://127.0.0.1:23456"
   }
 }
 ```

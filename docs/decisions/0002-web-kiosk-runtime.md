@@ -27,9 +27,9 @@ Mythe Display 的主显示层采用 Web 技术：
 ```text
 systemd
   -> mythe-display server
-    -> http://127.0.0.1:4173
+    -> http://127.0.0.1:23456
   -> kiosk compositor, such as cage or weston
-    -> chromium/firefox --kiosk http://127.0.0.1:4173
+    -> chromium/firefox --kiosk http://127.0.0.1:23456
       -> DRM/KMS -> HDMI-A-2 -> 3840x1100 screen
 ```
 
@@ -52,15 +52,16 @@ systemd
 本机当前已有：
 
 - Node/pnpm，可用于开发 Web 应用。
-- Xorg core，但没有浏览器和窗口管理环境。
+- `cage` 和 `chromium-browser`，可用于 kiosk 路径测试。
+- Xorg core，但生产路径优先使用 Wayland kiosk。
 - DRM/KMS 可用，`card0-HDMI-A-2` 可被控制。
 
-本机当前缺少：
+当前限制：
 
-- `cage` 或 `weston`
-- `chromium`、`chromium-browser`、`google-chrome`、`firefox` 或 `firefox-esr`
+- Codex/SSH 后台会话不是本地 active seat，不能直接启动 `cage` 接管 DRM。
+- 需要在本机屏幕的登录 TTY 中以普通用户运行 kiosk 脚本，或者后续使用 systemd/seatd/logind 管理。
 
-因此当前可以创建和预览网页内容，但生产级“无浏览器控制条上屏”需要先安装 kiosk compositor 和浏览器。
+因此当前可以创建和预览网页内容，并能验证脚本依赖；真正“无浏览器控制条上屏”需要从本地 active seat 启动。
 
 ## 后续影响
 

@@ -14,37 +14,37 @@
 
 该页面不依赖构建工具，可通过 Python 静态服务器预览。
 
-当前服务器缺少生产上屏需要的组件：
+生产上屏需要的组件：
 
 - `cage` 或 `weston`
 - `chromium`、`chromium-browser`、`google-chrome`、`firefox` 或 `firefox-esr`
 
-因此当前可以验证网页内容和本地 HTTP 服务，但需要安装 compositor + browser 后才能验证真正的“无浏览器控制条上屏”。
+当前服务器已经检测到 `cage` 和 `chromium-browser`。如果换机器部署，需要先确认这些依赖存在。
 
 ## 本地预览
 
 启动静态服务：
 
 ```bash
-python3 scripts/serve-web-test.py --host 0.0.0.0 --port 4173
+python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23456
 ```
 
 然后在任意浏览器打开：
 
 ```text
-http://<server-ip>:4173/kiosk-test/
+http://<server-ip>:23456/kiosk-test/
 ```
 
-如果 `4173` 已被其他服务占用，可以换端口：
+如果 `23456` 已被其他服务占用，可以换端口：
 
 ```bash
-python3 scripts/serve-web-test.py --host 0.0.0.0 --port 4174
+python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23457
 ```
 
 当前 shell 如果设置了 HTTP 代理，命令行请求本地服务时可能需要绕过代理：
 
 ```bash
-curl --noproxy '*' http://127.0.0.1:4174/kiosk-test/
+curl --noproxy '*' http://127.0.0.1:23457/kiosk-test/
 ```
 
 ## Kiosk 上屏
@@ -58,10 +58,48 @@ scripts/run-kiosk-web-test.sh
 如果默认端口被占用：
 
 ```bash
-MYTHE_DISPLAY_PORT=4174 scripts/run-kiosk-web-test.sh
+MYTHE_DISPLAY_PORT=23457 scripts/run-kiosk-web-test.sh
 ```
 
-注意：真正接管 HDMI 屏幕时，kiosk 命令最好在本地 tty 登录会话中运行，或后续由 systemd 服务管理。纯 SSH 会话在部分系统上可能没有 seat/DRM master 权限，即使用户在 `video` 组中也可能无法启动 compositor。
+注意：真正接管 HDMI 屏幕时，kiosk 命令最好在本地 tty 登录会话中运行，或后续由 systemd 服务管理。纯 SSH、VS Code Remote、Codex 后台会话通常没有 seat/DRM master 权限，即使用户在 `video` 组中也可能无法启动 compositor。
+
+不要使用 `sudo` 运行：
+
+```bash
+scripts/run-kiosk-web-test.sh
+```
+
+不要这样运行：
+
+```bash
+sudo scripts/run-kiosk-web-test.sh
+```
+
+如果看到：
+
+```text
+Timeout waiting session to become active
+Failed to start a DRM session
+Unable to create the wlroots backend
+```
+
+优先检查：
+
+```bash
+id
+tty
+loginctl show-session "$XDG_SESSION_ID" -p Active -p Remote -p Seat -p TTY
+```
+
+期望：
+
+```text
+Active=yes
+Remote=no
+Seat=seat0
+```
+
+如果当前是 SSH、VS Code Remote 或 Codex 后台会话，通常不会满足这些条件。请在本机屏幕的 `tty1` 登录后运行脚本。若服务器没有可用的本地 logind session，可再评估安装并启用 `seatd`。
 
 也可以测试任意网页：
 

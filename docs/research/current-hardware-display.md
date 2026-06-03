@@ -11,7 +11,7 @@
 - 显卡：
   - Intel UHD Graphics 630，驱动 `i915`
   - NVIDIA Tesla P4，驱动 `nvidia`，作为 3D controller 暴露
-- 当前没有检测到 `xrandr`、`weston`、`chromium`、`cage`、`sway`、`modetest`、`fbset` 等桌面/kiosk 辅助命令。
+- 当前已检测到 `cage` 和 `chromium-browser`；仍未检测到 `weston`、`xrandr`、`modetest`、`fbset` 等辅助命令。
 
 ## 已连接显示器
 
@@ -46,7 +46,7 @@ DRM connector：
 crw-rw---- root video /dev/fb0
 ```
 
-当前用户 `mythezone` 不在 `video` 组，因此无法直接写 framebuffer。`sudo -n true` 返回需要密码，所以当前 Codex 会话不能无交互执行写屏测试。
+`/etc/group` 中 `mythezone` 已加入 `video`、`render`、`input`。但当前 Codex/SSH 后台进程的组权限尚未刷新，所以直接 `id` 仍看不到这些新组；新登录的本地 TTY 会话应能看到。
 
 要实际运行颜色测试，需要二选一：
 

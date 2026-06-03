@@ -72,20 +72,22 @@ components/<component-id>/
 本地预览：
 
 ```bash
-python3 scripts/serve-web-test.py --host 0.0.0.0 --port 4173
+python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23456
 ```
 
 浏览器访问：
 
 ```text
-http://<server-ip>:4173/kiosk-test/
+http://<server-ip>:23456/kiosk-test/
 ```
 
-无浏览器控制条上屏需要安装 kiosk compositor 和浏览器。当前服务器尚未安装 `cage/weston/chromium/firefox`，安装后可运行：
+无浏览器控制条上屏需要 kiosk compositor 和浏览器。当前服务器已检测到 `cage` 和 `chromium-browser`，可在本机屏幕的登录 TTY 中运行：
 
 ```bash
 scripts/run-kiosk-web-test.sh
 ```
+
+不要使用 `sudo` 运行该脚本。`cage/wlroots` 需要当前本地登录用户的 active seat；用 `sudo` 或从 SSH/远程后台会话运行，常见错误是 `Failed to start a DRM session`。
 
 也可以测试任意网页：
 

@@ -12,7 +12,7 @@ from pathlib import Path
 def main() -> int:
     parser = argparse.ArgumentParser(description="启动 Mythe Display 静态网页测试服务。")
     parser.add_argument("--host", default="127.0.0.1", help="监听地址，默认 127.0.0.1")
-    parser.add_argument("--port", type=int, default=4173, help="监听端口，默认 4173")
+    parser.add_argument("--port", type=int, default=23456, help="监听端口，默认 23456")
     parser.add_argument(
         "--root",
         default=str(Path(__file__).resolve().parents[1] / "public"),

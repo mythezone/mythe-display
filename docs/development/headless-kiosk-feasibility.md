@@ -66,6 +66,7 @@ systemd
 - kiosk compositor：优先评估 `cage`，备选 `weston`。
 - 浏览器：Chromium 或 Firefox kiosk 模式。
 - 权限：运行用户需要访问 DRM/render/input 设备，通常加入 `video`、`render`、`input` 组，或通过 seatd/logind 正确授予。
+- 运行位置：优先从本地 active TTY 启动，不要用 `sudo` 从 SSH 会话启动；否则 wlroots 可能无法取得 DRM session。
 
 ### 3. DRM/KMS 原生渲染
 
@@ -96,7 +97,7 @@ systemd
 2. 用命令启动全屏浏览器：
 
    ```bash
-   cage -- chromium --kiosk --noerrdialogs --disable-infobars http://127.0.0.1:4173
+   scripts/run-kiosk-web-test.sh
    ```
 
 3. 根据实际 Ubuntu 包和浏览器来源调整命令。
