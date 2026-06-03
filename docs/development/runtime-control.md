@@ -73,6 +73,14 @@ sudo scripts/install-mdp-command.sh
 
 `scripts/install-kiosk-service.sh` 也会自动安装 `/usr/bin/mdp`。
 
+首次使用可以直接运行：
+
+```bash
+mdp start
+```
+
+如果 `mythe-display-kiosk.service` 还不存在，`mdp start` 会先调用 `scripts/install-kiosk-service.sh` 安装服务，再启动。`mdp reload`、`mdp switch` 和 `mdp theme` 在控制端口不可用时也会尝试确保服务已安装并启动。
+
 ## 环境变量
 
 ```text

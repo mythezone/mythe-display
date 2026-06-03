@@ -122,6 +122,14 @@ mdp enable
 sudo scripts/install-mdp-command.sh
 ```
 
+如果只安装了短命令，也可以直接运行：
+
+```bash
+mdp start
+```
+
+`mdp start` 会在找不到 `mythe-display-kiosk.service` 时自动安装 systemd 服务，然后启动它。
+
 也可以测试任意网页：
 
 ```bash

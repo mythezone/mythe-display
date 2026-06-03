@@ -3,6 +3,7 @@ set -euo pipefail
 
 UNIT_NAME="${MYTHE_DISPLAY_UNIT_NAME:-mythe-display-kiosk}"
 DEFAULT_ROOT="/home/mythezone/services/mythe/mythe-display"
+CONTROL_WAIT_SECONDS="${MYTHE_DISPLAY_CONTROL_WAIT_SECONDS:-18}"
 
 resolve_root() {
   local source="${BASH_SOURCE[0]}"
@@ -86,21 +87,119 @@ systemctl_as_needed() {
   fi
 }
 
+run_root() {
+  if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+    "$@"
+  else
+    sudo "$@"
+  fi
+}
+
+service_exists() {
+  systemctl cat "$UNIT_NAME" >/dev/null 2>&1
+}
+
+service_is_active() {
+  systemctl is-active --quiet "$UNIT_NAME" >/dev/null 2>&1
+}
+
+ensure_service_installed() {
+  if service_exists; then
+    return 0
+  fi
+
+  echo "未发现 ${UNIT_NAME}.service，正在安装 systemd 服务..." >&2
+  run_root "$INSTALL_SERVICE" >/dev/null
+  systemctl daemon-reload >/dev/null 2>&1 || true
+
+  if ! service_exists; then
+    echo "服务安装后仍无法发现 ${UNIT_NAME}.service。请检查 $ROOT_DIR/systemd/mythe-display-kiosk.service。" >&2
+    exit 1
+  fi
+}
+
+ensure_service_started() {
+  ensure_service_installed
+  if service_is_active; then
+    return 0
+  fi
+
+  echo "${UNIT_NAME}.service 未运行，正在启动..." >&2
+  systemctl_as_needed start >/dev/null
+}
+
+wait_for_control() {
+  local deadline=$((SECONDS + CONTROL_WAIT_SECONDS))
+  while (( SECONDS < deadline )); do
+    if "$CONTROL" list --json >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.5
+  done
+  return 1
+}
+
+control_with_service() {
+  local command="$1"
+  shift || true
+
+  if "$CONTROL" list --json >/dev/null 2>&1; then
+    exec "$CONTROL" "$command" "$@"
+  fi
+
+  ensure_service_started
+  if wait_for_control; then
+    exec "$CONTROL" "$command" "$@"
+  fi
+
+  echo "kiosk 服务已启动，但 Chromium DevTools 控制端口仍不可用。" >&2
+  echo "请查看服务状态和日志：" >&2
+  echo "  mdp status" >&2
+  echo "  mdp logs" >&2
+  exit 1
+}
+
+show_status() {
+  if ! service_exists; then
+    cat >&2 <<EOF
+未发现 ${UNIT_NAME}.service。
+
+首次使用请运行：
+  mdp install-service
+
+或者直接运行：
+  mdp start
+
+mdp start 会自动安装服务并启动。
+EOF
+    return 3
+  fi
+  systemctl status "$UNIT_NAME" "$@"
+}
+
+show_logs() {
+  if ! service_exists; then
+    echo "未发现 ${UNIT_NAME}.service。请先运行 mdp install-service 或 mdp start。" >&2
+    return 3
+  fi
+  journalctl -u "$UNIT_NAME" -f "$@"
+}
+
 case "${1:-help}" in
   help|-h|--help)
     usage
     ;;
   reload|refresh)
     shift
-    exec "$CONTROL" reload "$@"
+    control_with_service reload "$@"
     ;;
   switch)
     shift
-    exec "$CONTROL" switch "$@"
+    control_with_service switch "$@"
     ;;
   open)
     shift
-    exec "$CONTROL" open "$@"
+    control_with_service open "$@"
     ;;
   list)
     shift
@@ -116,7 +215,7 @@ case "${1:-help}" in
       echo "用法: mdp theme <theme-json-url>" >&2
       exit 2
     fi
-    exec "$CONTROL" switch "/kiosk-test/?theme=$1" --cache-bust
+    control_with_service switch "/kiosk-test/?theme=$1" --cache-bust
     ;;
   control)
     shift
@@ -132,15 +231,18 @@ case "${1:-help}" in
   start|stop|restart|enable|disable)
     action="$1"
     shift
+    if [[ "$action" == "start" || "$action" == "restart" || "$action" == "enable" ]]; then
+      ensure_service_installed
+    fi
     systemctl_as_needed "$action" "$@"
     ;;
   status)
     shift
-    systemctl status "$UNIT_NAME" "$@"
+    show_status "$@"
     ;;
   logs|log)
     shift
-    exec journalctl -u "$UNIT_NAME" -f "$@"
+    show_logs "$@"
     ;;
   install-service)
     shift

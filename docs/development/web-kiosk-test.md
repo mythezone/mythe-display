@@ -199,10 +199,13 @@ sudo systemctl reload mythe-display-kiosk
 日常操作可直接使用短命令：
 
 ```bash
+mdp start
 mdp reload
 mdp status
 mdp logs
 ```
+
+如果只安装了 `/usr/bin/mdp`，还没有安装 systemd 服务，`mdp start` 会自动安装并启动 `mythe-display-kiosk.service`。
 
 ## 主题和数据源预览参数
 

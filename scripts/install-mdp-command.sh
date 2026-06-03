@@ -25,6 +25,7 @@ cat <<EOF
 已安装 $TARGET -> $SOURCE
 
 常用命令:
+  mdp start
   mdp reload
   mdp switch /kiosk-test/
   mdp status
