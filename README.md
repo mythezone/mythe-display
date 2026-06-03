@@ -81,13 +81,29 @@ python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23456
 http://<server-ip>:23456/kiosk-test/
 ```
 
-无浏览器控制条上屏需要 kiosk compositor 和浏览器。当前服务器已检测到 `cage` 和 `chromium-browser`，可在本机屏幕的登录 TTY 中运行：
+无浏览器控制条上屏需要 kiosk compositor 和浏览器。当前服务器已检测到 `cage` 和 `chromium-browser`。
+
+NAS 无头远程启动推荐使用 sudo direct DRM 模式：
+
+```bash
+sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+```
+
+该模式会使用 `LIBSEAT_BACKEND=builtin`、`WLR_DRM_DEVICES=/dev/dri/card0` 和 `WLR_LIBINPUT_NO_DEVICES=1`，不依赖物理键鼠登录。
+
+如果未来在本机 TTY 登录，也可以普通用户运行：
 
 ```bash
 scripts/run-kiosk-web-test.sh
 ```
 
-不要使用 `sudo` 运行该脚本。`cage/wlroots` 需要当前本地登录用户的 active seat；用 `sudo` 或从 SSH/远程后台会话运行，常见错误是 `Failed to start a DRM session`。
+安装为 systemd 服务：
+
+```bash
+sudo scripts/install-kiosk-service.sh
+sudo systemctl start mythe-display-kiosk
+sudo systemctl enable mythe-display-kiosk
+```
 
 也可以测试任意网页：
 

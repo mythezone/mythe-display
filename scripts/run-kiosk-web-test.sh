@@ -8,6 +8,7 @@ DEFAULT_URL="http://${HOST}:${PORT}/kiosk-test/"
 URL="${1:-$DEFAULT_URL}"
 SERVER_PID=""
 KIOSK_PID=""
+IS_ROOT=0
 
 export no_proxy="${no_proxy:-localhost,127.0.0.1,::1}"
 export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,::1}"
@@ -27,6 +28,9 @@ Usage:
 需要:
   cage
   chromium-browser / chromium / google-chrome / firefox / firefox-esr
+
+远程 NAS 推荐:
+  sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 EOF
   exit 0
 fi
@@ -61,7 +65,10 @@ fail_environment() {
   cat >&2 <<EOF
 $1
 
-请在本机屏幕上的登录 TTY 中运行，不要使用 sudo：
+无头 NAS 远程启动请使用 sudo direct DRM 模式：
+  sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+
+如果是在本机屏幕上的登录 TTY 中运行，可以使用普通用户模式：
   scripts/run-kiosk-web-test.sh
 
 如果刚刚执行过 usermod，请先退出当前登录会话并重新登录，确认：
@@ -78,10 +85,17 @@ EOF
 }
 
 if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
-  fail_environment "检测到脚本正在以 root/sudo 运行。cage/wlroots 需要当前本地登录用户的活动 seat；sudo 运行常见结果就是 Failed to start a DRM session。"
+  IS_ROOT=1
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/0}"
+  install -d -m 700 "$XDG_RUNTIME_DIR"
+  export LIBSEAT_BACKEND="${LIBSEAT_BACKEND:-builtin}"
+  export WLR_BACKENDS="${WLR_BACKENDS:-drm}"
+  export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-/dev/dri/card0}"
+  export WLR_LIBINPUT_NO_DEVICES="${WLR_LIBINPUT_NO_DEVICES:-1}"
+  echo "以 root/sudo direct DRM 模式启动: LIBSEAT_BACKEND=$LIBSEAT_BACKEND, WLR_DRM_DEVICES=$WLR_DRM_DEVICES" >&2
 fi
 
-if [[ "${MYTHE_DISPLAY_ALLOW_REMOTE_KIOSK:-0}" != "1" ]]; then
+if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_ALLOW_REMOTE_KIOSK:-0}" != "1" ]]; then
   if ! tty -s; then
     fail_environment "当前会话不是本地 TTY。SSH、VS Code Remote 或 Codex 后台会话通常没有可接管 HDMI 的活动 seat。"
   fi
@@ -100,12 +114,14 @@ if [[ "${MYTHE_DISPLAY_ALLOW_REMOTE_KIOSK:-0}" != "1" ]]; then
   fi
 fi
 
-USER_GROUPS="$(id -nG)"
-for required_group in video render input; do
-  if [[ " $USER_GROUPS " != *" $required_group "* ]]; then
-    fail_environment "当前用户组缺少 $required_group。"
-  fi
-done
+if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_SKIP_GROUP_CHECK:-0}" != "1" ]]; then
+  USER_GROUPS="$(id -nG)"
+  for required_group in video render input; do
+    if [[ " $USER_GROUPS " != *" $required_group "* ]]; then
+      fail_environment "当前用户组缺少 $required_group。"
+    fi
+  done
+fi
 
 if [[ "$URL" == "$DEFAULT_URL" ]]; then
   python3 "$ROOT_DIR/scripts/serve-web-test.py" --host "$HOST" --port "$PORT" &
@@ -123,7 +139,7 @@ EOF
   fi
 fi
 
-BROWSER="$(first_command chromium chromium-browser google-chrome firefox firefox-esr || true)"
+BROWSER="${MYTHE_DISPLAY_BROWSER:-$(first_command chromium chromium-browser google-chrome firefox firefox-esr || true)}"
 if [[ -z "$BROWSER" ]]; then
   cat >&2 <<'EOF'
 没有找到可用浏览器。
@@ -148,8 +164,14 @@ EOF
   exit 1
 fi
 
+CAGE_ARGS=()
+if [[ "${MYTHE_DISPLAY_ALLOW_VT_SWITCH:-0}" == "1" ]]; then
+  CAGE_ARGS+=("-s")
+fi
+
 if [[ "$BROWSER" == "firefox" || "$BROWSER" == "firefox-esr" ]]; then
-  dbus-run-session -- cage -s -- env MOZ_ENABLE_WAYLAND=1 "$BROWSER" --kiosk "$URL" &
+  FIREFOX_ENV=("MOZ_ENABLE_WAYLAND=1")
+  dbus-run-session -- cage "${CAGE_ARGS[@]}" -- env "${FIREFOX_ENV[@]}" "$BROWSER" --kiosk "$URL" &
   KIOSK_PID="$!"
   set +e
   wait "$KIOSK_PID"
@@ -162,15 +184,22 @@ fi
 USER_DATA_DIR="${MYTHE_DISPLAY_BROWSER_PROFILE:-/tmp/mythe-display-kiosk-profile}"
 mkdir -p "$USER_DATA_DIR"
 
-dbus-run-session -- cage -s -- "$BROWSER" \
-  --kiosk "$URL" \
-  --user-data-dir="$USER_DATA_DIR" \
-  --noerrdialogs \
-  --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-features=Translate \
-  --proxy-bypass-list="<-loopback>" \
-  --ozone-platform=wayland &
+CHROMIUM_ARGS=(
+  --kiosk "$URL"
+  --user-data-dir="$USER_DATA_DIR"
+  --noerrdialogs
+  --disable-infobars
+  --disable-session-crashed-bubble
+  --disable-features=Translate
+  --proxy-bypass-list="<-loopback>"
+  --ozone-platform=wayland
+)
+
+if [[ "$IS_ROOT" -eq 1 ]]; then
+  CHROMIUM_ARGS+=(--no-sandbox --disable-dev-shm-usage)
+fi
+
+dbus-run-session -- cage "${CAGE_ARGS[@]}" -- "$BROWSER" "${CHROMIUM_ARGS[@]}" &
 KIOSK_PID="$!"
 set +e
 wait "$KIOSK_PID"

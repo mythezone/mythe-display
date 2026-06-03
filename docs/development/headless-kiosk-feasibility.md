@@ -66,7 +66,7 @@ systemd
 - kiosk compositor：优先评估 `cage`，备选 `weston`。
 - 浏览器：Chromium 或 Firefox kiosk 模式。
 - 权限：运行用户需要访问 DRM/render/input 设备，通常加入 `video`、`render`、`input` 组，或通过 seatd/logind 正确授予。
-- 运行位置：优先从本地 active TTY 启动，不要用 `sudo` 从 SSH 会话启动；否则 wlroots 可能无法取得 DRM session。
+- 运行位置：本地 active TTY 可以普通用户启动；无头 NAS 远程启动应使用 sudo direct DRM 模式或 systemd 服务，不依赖物理登录。
 
 ### 3. DRM/KMS 原生渲染
 
@@ -97,10 +97,17 @@ systemd
 2. 用命令启动全屏浏览器：
 
    ```bash
-   scripts/run-kiosk-web-test.sh
+   sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
    ```
 
-3. 根据实际 Ubuntu 包和浏览器来源调整命令。
+3. 如果需要长期运行，安装 systemd 服务：
+
+   ```bash
+   sudo scripts/install-kiosk-service.sh
+   sudo systemctl start mythe-display-kiosk
+   sudo systemctl enable mythe-display-kiosk
+   ```
+
 4. 增加 systemd 服务，实现开机自动运行。
 
 第三阶段：

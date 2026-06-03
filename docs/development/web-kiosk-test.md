@@ -49,7 +49,55 @@ curl --noproxy '*' http://127.0.0.1:23457/kiosk-test/
 
 ## Kiosk 上屏
 
-安装依赖后可运行：
+### NAS 无头远程模式
+
+这台机器不会接鼠标键盘，也不会在物理屏幕上登录。推荐用 sudo direct DRM 模式：
+
+```bash
+sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+```
+
+脚本在 root 模式下会自动设置：
+
+```text
+XDG_RUNTIME_DIR=/run/user/0
+LIBSEAT_BACKEND=builtin
+WLR_BACKENDS=drm
+WLR_DRM_DEVICES=/dev/dri/card0
+WLR_LIBINPUT_NO_DEVICES=1
+```
+
+并且 Chromium 会自动加上 root 运行需要的 `--no-sandbox`。
+
+### Systemd 服务模式
+
+安装：
+
+```bash
+sudo scripts/install-kiosk-service.sh
+```
+
+启动：
+
+```bash
+sudo systemctl start mythe-display-kiosk
+```
+
+查看日志：
+
+```bash
+journalctl -u mythe-display-kiosk -f
+```
+
+开机自启：
+
+```bash
+sudo systemctl enable mythe-display-kiosk
+```
+
+### 本地 TTY 普通用户模式
+
+如果未来接键盘并在本机 TTY 登录，也可以普通用户运行：
 
 ```bash
 scripts/run-kiosk-web-test.sh
@@ -61,19 +109,7 @@ scripts/run-kiosk-web-test.sh
 MYTHE_DISPLAY_PORT=23457 scripts/run-kiosk-web-test.sh
 ```
 
-注意：真正接管 HDMI 屏幕时，kiosk 命令最好在本地 tty 登录会话中运行，或后续由 systemd 服务管理。纯 SSH、VS Code Remote、Codex 后台会话通常没有 seat/DRM master 权限，即使用户在 `video` 组中也可能无法启动 compositor。
-
-不要使用 `sudo` 运行：
-
-```bash
-scripts/run-kiosk-web-test.sh
-```
-
-不要这样运行：
-
-```bash
-sudo scripts/run-kiosk-web-test.sh
-```
+普通用户模式下，真正接管 HDMI 屏幕时，kiosk 命令最好在本地 tty 登录会话中运行。纯 SSH、VS Code Remote、Codex 后台会话通常没有 seat/DRM master 权限，即使用户在 `video` 组中也可能无法启动 compositor。
 
 如果看到：
 
@@ -99,7 +135,7 @@ Remote=no
 Seat=seat0
 ```
 
-如果当前是 SSH、VS Code Remote 或 Codex 后台会话，通常不会满足这些条件。请在本机屏幕的 `tty1` 登录后运行脚本。若服务器没有可用的本地 logind session，可再评估安装并启用 `seatd`。
+如果当前是 SSH、VS Code Remote 或 Codex 后台会话，通常不会满足这些条件。无头 NAS 应使用上面的 sudo direct DRM 模式或 systemd 服务模式。
 
 也可以测试任意网页：
 

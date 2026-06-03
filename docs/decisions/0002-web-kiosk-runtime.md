@@ -58,10 +58,10 @@ systemd
 
 当前限制：
 
-- Codex/SSH 后台会话不是本地 active seat，不能直接启动 `cage` 接管 DRM。
-- 需要在本机屏幕的登录 TTY 中以普通用户运行 kiosk 脚本，或者后续使用 systemd/seatd/logind 管理。
+- Codex/SSH 后台普通用户会话不是本地 active seat，不能通过 logind 直接启动 `cage` 接管 DRM。
+- 由于这台 NAS 不接键鼠，远程启动应使用 sudo direct DRM 模式或 systemd 服务模式。
 
-因此当前可以创建和预览网页内容，并能验证脚本依赖；真正“无浏览器控制条上屏”需要从本地 active seat 启动。
+因此当前可以创建和预览网页内容，并能验证脚本依赖；真正“无浏览器控制条上屏”应通过 root/builtin libseat 或后续 systemd 服务启动。
 
 ## 后续影响
 
