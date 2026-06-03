@@ -1,9 +1,12 @@
 {
   "id": "core.neon-dark",
   "name": "Neon Dark",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "mode": "dark",
   "density": "normal",
+  "resourcePack": {
+    "entry": "public/themes/neon-dark/theme.json"
+  },
   "tokens": {
     "surface.canvas": "#05070a",
     "surface.panel": "rgba(18, 22, 30, 0.86)",

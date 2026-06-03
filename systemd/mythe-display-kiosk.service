@@ -9,6 +9,7 @@ Type=simple
 WorkingDirectory=/home/mythezone/services/mythe/mythe-display
 Environment=MYTHE_DISPLAY_HOST=127.0.0.1
 Environment=MYTHE_DISPLAY_PORT=23456
+Environment=MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
 Environment=LIBSEAT_BACKEND=builtin
 Environment=WLR_BACKENDS=drm
 Environment=WLR_DRM_DEVICES=/dev/dri/card0

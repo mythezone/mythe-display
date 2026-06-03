@@ -1,0 +1,58 @@
+{
+  "id": "core.neon-dark",
+  "name": "Neon Dark",
+  "version": "0.2.0",
+  "description": "适合 3840x1100 长条副屏的暗色霓虹资源包。",
+  "tokens": {
+    "surface.canvas": "#05070a",
+    "surface.panel": "rgba(18, 22, 30, 0.84)",
+    "surface.panelMuted": "rgba(18, 22, 30, 0.56)",
+    "text.primary": "#f4f7fb",
+    "text.secondary": "#a8b3c7",
+    "text.muted": "#657086",
+    "accent.primary": "#0a84ff",
+    "accent.secondary": "#bf5af2",
+    "metric.good": "#30d158",
+    "metric.warn": "#ffd60a",
+    "metric.bad": "#ff453a",
+    "border.subtle": "rgba(255,255,255,0.12)",
+    "shadow.panel": "0 18px 60px rgba(0,0,0,0.34)"
+  },
+  "wallpaper": {
+    "fallback": "#05070a",
+    "layers": [
+      {
+        "id": "circuit-grid",
+        "src": "backgrounds/circuit-grid.svg",
+        "opacity": 0.72,
+        "blendMode": "screen",
+        "animation": "drift-slow"
+      },
+      {
+        "id": "pixel-stars",
+        "src": "backgrounds/pixel-stars.svg",
+        "opacity": 0.46,
+        "blendMode": "screen",
+        "animation": "drift-medium"
+      },
+      {
+        "id": "neon-rings",
+        "src": "backgrounds/neon-rings.svg",
+        "opacity": 0.62,
+        "blendMode": "screen",
+        "animation": "pulse"
+      }
+    ],
+    "effects": ["scanlines", "vignette"]
+  },
+  "sprites": {
+    "agent": {
+      "idle": "sprites/agent-idle.svg",
+      "working": "sprites/agent-working.svg",
+      "reviewing": "sprites/agent-working.svg",
+      "blocked": "sprites/agent-error.svg",
+      "error": "sprites/agent-error.svg",
+      "offline": "sprites/agent-offline.svg"
+    }
+  }
+}

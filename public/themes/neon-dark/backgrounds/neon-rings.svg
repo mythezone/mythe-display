@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="1100" viewBox="0 0 3840 1100">
+  <defs>
+    <radialGradient id="blue" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#0a84ff" stop-opacity=".28"/>
+      <stop offset=".42" stop-color="#0a84ff" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#0a84ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="purple" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#bf5af2" stop-opacity=".26"/>
+      <stop offset=".48" stop-color="#bf5af2" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#bf5af2" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <circle cx="520" cy="250" r="420" fill="url(#blue)" filter="url(#soft)"/>
+  <circle cx="3120" cy="320" r="460" fill="url(#purple)" filter="url(#soft)"/>
+  <circle cx="2140" cy="930" r="520" fill="url(#blue)" opacity=".68" filter="url(#soft)"/>
+  <g fill="none" stroke-width="3" opacity=".42">
+    <circle cx="520" cy="250" r="260" stroke="#0a84ff"/>
+    <circle cx="3120" cy="320" r="300" stroke="#bf5af2"/>
+    <circle cx="2140" cy="930" r="340" stroke="#30d158"/>
+  </g>
+</svg>

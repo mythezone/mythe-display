@@ -2,7 +2,7 @@
 
 Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在小尺寸 HDMI/USB 屏幕上运行一个可复现、可高度定制的本地副屏运行时。
 
-当前状态：调研与架构规划阶段。项目还没有实现可运行的显示应用。
+当前状态：已有无桌面 Web kiosk 测试页，可以通过 `cage + Chromium` 在 HDMI 长条屏上全屏显示；已提供默认主题资源包、动态背景、像素 Agent mock 组件和运行时 URL 切换脚本。
 
 ## 项目目标
 
@@ -34,9 +34,13 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 - [无桌面 Ubuntu kiosk 可行性](docs/development/headless-kiosk-feasibility.md)
 - [接口规范草案](docs/development/interface-spec.md)
 - [主题系统规范草案](docs/development/theme-system.md)
+- [主题资源包规范草案](docs/development/theme-resource-pack.md)
 - [组件系统草案](docs/development/component-system.md)
+- [像素 Agent 组件规范草案](docs/development/pixel-agent-widget.md)
 - [插件式扩展模型草案](docs/development/plugin-extension-model.md)
 - [Web kiosk 测试说明](docs/development/web-kiosk-test.md)
+- [运行时控制规范草案](docs/development/runtime-control.md)
+- [OpenClaw / 像素 Agent 可视化参考调研](docs/research/openclaw-pixel-agent-options.md)
 - [路线图](docs/development/roadmap.md)
 - [文档维护规范](docs/development/documentation-policy.md)
 - [更新记录](CHANGELOG.md)
@@ -68,6 +72,8 @@ components/<component-id>/
 当前仓库包含一个静态网页测试页面：
 
 - [public/kiosk-test/index.html](public/kiosk-test/index.html)
+- [public/kiosk-test/agents.mock.json](public/kiosk-test/agents.mock.json)
+- [public/themes/neon-dark/theme.json](public/themes/neon-dark/theme.json)
 
 本地预览：
 
@@ -111,6 +117,65 @@ sudo systemctl enable mythe-display-kiosk
 scripts/run-kiosk-web-test.sh https://example.com
 ```
 
+运行后动态切换当前 kiosk 页面：
+
+```bash
+scripts/kiosk-switch-url.py --list
+scripts/kiosk-switch-url.py /kiosk-test/?theme=../themes/neon-dark/theme.json
+scripts/kiosk-switch-url.py https://example.com
+```
+
+Chromium 控制端口默认只绑定本机：
+
+```text
+MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
+```
+
+该切换能力依赖 Chromium DevTools 控制端口；Firefox kiosk 暂不支持。
+
+测试页默认禁止浏览器翻译提示：页面设置 `translate="no"` 和 `notranslate`，Chromium 启动参数也会关闭翻译 UI。如果仍看到翻译气泡，先删除旧 kiosk profile 后重启：
+
+```bash
+sudo rm -rf /tmp/mythe-display-kiosk-profile
+sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+```
+
+## 主题资源包
+
+默认主题资源包位于：
+
+```text
+public/themes/neon-dark/
+```
+
+它包含：
+
+- `theme.json`：语义 token、动态背景层、Agent 精灵映射。
+- `backgrounds/`：可循环播放的 SVG 背景层。
+- `sprites/`：像素 Agent 的 `idle`、`working`、`error`、`offline` 状态资源。
+
+用户可以复制整个目录创建新主题，并在预览 URL 中指定：
+
+```text
+http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
+```
+
+## 像素 Agent 原型
+
+测试页已包含 `core.pixelAgents` 原型。默认读取：
+
+```text
+public/kiosk-test/agents.mock.json
+```
+
+也可以通过 URL 参数接入任意同结构 JSON：
+
+```text
+http://<server-ip>:23456/kiosk-test/?agents=/api/agents/pixel
+```
+
+目标是后续用 `openclaw.compat` 适配器把 OpenClaw Agent 状态转换为统一的 `PixelAgentSnapshot`，而不是让 UI 直接依赖 OpenClaw 内部接口。
+
 ## 硬件建议
 
 当前本机已检测到 HDMI 长条屏：
@@ -138,7 +203,7 @@ scripts/run-kiosk-web-test.sh https://example.com
 
 ## 本地准备
 
-当前阶段还没有应用可运行。后续实现开始后，预期步骤为：
+当前阶段仍是原型和接口规范阶段。后续正式应用实现后，预期步骤为：
 
 1. 将 `.env.example` 复制为 `.env`。
 2. 安装项目依赖。

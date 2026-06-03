@@ -7,6 +7,7 @@
 - [开源项目调研](research/open-source-options.md)
 - [显示输出方案](research/display-output-options.md)
 - [当前本机显示设备记录](research/current-hardware-display.md)
+- [OpenClaw / 像素 Agent 可视化参考调研](research/openclaw-pixel-agent-options.md)
 
 ## 架构决策
 
@@ -18,8 +19,11 @@
 - [无桌面 Ubuntu kiosk 可行性](development/headless-kiosk-feasibility.md)
 - [接口规范草案](development/interface-spec.md)
 - [主题系统规范草案](development/theme-system.md)
+- [主题资源包规范草案](development/theme-resource-pack.md)
 - [组件系统草案](development/component-system.md)
+- [像素 Agent 组件规范草案](development/pixel-agent-widget.md)
 - [插件式扩展模型草案](development/plugin-extension-model.md)
 - [Web kiosk 测试说明](development/web-kiosk-test.md)
+- [运行时控制规范草案](development/runtime-control.md)
 - [路线图](development/roadmap.md)
 - [文档维护规范](development/documentation-policy.md)

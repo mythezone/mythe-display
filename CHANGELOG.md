@@ -13,3 +13,8 @@
 - 新增 Web 主显示层 ADR、接口规范、主题系统规范、Web kiosk 测试说明、长条屏示例配置、静态测试页和 kiosk 启动脚本。
 - 将默认 Web/kiosk 端口改为 `23456`，并修复 kiosk 启动失败时本地测试服务残留的问题；脚本现在会阻止 sudo/SSH 非 active seat 运行，避免 `Failed to start a DRM session` 这类误用。
 - 增加无头 NAS 远程 sudo direct DRM 启动模式，root 下自动使用 `LIBSEAT_BACKEND=builtin`、`/dev/dri/card0`、禁用输入设备依赖并为 Chromium 添加 `--no-sandbox`；新增 systemd 服务模板和安装脚本。
+- 禁用 Web kiosk Chromium 翻译 UI，并在测试页添加 `notranslate` 标记，减少右上角翻译气泡干扰。
+- 新增默认主题资源包 `public/themes/neon-dark/`，包含 `theme.json`、多层循环 SVG 背景和像素 Agent 状态精灵。
+- Web kiosk 测试页现在读取主题资源包，支持动态背景 fallback，并读取 `agents.mock.json` 渲染像素 Agent 原型。
+- 新增运行时 URL 切换脚本 `scripts/kiosk-switch-url.py`，通过本机 Chromium DevTools 端口动态切换当前 kiosk 页面。
+- 新增主题资源包、像素 Agent 组件、运行时控制和 OpenClaw/像素 Agent 参考项目调研文档。

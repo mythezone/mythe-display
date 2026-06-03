@@ -1,0 +1,37 @@
+{
+  "updatedAt": "2026-06-03T00:00:00Z",
+  "agents": [
+    {
+      "id": "planner",
+      "name": "Planner",
+      "project": "mythe-display",
+      "status": "working",
+      "activity": "planning widget bridge",
+      "progress": 72
+    },
+    {
+      "id": "builder",
+      "name": "Builder",
+      "project": "runtime",
+      "status": "idle",
+      "activity": "waiting for next task",
+      "progress": 18
+    },
+    {
+      "id": "reviewer",
+      "name": "Reviewer",
+      "project": "docs",
+      "status": "error",
+      "activity": "schema mismatch",
+      "progress": 44
+    },
+    {
+      "id": "ops",
+      "name": "Ops",
+      "project": "nas",
+      "status": "offline",
+      "activity": "gateway offline",
+      "progress": 0
+    }
+  ]
+}

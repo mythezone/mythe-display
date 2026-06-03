@@ -31,6 +31,7 @@ Plugin package
   -> widgets
   -> data providers
   -> themes
+  -> theme resource packs
   -> layouts
 ```
 
@@ -54,6 +55,7 @@ type RuntimeConfig = {
   layout: LayoutConfig;
   theme: ThemeConfig;
   plugins: PluginConfig[];
+  runtime?: RuntimeControlConfig;
 };
 ```
 
@@ -216,6 +218,68 @@ type WidgetModule = {
 };
 ```
 
+## ThemeResourcePack
+
+主题资源包保存可还原的视觉资产。运行时读取 `theme.json` 后，将 token 输出为 CSS 变量，并把背景、精灵、图标等资源传给 widget。
+
+```ts
+type ThemeResourcePack = {
+  id: string;
+  name: string;
+  version: string;
+  description?: string;
+  tokens: Record<string, string>;
+  wallpaper?: {
+    fallback: string;
+    layers?: WallpaperLayer[];
+    effects?: string[];
+  };
+  sprites?: {
+    agent?: Record<string, string>;
+  };
+};
+
+type WallpaperLayer = {
+  id: string;
+  src: string;
+  opacity?: number;
+  blendMode?: string;
+  animation?: "none" | "drift-slow" | "drift-medium" | "pulse";
+};
+```
+
+## PixelAgentSnapshot
+
+像素 Agent 组件使用统一状态快照，不直接绑定 OpenClaw。
+
+```ts
+type PixelAgentStatus =
+  | "idle"
+  | "working"
+  | "reviewing"
+  | "blocked"
+  | "error"
+  | "offline";
+
+type PixelAgent = {
+  id: string;
+  name: string;
+  project?: string;
+  status: PixelAgentStatus;
+  activity?: string;
+  progress?: number;
+  health?: "ok" | "warn" | "bad" | "unknown";
+  lastEvent?: string;
+  updatedAt?: string;
+  avatar?: string;
+};
+
+type PixelAgentSnapshot = {
+  updatedAt: string;
+  agents: PixelAgent[];
+};
+```
+
 ## Data Provider 接口
 
 Data Provider 负责采集系统数据、网络 API 或插件数据。
@@ -261,6 +325,7 @@ type DataSnapshot = {
 - `system.temperatures`
 - `system.gpu`
 - `system.processes`
+- `agents.pixel`
 - `time.now`
 - `app.status`
 
@@ -273,8 +338,37 @@ Widget 默认只展示信息，但需要保留交互扩展能力：
 - `data.refresh.requested`
 - `layout.panel.opened`
 - `plugin.error`
+- `display.route.changed`
 
 事件载荷必须是 JSON serializable。
+
+## RuntimeControlConfig
+
+运行时控制负责切换显示内容、刷新主题或切换布局。当前测试实现先通过 Chromium DevTools 切换页面 URL。
+
+```ts
+type RuntimeControlConfig = {
+  remoteDebugging?: {
+    host: "127.0.0.1";
+    port: number;
+  };
+  routes?: {
+    id: string;
+    name: string;
+    url: string;
+  }[];
+};
+```
+
+长期正式 API：
+
+```ts
+type DisplayRouteRequest = {
+  url: string;
+  reason?: string;
+  keepHistory?: boolean;
+};
+```
 
 ## 版本和兼容
 

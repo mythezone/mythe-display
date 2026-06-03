@@ -14,6 +14,13 @@
 
 该页面不依赖构建工具，可通过 Python 静态服务器预览。
 
+测试页当前包含：
+
+- 默认主题资源包：`public/themes/neon-dark/theme.json`。
+- 多层循环背景和纯色 fallback。
+- 像素 Agent mock：`public/kiosk-test/agents.mock.json`。
+- 页面级禁翻译标记：`translate="no"` 和 `notranslate`。
+
 生产上屏需要的组件：
 
 - `cage` 或 `weston`
@@ -68,6 +75,17 @@ WLR_LIBINPUT_NO_DEVICES=1
 ```
 
 并且 Chromium 会自动加上 root 运行需要的 `--no-sandbox`。
+
+Chromium 同时会禁用翻译 UI，并打开本机控制端口：
+
+```text
+--disable-translate
+--disable-features=Translate,TranslateUI
+--remote-debugging-address=127.0.0.1
+--remote-debugging-port=23458
+```
+
+动态切换页面依赖 Chromium DevTools 控制端口。Firefox kiosk 可作为显示回退方案，但当前不支持 `scripts/kiosk-switch-url.py`。
 
 ### Systemd 服务模式
 
@@ -144,6 +162,44 @@ scripts/run-kiosk-web-test.sh https://example.com
 ```
 
 脚本会自动检测 `cage`/`weston` 和浏览器。如果依赖缺失，会输出建议安装命令。
+
+## 动态切换显示内容
+
+kiosk 运行后可以使用 DevTools 控制端口切换当前页面：
+
+```bash
+scripts/kiosk-switch-url.py --list
+scripts/kiosk-switch-url.py /kiosk-test/
+scripts/kiosk-switch-url.py https://example.com
+```
+
+默认控制端口：
+
+```text
+MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
+```
+
+该端口只绑定 `127.0.0.1`。如果未来要提供局域网控制入口，应由 Mythe Display 后端提供鉴权 API，再由后端调用本地控制端口。
+
+## 主题和 Agent 预览参数
+
+切换主题：
+
+```text
+http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
+```
+
+切换 Agent 状态数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?agents=/api/agents/pixel
+```
+
+调整 Agent 轮询间隔：
+
+```text
+http://<server-ip>:23456/kiosk-test/?agentsRefreshMs=1000
+```
 
 ## 推荐安装
 

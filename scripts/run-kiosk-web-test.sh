@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${MYTHE_DISPLAY_PORT:-23456}"
 HOST="${MYTHE_DISPLAY_HOST:-127.0.0.1}"
+REMOTE_DEBUG_PORT="${MYTHE_DISPLAY_REMOTE_DEBUG_PORT:-23458}"
 DEFAULT_URL="http://${HOST}:${PORT}/kiosk-test/"
 URL="${1:-$DEFAULT_URL}"
 SERVER_PID=""
@@ -31,6 +32,10 @@ Usage:
 
 远程 NAS 推荐:
   sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+
+运行后动态切换页面:
+  scripts/kiosk-switch-url.py http://127.0.0.1:23456/kiosk-test/
+  该能力依赖 Chromium DevTools 控制端口，Firefox kiosk 暂不支持。
 EOF
   exit 0
 fi
@@ -190,9 +195,14 @@ CHROMIUM_ARGS=(
   --noerrdialogs
   --disable-infobars
   --disable-session-crashed-bubble
-  --disable-features=Translate
+  --disable-translate
+  --disable-features=Translate,TranslateUI
+  --lang=zh-CN
+  --accept-lang=zh-CN,zh,en
   --proxy-bypass-list="<-loopback>"
   --ozone-platform=wayland
+  --remote-debugging-address=127.0.0.1
+  --remote-debugging-port="$REMOTE_DEBUG_PORT"
 )
 
 if [[ "$IS_ROOT" -eq 1 ]]; then

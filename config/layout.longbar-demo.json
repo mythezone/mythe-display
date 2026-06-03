@@ -39,10 +39,14 @@
       "config": { "mounts": ["/"] }
     },
     {
-      "id": "processes",
-      "widget": "core.processes",
+      "id": "openclaw-agents",
+      "widget": "core.pixelAgents",
       "area": { "x": 6, "y": 3, "w": 8, "h": 3 },
-      "config": { "limit": 5 }
+      "config": {
+        "source": "openclaw.compat",
+        "mock": "public/kiosk-test/agents.mock.json",
+        "refreshMs": 3000
+      }
     },
     {
       "id": "temperatures",

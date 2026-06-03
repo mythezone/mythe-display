@@ -20,6 +20,7 @@
 - Widget 可以声明所需 token，宿主负责提供 fallback。
 - 动画、圆角、阴影、字体、密度都属于主题，不只颜色属于主题。
 - 主题应包含暗色优先，因为机箱副屏常在弱光环境中使用。
+- 图片、精灵、动态背景和字体文件通过主题资源包管理，详见 [主题资源包规范草案](theme-resource-pack.md)。
 
 ## Token 分层
 
@@ -87,9 +88,32 @@ Widget 主要使用语义 token：
     "blur": "12px",
     "shadow": "0 12px 36px rgba(0,0,0,0.36)",
     "motion": "subtle"
+  },
+  "resourcePack": {
+    "entry": "public/themes/neon-dark/theme.json"
   }
 }
 ```
+
+## 主题资源包
+
+主题 manifest 可以只包含 token，也可以引用完整资源包。资源包负责保存可还原的视觉资产：
+
+```text
+public/themes/neon-dark/
+  theme.json
+  backgrounds/
+  sprites/
+```
+
+当前默认资源包支持：
+
+- 多层背景：`wallpaper.layers`。
+- 纯色 fallback：`wallpaper.fallback`。
+- 内置循环动画：`drift-slow`、`drift-medium`、`pulse`。
+- 像素 Agent 基础状态精灵：`idle`、`working`、`error`、`offline`。
+
+如果资源包没有提供动态背景，运行时必须退回纯色背景，不能让页面空白。
 
 ## CSS 变量输出
 

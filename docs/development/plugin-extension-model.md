@@ -10,6 +10,8 @@
 - 新组件在开发模式下可被实时检测并加载。
 - 插件必须声明 manifest，不能靠约定扫描任意代码。
 - 插件可以提供组件、数据源、主题、布局模板和资源文件。
+- 插件可以提供主题资源包，例如背景图、像素精灵、字体和图标。
+- 插件可以提供 Agent 状态适配器，把 OpenClaw、Codex 或 CI 状态转换为统一的 `PixelAgentSnapshot`。
 - 插件 API 要足够稳定，避免每个组件都依赖内部实现细节。
 
 ## 初步目录结构
@@ -21,7 +23,9 @@ plugins/
       mythe-plugin.json
       package.json
       src/
-      assets/
+  assets/
+      themes/
+      sprites/
 
 components/
   core/
@@ -57,12 +61,18 @@ mythe-display plugin list
       "id": "vendor.weather.openweather",
       "entry": "./src/server/openweather.ts",
       "permissions": ["network.fetch"]
+    },
+    {
+      "id": "openclaw.compat",
+      "entry": "./src/server/openclaw-provider.ts",
+      "topics": ["agents.pixel"],
+      "permissions": ["network.local"]
     }
   ],
   "themes": [
     {
       "id": "vendor.weather.glass",
-      "entry": "./themes/glass.json"
+      "entry": "./themes/glass/theme.json"
     }
   ]
 }
@@ -76,7 +86,8 @@ mythe-display plugin list
 2. manifest 变化时重新校验。
 3. 组件入口由 Vite 动态导入。
 4. schema 和 preview 数据即时刷新。
-5. 如果插件构建失败，只禁用该插件，不影响核心界面。
+5. 主题资源包变化时刷新 token、背景和精灵资源。
+6. 如果插件构建失败，只禁用该插件，不影响核心界面。
 
 生产模式：
 
@@ -91,6 +102,7 @@ mythe-display plugin list
 
 - 前端组件只运行在浏览器环境，不能直接读取本机文件。
 - 服务端数据源必须声明权限，例如 `network.fetch`、`system.sensors.read`。
+- OpenClaw/Codex 等本地 Agent 适配器应优先声明 `network.local`，不得默认访问公网。
 - 默认不允许插件执行任意 shell 命令。
 - 安装插件时应显示 manifest 摘要和权限列表。
 - 后续可以增加签名、锁文件和插件来源白名单。
