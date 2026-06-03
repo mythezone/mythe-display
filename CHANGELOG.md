@@ -28,3 +28,4 @@
 - 新增 `/usr/bin/mdp` 短命令入口和 `scripts/install-mdp-command.sh`，支持 `mdp reload`、`mdp switch`、`mdp start`、`mdp status`、`mdp logs` 等常用操作。
 - 增强 `mdp`：`mdp start` 在 systemd unit 缺失时会自动安装服务，`mdp reload/switch/theme` 在控制端口不可用时会先尝试确保 kiosk 服务已安装并启动。
 - 增强 Pet/Assistant 组件：新增更多 PNG fallback 动作，增加 Codex/Petdex `pet.json` + spritesheet atlas 兼容层，并新增 `scripts/import-codex-pet.py` 与 `mdp pet` 导入命令。
+- 将 Storage、Telemetry、Docker 默认数据源从 mock 切换为运行时真实快照；新增 Telemetry/Docker/Runtime 采集脚本，kiosk 启动时先采集一次再进入低频循环，磁盘默认 12 小时刷新，CPU/内存/网络和 Docker 默认 10 分钟刷新；Storage 改为两格，Docker 改为竖栏并提高容器列表密度。

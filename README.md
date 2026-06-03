@@ -2,7 +2,7 @@
 
 Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在小尺寸 HDMI/USB 屏幕上运行一个可复现、可高度定制的本地副屏运行时。
 
-当前状态：已有无桌面 Web kiosk 测试页，可以通过 `cage + Chromium` 在 HDMI 长条屏上全屏显示；已提供默认主题资源包、动态背景、像素 Agent mock 组件和运行时 URL 切换脚本。
+当前状态：已有无桌面 Web kiosk 测试页，可以通过 `cage + Chromium` 在 HDMI 长条屏上全屏显示；已提供默认主题资源包、动态背景、运行时真实指标采集、像素 Agent mock 组件和运行时 URL 切换脚本。
 
 ## 项目目标
 
@@ -81,6 +81,16 @@ components/<component-id>/
 - [public/kiosk-test/telemetry.mock.json](public/kiosk-test/telemetry.mock.json)
 - [public/themes/neon-dark/theme.json](public/themes/neon-dark/theme.json)
 
+默认 kiosk 页面会优先读取运行时快照：
+
+```text
+public/runtime/disks.json       磁盘，默认 12 小时刷新
+public/runtime/telemetry.json   CPU/内存/网络，默认 10 分钟刷新
+public/runtime/docker.json      Docker，默认 10 分钟刷新
+```
+
+这些运行时文件由脚本生成，并已被 `.gitignore` 忽略。mock 文件只作为开发预览或采集不可用时的兜底。
+
 本地预览：
 
 ```bash
@@ -102,6 +112,7 @@ sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 ```
 
 该模式会使用 `LIBSEAT_BACKEND=builtin`、`WLR_DRM_DEVICES=/dev/dri/card0` 和 `WLR_LIBINPUT_NO_DEVICES=1`，不依赖物理键鼠登录。
+默认本地测试页启动时会先生成一次 Storage、Telemetry、Docker 真实快照，再启动 `scripts/collect-runtime-snapshots.py` 低频循环。需要临时禁用采集器时可设置 `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1`。
 
 如果未来在本机 TTY 登录，也可以普通用户运行：
 
@@ -212,19 +223,31 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
 测试页现在包含这些标准组件原型：
 
 - `core.systemHero`：MytheNAS 图标、动态发光和本地 Canvas 三角网格背景。
-- `core.telemetryTrend`：CPU、Memory、Network 合并折线图，单格显示，带颜色图例和坐标轴。
+- `core.telemetryTrend`：CPU、Memory、Network 真实低频快照合并折线图，单格显示，默认 10 分钟刷新，带颜色图例和坐标轴。
 - `core.mascotAssistant`：二次元看板娘，默认每 5 分钟随机切换 CSS 动作和一句短格言；主题可选接入 Rive `.riv` 骨架动画资源。
-- `core.diskMatrix`：紧凑磁盘矩阵，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认一小时刷新。
-- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读方块。
+- `core.diskMatrix`：紧凑磁盘矩阵，占用两格，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认 12 小时刷新。
+- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读竖栏，默认 10 分钟刷新并显示真实容器列表。
 - `core.pixelAgents`：OpenClaw 兼容的像素 Agent 状态原型。
 
-真实磁盘快照可以这样生成：
+手动生成一次真实运行时快照：
 
 ```bash
-scripts/collect-disk-snapshot.py --out public/runtime/disks.json --pretty
+scripts/collect-runtime-snapshots.py --once --pretty
 ```
 
-然后用真实数据预览：
+持续生成真实运行时快照：
+
+```bash
+scripts/collect-runtime-snapshots.py
+```
+
+也可以只生成磁盘快照：
+
+```bash
+scripts/collect-disk-snapshot.py --out public/runtime/disks.json --refresh-ms 43200000 --pretty
+```
+
+默认页面已经读取真实快照；也可以显式指定数据源：
 
 ```text
 http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json

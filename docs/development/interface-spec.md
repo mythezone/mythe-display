@@ -322,7 +322,7 @@ type PixelAgentSnapshot = {
 
 ## DiskSnapshot
 
-磁盘矩阵组件使用低频快照，默认一小时刷新一次。
+磁盘矩阵组件使用低频快照，默认 12 小时刷新一次。
 
 ```ts
 type DiskType = "hdd" | "nvme" | "ssd" | "usb";
@@ -367,6 +367,7 @@ type TelemetryTrendSnapshot = {
   metrics: {
     cpuPercent: number;
     memoryPercent: number;
+    networkPercent?: number;
     networkRx: string;
     networkTx?: string;
   };
@@ -375,12 +376,14 @@ type TelemetryTrendSnapshot = {
 
 ## DockerSnapshot
 
-Docker 方块组件参考 lazydocker 的信息结构，但只做只读监控。
+Docker 竖栏组件参考 lazydocker 的信息结构，但只做只读监控。
 
 ```ts
 type DockerSnapshot = {
   updatedAt: string;
   refreshMs: number;
+  available?: boolean;
+  error?: string;
   summary: {
     running: number;
     stopped: number;

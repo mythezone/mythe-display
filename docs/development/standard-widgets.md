@@ -18,7 +18,8 @@
 - 图标外圈使用 `conic-gradient` 表示 `usedPercent`。
 - 图标内部形状区分 `hdd`、`nvme`、`ssd`、`usb`。
 - `metric.good/warn/bad` 表达正常、接近满、严重占满。
-- 默认刷新周期是 `3600000ms`，也就是一小时一次。
+- 默认占用两个标准网格块，适合 16 盘位 NAS。
+- 默认刷新周期是 `43200000ms`，也就是 12 小时一次。
 
 数据契约：
 
@@ -51,7 +52,13 @@ type DiskItem = {
 };
 ```
 
-当前 mock：
+默认运行时数据：
+
+```text
+public/runtime/disks.json
+```
+
+当前 mock 仅用于开发预览兜底：
 
 ```text
 public/kiosk-test/disks.mock.json
@@ -71,16 +78,17 @@ http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
 
 ## core.dockerTui
 
-用途：用一个正方形区块展示 Docker 状态，视觉上参考 lazydocker 的 TUI 信息密度。
+用途：用一个竖向区块展示 Docker 状态，视觉上参考 lazydocker 的 TUI 信息密度。
 
 参考项目：[jesseduffield/lazydocker](https://github.com/jesseduffield/lazydocker)。该项目 README 描述它是用 Go 和 gocui 写成的 Docker / docker-compose 终端 UI。
 
 显示规则：
 
-- 保持方块形态，适合放在右上角。
+- 占用一整条竖栏，适合在长条屏右侧显示更多容器。
 - 上半部显示 running、stopped、CPU、memory。
-- 下半部显示前 5 个容器的状态和资源占用。
-- 默认刷新周期建议 `300000ms`。
+- 下半部用紧凑行高显示前 16 个容器的状态和资源占用。
+- 默认刷新周期建议 `600000ms`，也就是 10 分钟一次。
+- Docker CLI 不可用或权限不足时，组件显示 unavailable 状态，不回退成假真实数据。
 
 数据契约：
 
@@ -88,6 +96,8 @@ http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
 type DockerSnapshot = {
   updatedAt: string;
   refreshMs: number;
+  available?: boolean;
+  error?: string;
   summary: {
     running: number;
     stopped: number;
@@ -107,7 +117,19 @@ type DockerSnapshot = {
 };
 ```
 
-当前 mock：
+默认运行时数据：
+
+```text
+public/runtime/docker.json
+```
+
+真实采集脚本：
+
+```bash
+scripts/collect-docker-snapshot.py --out public/runtime/docker.json --pretty
+```
+
+当前 mock 仅用于开发预览兜底：
 
 ```text
 public/kiosk-test/docker.mock.json
@@ -122,9 +144,10 @@ public/kiosk-test/docker.mock.json
 - 默认占用一个标准网格块，不再横跨两格。
 - 一个 canvas 折线图显示三条曲线。
 - 必须显示颜色图例：CPU 使用 `accent.primary`，Memory 使用 `accent.secondary`，Network 使用 `metric.good`。
-- 必须显示基础坐标轴：纵轴 `0/50/100`，横轴 `t-60s/now`。
+- 必须显示基础坐标轴：纵轴 `0/50/100`，横轴 `history/now`。
 - 底部保留当前数值，避免只看图难以读数。
-- 测试页会动态滚动 mock 数据；正式运行时应由数据源推送或低频轮询。
+- 正式运行时默认读取 `/proc` 采集快照，每 10 分钟刷新一次。
+- mock 只作为开发预览兜底；测试页不再用随机数伪造趋势。
 
 数据契约：
 
@@ -140,13 +163,26 @@ type TelemetryTrendSnapshot = {
   metrics: {
     cpuPercent: number;
     memoryPercent: number;
+    networkPercent?: number;
     networkRx: string;
     networkTx?: string;
   };
 };
 ```
 
-当前 mock：
+默认运行时数据：
+
+```text
+public/runtime/telemetry.json
+```
+
+真实采集脚本：
+
+```bash
+scripts/collect-telemetry-snapshot.py --out public/runtime/telemetry.json --state public/runtime/telemetry-state.json --pretty
+```
+
+当前 mock 仅用于开发预览兜底：
 
 ```text
 public/kiosk-test/telemetry.mock.json

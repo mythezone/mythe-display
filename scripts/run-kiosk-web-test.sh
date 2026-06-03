@@ -9,6 +9,7 @@ DEFAULT_URL="http://${HOST}:${PORT}/kiosk-test/"
 URL="${1:-$DEFAULT_URL}"
 SERVER_PID=""
 KIOSK_PID=""
+RUNTIME_COLLECTOR_PID=""
 IS_ROOT=0
 
 export no_proxy="${no_proxy:-localhost,127.0.0.1,::1}"
@@ -38,11 +39,22 @@ Usage:
   scripts/kiosk-control.py switch /kiosk-test/
   scripts/kiosk-control.py reload
   该能力依赖 Chromium DevTools 控制端口，Firefox kiosk 暂不支持。
+
+默认本地测试页会启动低频运行时采集器，生成:
+  public/runtime/disks.json       默认 12 小时刷新
+  public/runtime/telemetry.json   默认 10 分钟刷新
+  public/runtime/docker.json      默认 10 分钟刷新
+
+可用 MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 禁用采集器。
 EOF
   exit 0
 fi
 
 cleanup() {
+  if [[ -n "$RUNTIME_COLLECTOR_PID" ]]; then
+    kill "$RUNTIME_COLLECTOR_PID" >/dev/null 2>&1 || true
+    wait "$RUNTIME_COLLECTOR_PID" >/dev/null 2>&1 || true
+  fi
   if [[ -n "$KIOSK_PID" ]]; then
     kill "$KIOSK_PID" >/dev/null 2>&1 || true
     wait "$KIOSK_PID" >/dev/null 2>&1 || true
@@ -131,6 +143,17 @@ if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_SKIP_GROUP_CHECK:-0}" != "1" ]]; then
 fi
 
 if [[ "$URL" == "$DEFAULT_URL" ]]; then
+  if [[ "${MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR:-0}" != "1" ]]; then
+    RUNTIME_COLLECTOR_ARGS=(
+      --disk-ms "${MYTHE_DISPLAY_DISK_REFRESH_MS:-43200000}"
+      --telemetry-ms "${MYTHE_DISPLAY_TELEMETRY_REFRESH_MS:-600000}"
+      --docker-ms "${MYTHE_DISPLAY_DOCKER_REFRESH_MS:-600000}"
+    )
+    python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --once || true
+    python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --delay-first &
+    RUNTIME_COLLECTOR_PID="$!"
+  fi
+
   python3 "$ROOT_DIR/scripts/serve-web-test.py" --host "$HOST" --port "$PORT" &
   SERVER_PID="$!"
   sleep 0.6

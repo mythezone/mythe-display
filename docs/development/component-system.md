@@ -104,10 +104,10 @@ type DisplayComponentProps<TConfig, TData> = {
 - `core.cpu`：使用率、频率、温度。
 - `core.memory`：内存和 swap。
 - `core.disk`：文件系统占用和磁盘活动。
-- `core.diskMatrix`：适合 NAS 多盘位的紧凑磁盘矩阵，默认一小时刷新。
+- `core.diskMatrix`：适合 NAS 多盘位的紧凑磁盘矩阵，默认 12 小时刷新。
 - `core.network`：吞吐、IP、网卡状态。
 - `core.telemetryTrend`：合并 CPU、Memory、Network 的动态折线趋势。
-- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读状态方块。
+- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读状态竖栏。
 - `core.systemHero`：设备标题、主题图标和本地 Canvas 三角网格背景。
 - `core.mascotAssistant`：透明看板娘资源、CSS 动作状态、随机格言、可选 Rive 骨架动画和 Codex/Petdex sprite atlas。
 - `core.gpu`：NVIDIA/AMD/Intel 指标，按可用性提供。

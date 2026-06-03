@@ -763,14 +763,15 @@
       }
 
       .docker-panel {
-        aspect-ratio: 1 / 1;
+        grid-row: span 2;
+        aspect-ratio: auto;
       }
 
       .docker-body {
         min-height: 0;
         display: grid;
         grid-template-rows: auto 1fr;
-        gap: 12px;
+        gap: 8px;
         font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       }
 
@@ -783,7 +784,7 @@
       .docker-stat {
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
-        padding: 10px;
+        padding: 8px;
         background: rgba(255, 255, 255, 0.045);
       }
 
@@ -796,28 +797,31 @@
       .docker-stat strong {
         display: block;
         margin-top: 3px;
-        font-size: 22px;
+        font-size: 18px;
         line-height: 1;
       }
 
       .docker-list {
         min-height: 0;
         display: grid;
-        grid-auto-rows: minmax(0, 1fr);
-        gap: 6px;
+        grid-auto-rows: minmax(29px, auto);
+        align-content: start;
+        gap: 4px;
+        overflow: hidden;
       }
 
       .container-row {
         min-width: 0;
         display: grid;
         grid-template-columns: 1fr auto;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
         border-left: 3px solid var(--row-color);
-        padding: 6px 8px;
+        padding: 4px 6px;
         background: rgba(0, 0, 0, 0.18);
         color: var(--md-text-secondary);
-        font-size: 12px;
+        font-size: 10px;
+        line-height: 1.15;
       }
 
       .container-row strong {
@@ -826,38 +830,38 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         color: var(--md-text-primary);
-        font-size: 13px;
+        font-size: 11px;
       }
 
       .disk-panel {
-        grid-column: span 3;
+        grid-column: span 2;
       }
 
       .disk-grid {
         min-height: 0;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 9px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
       }
 
       .disk-tile {
         min-width: 0;
         min-height: 0;
         display: grid;
-        grid-template-columns: 42px 1fr auto;
+        grid-template-columns: 36px 1fr auto;
         align-items: center;
-        gap: 9px;
+        gap: 7px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
-        padding: 8px 9px;
+        padding: 6px 7px;
         background: rgba(255, 255, 255, 0.04);
       }
 
       .drive-icon {
         --used: 0%;
         --usage-color: var(--md-metric-good);
-        width: 38px;
-        height: 38px;
+        width: 34px;
+        height: 34px;
         display: grid;
         place-items: center;
         border-radius: 50%;
@@ -866,8 +870,8 @@
       }
 
       .drive-glyph {
-        width: 27px;
-        height: 27px;
+        width: 24px;
+        height: 24px;
         border-radius: 6px;
         position: relative;
         background: rgba(4, 8, 13, 0.96);
@@ -1153,6 +1157,7 @@
         }
 
         .docker-panel {
+          grid-row: auto;
           aspect-ratio: auto;
         }
 
@@ -1170,6 +1175,7 @@
 
         .hero,
         .telemetry,
+        .docker-panel,
         .disk-panel {
           grid-column: auto;
         }
@@ -1278,7 +1284,7 @@
       <section class="panel metric telemetry">
         <header>
           <h2>Telemetry</h2>
-          <span class="pill">trend</span>
+          <span class="pill">10 min</span>
         </header>
         <div class="chart-wrap">
           <canvas id="telemetry-chart"></canvas>
@@ -1323,7 +1329,7 @@
       <section class="panel docker-panel">
         <header>
           <h2>Docker</h2>
-          <span class="pill">lazydocker</span>
+          <span class="pill">10 min</span>
         </header>
         <div class="docker-body">
           <div class="docker-summary" id="docker-summary"></div>
@@ -1354,7 +1360,7 @@
       <section class="panel disk-panel">
         <header>
           <h2>Storage</h2>
-          <span class="pill">hourly refresh</span>
+          <span class="pill">12h refresh</span>
         </header>
         <div class="disk-grid" id="disk-grid"></div>
         <div class="disk-summary">
@@ -1380,13 +1386,16 @@
       const params = new URLSearchParams(location.search);
       const themeUrl = params.get("theme") || "../themes/neon-dark/theme.json";
       const agentSourceUrl = params.get("agents") || "./agents.mock.json";
-      const diskSourceUrl = params.get("disks") || "./disks.mock.json";
-      const dockerSourceUrl = params.get("docker") || "./docker.mock.json";
-      const telemetrySourceUrl = params.get("telemetry") || "./telemetry.mock.json";
+      const diskFallbackUrl = "./disks.mock.json";
+      const dockerFallbackUrl = "./docker.mock.json";
+      const telemetryFallbackUrl = "./telemetry.mock.json";
+      const diskSourceUrl = params.get("disks") || "/runtime/disks.json";
+      const dockerSourceUrl = params.get("docker") || "/runtime/docker.json";
+      const telemetrySourceUrl = params.get("telemetry") || "/runtime/telemetry.json";
       const agentRefreshMs = Number(params.get("agentsRefreshMs") || 3000);
-      const diskRefreshMs = Number(params.get("disksRefreshMs") || 3600000);
-      const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 300000);
-      const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 5000);
+      const diskRefreshMs = Number(params.get("disksRefreshMs") || 43200000);
+      const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 600000);
+      const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 600000);
       const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
       const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
       const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
@@ -1525,6 +1534,16 @@
         const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) throw new Error(`${url} ${response.status}`);
         return response.json();
+      }
+
+      async function fetchJsonWithFallback(url, fallbackUrl) {
+        try {
+          return await fetchJson(url);
+        } catch (error) {
+          if (!fallbackUrl || url === fallbackUrl) throw error;
+          console.warn(`${url} unavailable, falling back to ${fallbackUrl}`, error);
+          return fetchJson(fallbackUrl);
+        }
       }
 
       function applyTokens(tokens = {}) {
@@ -1768,7 +1787,7 @@
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         ctx.fillStyle = "rgba(168,179,199,0.72)";
-        ctx.fillText("t-60s", padLeft, padTop + height + 8);
+        ctx.fillText("history", padLeft, padTop + height + 8);
         ctx.textAlign = "right";
         ctx.fillText("now", padLeft + width, padTop + height + 8);
 
@@ -1786,30 +1805,19 @@
           ctx.shadowBlur = 14;
           ctx.stroke();
           ctx.shadowBlur = 0;
+          if (values.length === 1) {
+            const y = padTop + height - (height * Math.max(0, Math.min(100, values[0]))) / 100;
+            ctx.beginPath();
+            ctx.arc(padLeft, y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+          }
         }
-      }
-
-      function animateTelemetry() {
-        if (!telemetry) return;
-        for (const key of Object.keys(telemetry.series)) {
-          const values = telemetry.series[key];
-          const previous = values[values.length - 1] ?? 50;
-          const next = Math.max(6, Math.min(96, previous + (Math.random() * 18 - 9)));
-          values.push(Math.round(next));
-          values.shift();
-        }
-        const metrics = telemetry.metrics;
-        metrics.cpuPercent = telemetry.series.cpu.at(-1);
-        metrics.memoryPercent = telemetry.series.memory.at(-1);
-        document.getElementById("cpu-value").textContent = `${metrics.cpuPercent}%`;
-        document.getElementById("memory-value").textContent = `${metrics.memoryPercent}%`;
-        document.getElementById("network-value").textContent = metrics.networkRx || "--";
-        drawTelemetryChart();
       }
 
       async function loadTelemetry() {
         try {
-          telemetry = await fetchJson(telemetrySourceUrl);
+          telemetry = await fetchJsonWithFallback(telemetrySourceUrl, telemetryFallbackUrl);
         } catch (error) {
           console.warn("Telemetry source load failed", error);
           telemetry = {
@@ -1817,8 +1825,13 @@
             metrics: { cpuPercent: 37, memoryPercent: 62, networkRx: "--" }
           };
         }
-        document.getElementById("cpu-value").textContent = `${telemetry.metrics.cpuPercent}%`;
-        document.getElementById("memory-value").textContent = `${telemetry.metrics.memoryPercent}%`;
+        telemetry.series = telemetry.series || {};
+        telemetry.series.cpu = Array.isArray(telemetry.series.cpu) ? telemetry.series.cpu : [Number(telemetry.metrics?.cpuPercent) || 0];
+        telemetry.series.memory = Array.isArray(telemetry.series.memory) ? telemetry.series.memory : [Number(telemetry.metrics?.memoryPercent) || 0];
+        telemetry.series.network = Array.isArray(telemetry.series.network) ? telemetry.series.network : [Number(telemetry.metrics?.networkPercent) || 0];
+        telemetry.metrics = telemetry.metrics || {};
+        document.getElementById("cpu-value").textContent = `${telemetry.metrics.cpuPercent ?? "--"}%`;
+        document.getElementById("memory-value").textContent = `${telemetry.metrics.memoryPercent ?? "--"}%`;
         document.getElementById("network-value").textContent = telemetry.metrics.networkRx || "--";
         drawTelemetryChart();
       }
@@ -1870,12 +1883,12 @@
         const total = summary.totalBytes || disks.reduce((sum, disk) => sum + (Number(disk.totalBytes) || 0), 0);
         const used = summary.usedBytes || disks.reduce((sum, disk) => sum + (Number(disk.usedBytes) || 0), 0);
         diskSummary.textContent = `${disks.length} drives · ${formatBytes(used)} / ${formatBytes(total)}`;
-        diskUpdated.textContent = payload?.updatedAt ? `updated ${new Date(payload.updatedAt).toLocaleTimeString("zh-CN", { hour12: false })}` : "hourly";
+        diskUpdated.textContent = payload?.updatedAt ? `updated ${new Date(payload.updatedAt).toLocaleTimeString("zh-CN", { hour12: false })}` : "12h";
       }
 
       async function loadDisks() {
         try {
-          renderDisks(await fetchJson(diskSourceUrl));
+          renderDisks(await fetchJsonWithFallback(diskSourceUrl, diskFallbackUrl));
         } catch (error) {
           console.warn("Disk source load failed", error);
           renderDisks({ disks: [], summary: {} });
@@ -1904,14 +1917,41 @@
         });
 
         dockerList.replaceChildren();
-        for (const item of (payload?.containers || []).slice(0, 5)) {
+        if (payload?.available === false) {
+          const row = document.createElement("div");
+          row.className = "container-row";
+          row.style.setProperty("--row-color", "var(--md-metric-warn)");
+          const name = document.createElement("strong");
+          name.textContent = "Docker unavailable";
+          const meta = document.createElement("span");
+          meta.textContent = payload.error || "--";
+          row.append(name, meta);
+          dockerList.appendChild(row);
+          return;
+        }
+
+        const containers = Array.isArray(payload?.containers) ? payload.containers : [];
+        if (!containers.length) {
+          const row = document.createElement("div");
+          row.className = "container-row";
+          row.style.setProperty("--row-color", "var(--md-text-muted)");
+          const name = document.createElement("strong");
+          name.textContent = "No containers";
+          const meta = document.createElement("span");
+          meta.textContent = "--";
+          row.append(name, meta);
+          dockerList.appendChild(row);
+          return;
+        }
+
+        for (const item of containers.slice(0, 16)) {
           const row = document.createElement("div");
           row.className = "container-row";
           row.style.setProperty("--row-color", item.state === "running" ? "var(--md-metric-good)" : "var(--md-metric-bad)");
           const name = document.createElement("strong");
           name.textContent = item.name;
           const meta = document.createElement("span");
-          meta.textContent = `${item.cpuPercent}% · ${item.memory}`;
+          meta.textContent = `${item.cpuPercent ?? "--"}% · ${item.memory || "--"}`;
           row.append(name, meta);
           dockerList.appendChild(row);
         }
@@ -1919,7 +1959,7 @@
 
       async function loadDocker() {
         try {
-          renderDocker(await fetchJson(dockerSourceUrl));
+          renderDocker(await fetchJsonWithFallback(dockerSourceUrl, dockerFallbackUrl));
         } catch (error) {
           console.warn("Docker source load failed", error);
           renderDocker({ summary: {}, containers: [] });
@@ -2149,7 +2189,7 @@
       initHeroGeometry();
       tick();
       setInterval(tick, 1000);
-      setInterval(animateTelemetry, Math.max(2000, telemetryRefreshMs));
+      setInterval(loadTelemetry, Math.max(60000, telemetryRefreshMs));
       setInterval(loadAgents, Math.max(1000, agentRefreshMs));
       setInterval(updateMascot, Math.max(60000, mascotActionMs));
       if (themeRefreshMs > 0) {

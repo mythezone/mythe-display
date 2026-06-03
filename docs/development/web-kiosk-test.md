@@ -19,10 +19,10 @@
 - 默认主题资源包：`public/themes/neon-dark/theme.json`。
 - 多层循环背景和纯色 fallback。
 - MytheNAS hero 图标和动态几何背景。
-- CPU、Memory、Network 单格合并趋势图 mock：`public/kiosk-test/telemetry.mock.json`。
+- CPU、Memory、Network 单格合并趋势图，默认读取 `public/runtime/telemetry.json` 真实快照，mock 仅作为兜底。
 - 看板娘透明资源和随机动作/格言。
-- 磁盘矩阵 mock：`public/kiosk-test/disks.mock.json`。
-- LazyDocker 风格 Docker 方块 mock：`public/kiosk-test/docker.mock.json`。
+- 磁盘矩阵，默认读取 `public/runtime/disks.json` 真实快照，mock 仅作为兜底。
+- LazyDocker 风格 Docker 竖栏，默认读取 `public/runtime/docker.json` 真实快照，mock 仅作为兜底。
 - 像素 Agent mock：`public/kiosk-test/agents.mock.json`。
 - 页面级禁翻译标记：`translate="no"` 和 `notranslate`。
 
@@ -80,6 +80,20 @@ WLR_LIBINPUT_NO_DEVICES=1
 ```
 
 并且 Chromium 会自动加上 root 运行需要的 `--no-sandbox`。
+
+默认本地测试页启动时，脚本会先生成一次真实快照，再启动低频运行时采集器：
+
+```text
+public/runtime/disks.json       默认 12 小时刷新
+public/runtime/telemetry.json   默认 10 分钟刷新
+public/runtime/docker.json      默认 10 分钟刷新
+```
+
+这些文件已被 `.gitignore` 忽略。需要临时禁用采集器时可设置：
+
+```bash
+sudo MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+```
 
 Chromium 同时会禁用翻译 UI，并打开本机控制端口：
 
@@ -215,22 +229,36 @@ mdp logs
 http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
 ```
 
-切换磁盘数据源：
+默认数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/
+```
+
+该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
+
+显式切换磁盘数据源：
 
 ```text
 http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
 ```
 
-磁盘组件默认一小时刷新一次：
+磁盘组件默认 12 小时刷新一次：
 
 ```text
-http://<server-ip>:23456/kiosk-test/?disksRefreshMs=3600000
+http://<server-ip>:23456/kiosk-test/?disksRefreshMs=43200000
 ```
 
-生成真实磁盘快照：
+生成一次真实运行时快照：
 
 ```bash
-scripts/collect-disk-snapshot.py --out public/runtime/disks.json --pretty
+scripts/collect-runtime-snapshots.py --once --pretty
+```
+
+持续生成真实运行时快照：
+
+```bash
+scripts/collect-runtime-snapshots.py
 ```
 
 切换 Docker 状态数据源：

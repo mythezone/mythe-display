@@ -15,6 +15,7 @@ from typing import Any
 
 
 DEFAULT_OUTPUT = "public/runtime/disks.json"
+DEFAULT_REFRESH_MS = 43_200_000
 
 
 def run_json(command: list[str]) -> Any:
@@ -91,7 +92,7 @@ def status_for(percent: int | None) -> str:
     return "ok"
 
 
-def collect() -> dict[str, Any]:
+def collect(refresh_ms: int = DEFAULT_REFRESH_MS) -> dict[str, Any]:
     lsblk = run_json(
         [
             "lsblk",
@@ -134,7 +135,7 @@ def collect() -> dict[str, Any]:
 
     return {
         "updatedAt": datetime.now(timezone.utc).isoformat(),
-        "refreshMs": 3600000,
+        "refreshMs": refresh_ms,
         "summary": {
             "totalBytes": total_bytes,
             "usedBytes": used_bytes,
@@ -147,11 +148,12 @@ def collect() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="生成 Mythe Display 磁盘组件 JSON 快照。")
     parser.add_argument("--out", default=DEFAULT_OUTPUT, help=f"输出路径，默认 {DEFAULT_OUTPUT}。")
+    parser.add_argument("--refresh-ms", type=int, default=DEFAULT_REFRESH_MS, help="刷新周期元数据，默认 12 小时。")
     parser.add_argument("--pretty", action="store_true", help="使用缩进格式输出。")
     args = parser.parse_args()
 
     try:
-        payload = collect()
+        payload = collect(args.refresh_ms)
     except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
         print(f"采集磁盘信息失败: {exc}", file=sys.stderr)
         return 1
