@@ -25,6 +25,7 @@ public/themes/<theme-id>/
   backgrounds/        # 可选
   sprites/            # 可选
   hero/               # 可选
+  mascot/             # 可选
   fonts/              # 可选
   icons/              # 可选
 ```
@@ -60,6 +61,9 @@ public/themes/<theme-id>/
   },
   "hero": {
     "logo": "hero/mythenas-core.png"
+  },
+  "mascot": {
+    "assistant": "mascot/assistant.png"
   },
   "sprites": {
     "agent": {
@@ -130,6 +134,16 @@ Hero 的动态效果由运行时提供：
 - Three.js 加载失败时的 Canvas fallback。
 
 主题资源包只提供图片资源，不执行任意代码。
+
+## Mascot 资源
+
+`mascot.assistant` 用于二次元看板娘组件。默认资源：
+
+```text
+public/themes/neon-dark/mascot/assistant.png
+```
+
+该资源应是透明 PNG/WebP。动作由运行时通过 CSS 动画实现，第一版不要求主题包提供多张动作图。后续如果要接 Live2D、Spine 或多帧 sprite sheet，应作为单独组件能力声明，而不是让主题包执行任意代码。
 
 ## Agent 精灵资源
 

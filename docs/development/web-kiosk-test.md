@@ -19,7 +19,8 @@
 - 默认主题资源包：`public/themes/neon-dark/theme.json`。
 - 多层循环背景和纯色 fallback。
 - MytheNAS hero 图标和动态几何背景。
-- CPU、Memory、Network 合并趋势图 mock：`public/kiosk-test/telemetry.mock.json`。
+- CPU、Memory、Network 单格合并趋势图 mock：`public/kiosk-test/telemetry.mock.json`。
+- 看板娘透明资源和随机动作/格言。
 - 磁盘矩阵 mock：`public/kiosk-test/disks.mock.json`。
 - LazyDocker 风格 Docker 方块 mock：`public/kiosk-test/docker.mock.json`。
 - 像素 Agent mock：`public/kiosk-test/agents.mock.json`。

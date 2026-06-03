@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="google" content="notranslate" />
+    <link rel="icon" href="data:," />
     <title>Mythe Display Kiosk Test</title>
     <style>
       :root {
@@ -298,6 +299,7 @@
       }
 
       .metric,
+      .mascot-panel,
       .agent-panel,
       .disk-panel,
       .docker-panel,
@@ -309,6 +311,7 @@
       }
 
       .metric header,
+      .mascot-panel header,
       .agent-panel header,
       .disk-panel header,
       .docker-panel header,
@@ -320,6 +323,7 @@
       }
 
       .metric h2,
+      .mascot-panel h2,
       .agent-panel h2,
       .disk-panel h2,
       .docker-panel h2,
@@ -340,20 +344,20 @@
       }
 
       .telemetry {
-        grid-column: span 2;
+        grid-column: span 1;
       }
 
       .telemetry-readouts {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        gap: 8px;
       }
 
       .readout {
         min-width: 0;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
-        padding: 12px 14px;
+        padding: 10px 11px;
         background: rgba(255, 255, 255, 0.045);
       }
 
@@ -366,7 +370,7 @@
       .readout strong {
         display: block;
         margin-top: 4px;
-        font-size: 28px;
+        font-size: 22px;
         line-height: 1;
         font-variant-numeric: tabular-nums;
       }
@@ -392,6 +396,7 @@
 
       .chart-legend {
         display: flex;
+        flex-wrap: wrap;
         gap: 14px;
         color: var(--md-text-secondary);
         font-size: 13px;
@@ -405,6 +410,132 @@
         border-radius: 50%;
         background: var(--dot);
         box-shadow: 0 0 12px var(--dot);
+      }
+
+      .telemetry-legend {
+        margin-top: -6px;
+      }
+
+      .mascot-panel {
+        isolation: isolate;
+        background:
+          radial-gradient(circle at 58% 32%, rgba(191, 90, 242, 0.17), transparent 30%),
+          radial-gradient(circle at 38% 78%, rgba(10, 132, 255, 0.17), transparent 34%),
+          var(--md-surface-panel);
+      }
+
+      .mascot-stage {
+        min-height: 0;
+        position: relative;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        justify-items: center;
+        align-items: end;
+        overflow: hidden;
+      }
+
+      .mascot-stage::before {
+        content: "";
+        position: absolute;
+        inset: 20% 8% 0;
+        border: 1px solid rgba(10, 132, 255, 0.16);
+        border-radius: 50%;
+        transform: rotate(-12deg);
+      }
+
+      .mascot-quote {
+        position: relative;
+        max-width: 92%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 8px;
+        background: rgba(5, 8, 13, 0.72);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24);
+        color: var(--md-text-primary);
+        font-size: 13px;
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      .mascot-quote::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        width: 10px;
+        height: 10px;
+        margin-top: 29px;
+        transform: rotate(45deg);
+        background: rgba(5, 8, 13, 0.72);
+        border-right: 1px solid rgba(255, 255, 255, 0.14);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      }
+
+      .mascot-img {
+        max-width: 82%;
+        max-height: 285px;
+        object-fit: contain;
+        align-self: end;
+        filter: drop-shadow(0 0 24px rgba(10, 132, 255, 0.24));
+        transform-origin: 50% 92%;
+      }
+
+      .mascot-panel[data-action="idle"] .mascot-img {
+        animation: mascot-idle 3.6s ease-in-out infinite;
+      }
+
+      .mascot-panel[data-action="wave"] .mascot-img {
+        animation: mascot-wave 1.2s ease-in-out infinite;
+      }
+
+      .mascot-panel[data-action="think"] .mascot-img {
+        animation: mascot-think 4.4s ease-in-out infinite;
+      }
+
+      .mascot-panel[data-action="scan"] .mascot-img {
+        animation: mascot-scan 2.4s ease-in-out infinite;
+      }
+
+      @keyframes mascot-idle {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+      }
+
+      @keyframes mascot-wave {
+        0%,
+        100% {
+          transform: rotate(-1deg) translateY(0);
+        }
+        50% {
+          transform: rotate(2deg) translateY(-6px);
+        }
+      }
+
+      @keyframes mascot-think {
+        0%,
+        100% {
+          transform: translateX(0) scale(1);
+        }
+        50% {
+          transform: translateX(4px) scale(0.985);
+        }
+      }
+
+      @keyframes mascot-scan {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 18px rgba(10, 132, 255, 0.2));
+          transform: translateY(0);
+        }
+        50% {
+          filter: drop-shadow(0 0 34px rgba(48, 209, 88, 0.3));
+          transform: translateY(-3px);
+        }
       }
 
       .docker-panel {
@@ -870,10 +1001,15 @@
       <section class="panel metric telemetry">
         <header>
           <h2>Telemetry</h2>
-          <span class="pill">cpu · memory · network</span>
+          <span class="pill">trend</span>
         </header>
         <div class="chart-wrap">
           <canvas id="telemetry-chart"></canvas>
+        </div>
+        <div class="chart-legend telemetry-legend">
+          <span><i class="legend-dot" style="--dot: var(--md-accent-primary)"></i>CPU</span>
+          <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>Memory</span>
+          <span><i class="legend-dot" style="--dot: var(--md-metric-good)"></i>Network</span>
         </div>
         <div class="telemetry-readouts">
           <div class="readout">
@@ -888,6 +1024,20 @@
             <small>Network</small>
             <strong id="network-value">--</strong>
           </div>
+        </div>
+      </section>
+
+      <section class="panel mascot-panel" id="mascot-panel" data-action="idle">
+        <header>
+          <h2>Assistant</h2>
+          <span class="pill" id="mascot-action">idle</span>
+        </header>
+        <div class="mascot-stage">
+          <div class="mascot-quote" id="mascot-quote">loading</div>
+          <img class="mascot-img" id="mascot-img" alt="MytheNAS assistant" />
+        </div>
+        <div class="chart-legend">
+          <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>5 min action cycle</span>
         </div>
       </section>
 
@@ -958,9 +1108,14 @@
       const diskRefreshMs = Number(params.get("disksRefreshMs") || 3600000);
       const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 300000);
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 5000);
+      const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
 
       const wallpaper = document.getElementById("wallpaper");
       const heroLogo = document.getElementById("hero-logo");
+      const mascotPanel = document.getElementById("mascot-panel");
+      const mascotImg = document.getElementById("mascot-img");
+      const mascotQuote = document.getElementById("mascot-quote");
+      const mascotAction = document.getElementById("mascot-action");
       const telemetryChart = document.getElementById("telemetry-chart");
       const diskGrid = document.getElementById("disk-grid");
       const diskSummary = document.getElementById("disk-summary");
@@ -989,6 +1144,17 @@
         error: "var(--md-metric-bad)",
         offline: "var(--md-text-muted)"
       };
+
+      const mascotStates = [
+        { action: "idle", quote: "稳定先于华丽。" },
+        { action: "wave", quote: "先备份，再冒险。" },
+        { action: "think", quote: "慢查询不会自己消失。" },
+        { action: "scan", quote: "每一次告警都值得被解释。" },
+        { action: "idle", quote: "好的界面让异常先说话。" },
+        { action: "scan", quote: "磁盘快满前，先整理策略。" },
+        { action: "think", quote: "把复杂留给系统，把清晰留给你。" },
+        { action: "wave", quote: "今天也要让服务安静运行。" }
+      ];
 
       function tokenToCssVar(token) {
         return `--md-${token.replaceAll(".", "-")}`;
@@ -1047,9 +1213,12 @@
         }
       }
 
-      function applyHero(config = {}) {
+      function applyHero(config = {}, mascotConfig = {}) {
         const logo = config.logo ? resolveThemeAsset(config.logo) : "";
         heroLogo.src = logo;
+        if (mascotConfig.assistant) {
+          mascotImg.src = resolveThemeAsset(mascotConfig.assistant);
+        }
       }
 
       function drawTelemetryChart() {
@@ -1062,30 +1231,52 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, bounds.width, bounds.height);
 
-        const pad = 18;
-        const width = bounds.width - pad * 2;
-        const height = bounds.height - pad * 2;
+        const padLeft = 42;
+        const padRight = 12;
+        const padTop = 14;
+        const padBottom = 28;
+        const width = Math.max(1, bounds.width - padLeft - padRight);
+        const height = Math.max(1, bounds.height - padTop - padBottom);
         const series = [
           ["cpu", telemetry.series.cpu, getComputedStyle(document.documentElement).getPropertyValue("--md-accent-primary").trim()],
           ["memory", telemetry.series.memory, getComputedStyle(document.documentElement).getPropertyValue("--md-accent-secondary").trim()],
           ["network", telemetry.series.network, getComputedStyle(document.documentElement).getPropertyValue("--md-metric-good").trim()]
         ];
 
+        ctx.font = "12px ui-sans-serif, system-ui";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
         ctx.lineWidth = 1;
         ctx.strokeStyle = "rgba(255,255,255,0.08)";
-        for (let y = 0; y <= 4; y += 1) {
-          const lineY = pad + (height * y) / 4;
+        ctx.fillStyle = "rgba(168,179,199,0.82)";
+        [0, 50, 100].forEach((tick) => {
+          const lineY = padTop + height - (height * tick) / 100;
           ctx.beginPath();
-          ctx.moveTo(pad, lineY);
-          ctx.lineTo(pad + width, lineY);
+          ctx.moveTo(padLeft, lineY);
+          ctx.lineTo(padLeft + width, lineY);
           ctx.stroke();
-        }
+          ctx.fillText(`${tick}`, padLeft - 8, lineY);
+        });
+
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.beginPath();
+        ctx.moveTo(padLeft, padTop);
+        ctx.lineTo(padLeft, padTop + height);
+        ctx.lineTo(padLeft + width, padTop + height);
+        ctx.stroke();
+
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = "rgba(168,179,199,0.72)";
+        ctx.fillText("t-60s", padLeft, padTop + height + 8);
+        ctx.textAlign = "right";
+        ctx.fillText("now", padLeft + width, padTop + height + 8);
 
         for (const [, values, color] of series) {
           ctx.beginPath();
           values.forEach((value, index) => {
-            const x = pad + (width * index) / Math.max(1, values.length - 1);
-            const y = pad + height - (height * Math.max(0, Math.min(100, value))) / 100;
+            const x = padLeft + (width * index) / Math.max(1, values.length - 1);
+            const y = padTop + height - (height * Math.max(0, Math.min(100, value))) / 100;
             if (index === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           });
@@ -1130,6 +1321,13 @@
         document.getElementById("memory-value").textContent = `${telemetry.metrics.memoryPercent}%`;
         document.getElementById("network-value").textContent = telemetry.metrics.networkRx || "--";
         drawTelemetryChart();
+      }
+
+      function updateMascot() {
+        const state = mascotStates[Math.floor(Math.random() * mascotStates.length)];
+        mascotPanel.dataset.action = state.action;
+        mascotAction.textContent = state.action;
+        mascotQuote.textContent = state.quote;
       }
 
       function renderDisks(payload) {
@@ -1287,7 +1485,7 @@
           themeBaseUrl = new URL(".", response.url);
           applyTokens(theme.tokens);
           applyWallpaper(theme.wallpaper);
-          applyHero(theme.hero);
+          applyHero(theme.hero, theme.mascot);
           const spriteConfig = theme.sprites?.agent || {};
           agentSprites = Object.fromEntries(
             Object.entries(spriteConfig).map(([state, path]) => [state, resolveThemeAsset(path)])
@@ -1414,11 +1612,13 @@
       loadDisks();
       loadDocker();
       loadAgents();
+      updateMascot();
       initHeroGeometry();
       tick();
       setInterval(tick, 1000);
       setInterval(animateTelemetry, Math.max(2000, telemetryRefreshMs));
       setInterval(loadAgents, Math.max(1000, agentRefreshMs));
+      setInterval(updateMascot, Math.max(60000, mascotActionMs));
       window.addEventListener("resize", drawTelemetryChart);
     </script>
   </body>

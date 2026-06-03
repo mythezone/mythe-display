@@ -119,7 +119,10 @@ public/kiosk-test/docker.mock.json
 
 显示规则：
 
+- 默认占用一个标准网格块，不再横跨两格。
 - 一个 canvas 折线图显示三条曲线。
+- 必须显示颜色图例：CPU 使用 `accent.primary`，Memory 使用 `accent.secondary`，Network 使用 `metric.good`。
+- 必须显示基础坐标轴：纵轴 `0/50/100`，横轴 `t-60s/now`。
 - 底部保留当前数值，避免只看图难以读数。
 - 测试页会动态滚动 mock 数据；正式运行时应由数据源推送或低频轮询。
 
@@ -166,3 +169,35 @@ public/themes/neon-dark/hero/mythenas-core.png
 ```
 
 注意：生成式图标不负责显示文字，标题文字仍由 HTML/CSS 渲染，避免图片中文字不可控或缩放后发虚。
+
+## core.mascotAssistant
+
+用途：在空出的标准网格块中展示一位主题化看板娘，提供轻量状态陪伴和随机格言。
+
+显示规则：
+
+- 默认占用一个标准网格块。
+- 主题资源包提供透明角色图：`mascot.assistant`。
+- 运行时通过 CSS class 切换动作，不要求主题包提供多张动作图。
+- 默认每 `300000ms`，也就是 5 分钟，随机切换一次动作和格言。
+- 格言在角色头部气泡中显示，长度应短，避免遮挡主体。
+
+当前动作：
+
+```text
+idle
+wave
+think
+scan
+```
+
+主题资源：
+
+```text
+public/themes/neon-dark/mascot/assistant.png
+```
+
+后续路线：
+
+- 如果引入 Live2D、Spine 或 sprite sheet，应作为 `core.liveMascot` 或插件组件处理。
+- 第三方模型或看板娘素材必须先做许可证和再分发审查。

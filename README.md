@@ -156,7 +156,8 @@ public/themes/neon-dark/
 
 - `theme.json`：语义 token、动态背景层、Agent 精灵映射。
 - `backgrounds/`：可循环播放的 SVG 背景层。
-- `hero/`：MytheNAS 科技感图标资源。
+- `hero/`：透明 MytheNAS 科技感图标资源。
+- `mascot/`：透明看板娘资源。
 - `sprites/`：像素 Agent 的 `idle`、`working`、`error`、`offline` 状态资源。
 
 用户可以复制整个目录创建新主题，并在预览 URL 中指定：
@@ -170,7 +171,8 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
 测试页现在包含这些标准组件原型：
 
 - `core.systemHero`：MytheNAS 图标、动态发光和 Three.js 几何背景；Three.js 加载失败时降级到 Canvas。
-- `core.telemetryTrend`：CPU、Memory、Network 合并折线图。
+- `core.telemetryTrend`：CPU、Memory、Network 合并折线图，单格显示，带颜色图例和坐标轴。
+- `core.mascotAssistant`：二次元看板娘，默认每 5 分钟随机切换 CSS 动作和一句短格言。
 - `core.diskMatrix`：紧凑磁盘矩阵，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认一小时刷新。
 - `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读方块。
 - `core.pixelAgents`：OpenClaw 兼容的像素 Agent 状态原型。

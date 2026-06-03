@@ -240,6 +240,9 @@ type ThemeResourcePack = {
   hero?: {
     logo?: string;
   };
+  mascot?: {
+    assistant?: string;
+  };
 };
 
 type WallpaperLayer = {

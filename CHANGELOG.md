@@ -21,3 +21,4 @@
 - 优化 Web kiosk 主界面：新增 MytheNAS 生成式科技图标、Hero 动态几何背景、CPU/Memory/Network 合并趋势图、紧凑磁盘矩阵和 LazyDocker 风格 Docker 方块。
 - 新增 `public/kiosk-test/disks.mock.json`、`docker.mock.json`、`telemetry.mock.json`，并新增 `scripts/collect-disk-snapshot.py` 用于生成真实磁盘快照。
 - 新增标准组件草案，定义 `core.diskMatrix`、`core.dockerTui`、`core.telemetryTrend` 和 `core.systemHero` 的数据契约与刷新策略。
+- 将 Telemetry 调整为单格组件，增加 CPU/Memory/Network 颜色图例与坐标轴；新增 `core.mascotAssistant` 看板娘组件原型，并把 MytheNAS LOGO 改为透明 PNG。
