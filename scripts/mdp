@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+UNIT_NAME="${MYTHE_DISPLAY_UNIT_NAME:-mythe-display-kiosk}"
+DEFAULT_ROOT="/home/mythezone/services/mythe/mythe-display"
+
+resolve_root() {
+  local source="${BASH_SOURCE[0]}"
+  local dir=""
+
+  while [[ -L "$source" ]]; do
+    dir="$(cd -P "$(dirname "$source")" && pwd)"
+    source="$(readlink "$source")"
+    [[ "$source" != /* ]] && source="$dir/$source"
+  done
+
+  dir="$(cd -P "$(dirname "$source")" && pwd)"
+  if [[ -f "$dir/kiosk-control.py" && -f "$dir/run-kiosk-web-test.sh" ]]; then
+    cd "$dir/.." && pwd
+    return 0
+  fi
+  if [[ -f "$dir/scripts/kiosk-control.py" ]]; then
+    cd "$dir" && pwd
+    return 0
+  fi
+  if [[ -n "${MYTHE_DISPLAY_ROOT:-}" && -f "$MYTHE_DISPLAY_ROOT/scripts/kiosk-control.py" ]]; then
+    cd "$MYTHE_DISPLAY_ROOT" && pwd
+    return 0
+  fi
+  if [[ -f "$DEFAULT_ROOT/scripts/kiosk-control.py" ]]; then
+    cd "$DEFAULT_ROOT" && pwd
+    return 0
+  fi
+  echo "找不到 Mythe Display 仓库。请设置 MYTHE_DISPLAY_ROOT=/path/to/mythe-display。" >&2
+  return 1
+}
+
+ROOT_DIR="$(resolve_root)"
+CONTROL="$ROOT_DIR/scripts/kiosk-control.py"
+RUN_KIOSK="$ROOT_DIR/scripts/run-kiosk-web-test.sh"
+INSTALL_SERVICE="$ROOT_DIR/scripts/install-kiosk-service.sh"
+INSTALL_COMMAND="$ROOT_DIR/scripts/install-mdp-command.sh"
+
+usage() {
+  cat <<EOF
+Usage:
+  mdp <command> [args]
+
+Display:
+  mdp reload                       刷新当前 kiosk 页面，不重启服务
+  mdp switch <url>                 切换当前 kiosk 页面
+  mdp open <url>                   打开新页面并保留旧 page target
+  mdp list                         列出 Chromium page target
+  mdp current                      查看当前页面
+  mdp theme <theme-json-url>       切换到指定主题资源包
+
+Service:
+  mdp start                        启动 systemd kiosk 服务
+  mdp stop                         停止 systemd kiosk 服务
+  mdp restart                      重启 systemd kiosk 服务
+  mdp status                       查看 systemd 服务状态
+  mdp enable                       设置开机自启
+  mdp disable                      取消开机自启
+  mdp logs                         跟随查看服务日志
+
+Setup:
+  mdp install-service              安装/更新 systemd 服务
+  mdp install-command              安装/更新 /usr/bin/mdp
+  mdp run [url]                    直接运行 kiosk 测试脚本
+
+Examples:
+  mdp reload
+  mdp switch /kiosk-test/
+  mdp switch 'https://example.com'
+  mdp theme ../themes/neon-dark/theme.json
+EOF
+}
+
+systemctl_as_needed() {
+  local action="$1"
+  shift || true
+  if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+    systemctl "$action" "$UNIT_NAME" "$@"
+  else
+    sudo systemctl "$action" "$UNIT_NAME" "$@"
+  fi
+}
+
+case "${1:-help}" in
+  help|-h|--help)
+    usage
+    ;;
+  reload|refresh)
+    shift
+    exec "$CONTROL" reload "$@"
+    ;;
+  switch)
+    shift
+    exec "$CONTROL" switch "$@"
+    ;;
+  open)
+    shift
+    exec "$CONTROL" open "$@"
+    ;;
+  list)
+    shift
+    exec "$CONTROL" list "$@"
+    ;;
+  current)
+    shift
+    exec "$CONTROL" current "$@"
+    ;;
+  theme)
+    shift
+    if [[ -z "${1:-}" ]]; then
+      echo "用法: mdp theme <theme-json-url>" >&2
+      exit 2
+    fi
+    exec "$CONTROL" switch "/kiosk-test/?theme=$1" --cache-bust
+    ;;
+  control)
+    shift
+    exec "$CONTROL" "$@"
+    ;;
+  run)
+    shift
+    if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+      exec "$RUN_KIOSK" "$@"
+    fi
+    exec sudo "$RUN_KIOSK" "$@"
+    ;;
+  start|stop|restart|enable|disable)
+    action="$1"
+    shift
+    systemctl_as_needed "$action" "$@"
+    ;;
+  status)
+    shift
+    systemctl status "$UNIT_NAME" "$@"
+    ;;
+  logs|log)
+    shift
+    exec journalctl -u "$UNIT_NAME" -f "$@"
+    ;;
+  install-service)
+    shift
+    if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+      exec "$INSTALL_SERVICE" "$@"
+    fi
+    exec sudo "$INSTALL_SERVICE" "$@"
+    ;;
+  install-command)
+    shift
+    if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+      exec "$INSTALL_COMMAND" "$@"
+    fi
+    exec sudo "$INSTALL_COMMAND" "$@"
+    ;;
+  *)
+    echo "未知命令: $1" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

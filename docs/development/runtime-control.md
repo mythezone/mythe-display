@@ -24,32 +24,32 @@ Mythe Display 启动后，应支持通过命令或本地 API 动态切换显示�
 控制脚本：
 
 ```bash
-scripts/kiosk-control.py switch http://127.0.0.1:23456/kiosk-test/
+mdp switch http://127.0.0.1:23456/kiosk-test/
 ```
 
 查看当前页面：
 
 ```bash
-scripts/kiosk-control.py list
-scripts/kiosk-control.py current
+mdp list
+mdp current
 ```
 
 切换到本地相对路径：
 
 ```bash
-scripts/kiosk-control.py switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
+mdp switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
 ```
 
 切换到外部网页：
 
 ```bash
-scripts/kiosk-control.py switch https://example.com
+mdp switch https://example.com
 ```
 
 刷新当前页面，不重启服务：
 
 ```bash
-scripts/kiosk-control.py reload
+mdp reload
 ```
 
 `reload` 默认会追加 `assetCacheBust=<timestamp>` 查询参数，配合测试页重新加载主题资源。它通过创建新 page target 并关闭旧 target 实现，不会重启 `cage`、Chromium 或 systemd 服务。
@@ -57,13 +57,21 @@ scripts/kiosk-control.py reload
 默认会关闭旧的 page target，只保留新页面。如果需要保留旧页面：
 
 ```bash
-scripts/kiosk-control.py switch --keep-existing https://example.com
-scripts/kiosk-control.py reload --keep-existing
+mdp switch --keep-existing https://example.com
+mdp reload --keep-existing
 ```
 
 注意：如果使用 zsh，带 `?`、`&` 的 URL 需要加引号，避免被 shell 当作通配符。
 
-旧兼容脚本 `scripts/kiosk-switch-url.py` 仍可使用，但新开发默认使用 `scripts/kiosk-control.py`。
+`mdp` 是 `/usr/bin/mdp` 的短命令入口，内部调用 `scripts/kiosk-control.py`。旧兼容脚本 `scripts/kiosk-switch-url.py` 仍可使用，但新开发默认使用 `mdp` 或 `scripts/kiosk-control.py`。
+
+安装/更新短命令：
+
+```bash
+sudo scripts/install-mdp-command.sh
+```
+
+`scripts/install-kiosk-service.sh` 也会自动安装 `/usr/bin/mdp`。
 
 ## 环境变量
 
@@ -85,7 +93,7 @@ ExecReload=/home/mythezone/services/mythe/mythe-display/scripts/kiosk-control.py
 因此服务安装后可以这样刷新当前界面：
 
 ```bash
-sudo systemctl reload mythe-display-kiosk
+mdp reload
 ```
 
 这不是重启服务，不会释放再重新抢占 DRM seat。

@@ -112,8 +112,14 @@ scripts/run-kiosk-web-test.sh
 
 ```bash
 sudo scripts/install-kiosk-service.sh
-sudo systemctl start mythe-display-kiosk
-sudo systemctl enable mythe-display-kiosk
+mdp start
+mdp enable
+```
+
+只安装/更新短命令入口：
+
+```bash
+sudo scripts/install-mdp-command.sh
 ```
 
 也可以测试任意网页：
@@ -125,11 +131,11 @@ scripts/run-kiosk-web-test.sh https://example.com
 运行后动态切换当前 kiosk 页面：
 
 ```bash
-scripts/kiosk-control.py list
-scripts/kiosk-control.py current
-scripts/kiosk-control.py switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
-scripts/kiosk-control.py switch https://example.com
-scripts/kiosk-control.py reload
+mdp list
+mdp current
+mdp switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
+mdp switch https://example.com
+mdp reload
 ```
 
 安装为 systemd 后，刷新当前界面不需要重启服务：
@@ -139,6 +145,14 @@ sudo systemctl reload mythe-display-kiosk
 ```
 
 `reload` 会通过 Chromium DevTools 控制当前页面，并追加 `assetCacheBust` 参数，让主题资源重新加载。它不会执行 `systemctl restart`，因此不会重新抢占 DRM seat。
+
+日常建议使用更短的命令：
+
+```bash
+mdp reload
+mdp status
+mdp logs
+```
 
 Chromium 控制端口默认只绑定本机：
 

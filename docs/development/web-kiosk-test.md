@@ -173,11 +173,11 @@ scripts/run-kiosk-web-test.sh https://example.com
 kiosk 运行后可以使用 DevTools 控制端口切换当前页面：
 
 ```bash
-scripts/kiosk-control.py list
-scripts/kiosk-control.py current
-scripts/kiosk-control.py switch /kiosk-test/
-scripts/kiosk-control.py switch https://example.com
-scripts/kiosk-control.py reload
+mdp list
+mdp current
+mdp switch /kiosk-test/
+mdp switch https://example.com
+mdp reload
 ```
 
 默认控制端口：
@@ -195,6 +195,14 @@ sudo systemctl reload mythe-display-kiosk
 ```
 
 该命令对应服务模板中的 `ExecReload=scripts/kiosk-control.py reload`。它会创建一个刷新后的 Chromium page target，并关闭旧 target；这比 `systemctl restart` 更适合正在占用 HDMI/DRM 的 kiosk。
+
+日常操作可直接使用短命令：
+
+```bash
+mdp reload
+mdp status
+mdp logs
+```
 
 ## 主题和数据源预览参数
 
