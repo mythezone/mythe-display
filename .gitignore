@@ -1,0 +1,43 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Node / web build artifacts
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.turbo/
+.next/
+.nuxt/
+
+# Python and tooling caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Logs and runtime state
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local display captures and generated exports
+captures/
+screenshots/local/
+exports/
