@@ -1,0 +1,29 @@
+{
+  "updatedAt": "2026-06-03T00:00:00+00:00",
+  "refreshMs": 1800000,
+  "available": true,
+  "source": "mock",
+  "location": {
+    "name": "深圳",
+    "latitude": 22.5431,
+    "longitude": 114.0579,
+    "timezone": "Asia/Shanghai"
+  },
+  "current": {
+    "observedAt": "2026-06-03T14:00",
+    "temperatureC": 29.6,
+    "apparentTemperatureC": 33.2,
+    "humidityPercent": 78,
+    "windSpeedKmh": 12.4,
+    "weatherCode": 2,
+    "condition": "多云"
+  },
+  "daily": {
+    "date": "2026-06-03",
+    "temperatureMaxC": 31.8,
+    "temperatureMinC": 26.1,
+    "precipitationProbabilityPercent": 40,
+    "weatherCode": 80,
+    "condition": "阵雨"
+  }
+}

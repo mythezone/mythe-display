@@ -320,6 +320,43 @@ type PixelAgentSnapshot = {
 };
 ```
 
+## WeatherSnapshot
+
+Clock 天气区域使用 Open-Meteo 快照，默认深圳坐标和 `Asia/Shanghai` 时区。
+
+```ts
+type WeatherSnapshot = {
+  updatedAt: string;
+  refreshMs: number;
+  available?: boolean;
+  source: "open-meteo" | "mock" | string;
+  sourceUrl?: string;
+  location: {
+    name: string;
+    latitude: number;
+    longitude: number;
+    timezone: string;
+  };
+  current: {
+    observedAt?: string;
+    temperatureC: number | null;
+    apparentTemperatureC?: number | null;
+    humidityPercent?: number | null;
+    windSpeedKmh?: number | null;
+    weatherCode?: number | null;
+    condition: string;
+  };
+  daily: {
+    date?: string;
+    temperatureMaxC?: number | null;
+    temperatureMinC?: number | null;
+    precipitationProbabilityPercent?: number | null;
+    weatherCode?: number | null;
+    condition?: string;
+  };
+};
+```
+
 ## DiskSnapshot
 
 磁盘矩阵组件使用低频快照，默认 12 小时刷新一次。

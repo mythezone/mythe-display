@@ -19,6 +19,7 @@
 - 默认主题资源包：`public/themes/neon-dark/theme.json`。
 - 多层循环背景和纯色 fallback。
 - MytheNAS hero 图标和动态几何背景。
+- Clock 组件固定 `Asia/Shanghai` 东八区时间，并默认读取 `public/runtime/weather-shenzhen.json` 展示深圳当天 Open-Meteo 天气。
 - CPU、Memory、Network 单格合并趋势图，默认读取 `public/runtime/telemetry.json` 真实快照，mock 仅作为兜底。
 - 看板娘透明资源和随机动作/格言。
 - 磁盘矩阵，默认读取 `public/runtime/disks.json` 真实快照，mock 仅作为兜底。
@@ -87,6 +88,7 @@ WLR_LIBINPUT_NO_DEVICES=1
 public/runtime/disks.json       默认 12 小时刷新
 public/runtime/telemetry.json   默认 10 分钟刷新
 public/runtime/docker.json      默认 10 分钟刷新
+public/runtime/weather-shenzhen.json 默认 30 分钟刷新
 ```
 
 这些文件已被 `.gitignore` 忽略。需要临时禁用采集器时可设置：
@@ -235,7 +237,7 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
 http://<server-ip>:23456/kiosk-test/
 ```
 
-该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
+该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`、`/runtime/weather-shenzhen.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
 
 显式切换磁盘数据源：
 
@@ -271,6 +273,18 @@ http://<server-ip>:23456/kiosk-test/?docker=/api/docker/summary
 
 ```text
 http://<server-ip>:23456/kiosk-test/?telemetry=/api/system/telemetry
+```
+
+切换天气数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?weather=/runtime/weather-shenzhen.json
+```
+
+天气组件默认 30 分钟刷新一次：
+
+```text
+http://<server-ip>:23456/kiosk-test/?weatherRefreshMs=1800000
 ```
 
 切换 Agent 状态数据源：

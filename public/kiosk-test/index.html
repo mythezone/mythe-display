@@ -1105,24 +1105,123 @@
       }
 
       .time-panel {
-        text-align: center;
+        text-align: left;
       }
 
       .time-content {
+        min-height: 0;
         display: grid;
-        place-items: center;
+        grid-template-rows: auto 1fr;
+        align-items: stretch;
+        gap: 16px;
+      }
+
+      .time-main {
+        min-width: 0;
+      }
+
+      .time-zone {
+        margin-top: 10px;
+        color: var(--md-text-muted);
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
       }
 
       .clock {
         font-variant-numeric: tabular-nums;
-        font-size: 58px;
-        line-height: 0.92;
+        font-size: 116px;
+        font-weight: 760;
+        line-height: 0.84;
+        letter-spacing: 0;
       }
 
       .date {
-        margin-top: 12px;
+        margin-top: 14px;
         color: var(--md-text-secondary);
+        font-size: 21px;
+        line-height: 1.2;
+      }
+
+      .weather-card {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: end;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 8px;
+        padding: 14px;
+        background:
+          radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--md-accent-primary), transparent 66%), transparent 38%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+        box-shadow: inset 0 0 24px rgba(255, 255, 255, 0.025);
+      }
+
+      .weather-place,
+      .weather-condition,
+      .weather-stat span,
+      .weather-updated {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .weather-place {
+        color: var(--md-text-muted);
+        font-size: 13px;
+      }
+
+      .weather-now {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .weather-temp {
+        color: var(--md-text-primary);
+        font-size: 56px;
+        font-weight: 720;
+        line-height: 0.95;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .weather-condition {
+        color: var(--md-accent-secondary);
         font-size: 18px;
+      }
+
+      .weather-stats {
+        min-width: 190px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .weather-stat {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+
+      .weather-stat small {
+        color: var(--md-text-muted);
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      .weather-stat span {
+        color: var(--md-text-secondary);
+        font-size: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .weather-updated {
+        grid-column: 1 / -1;
+        color: var(--md-text-muted);
+        font-size: 11px;
       }
 
       @media (max-aspect-ratio: 2/1) {
@@ -1244,7 +1343,21 @@
         }
 
         .clock {
-          font-size: 48px;
+          font-size: 72px;
+        }
+
+        .time-content {
+          gap: 12px;
+        }
+
+        .weather-card {
+          grid-template-columns: 1fr;
+          align-items: start;
+        }
+
+        .weather-stats {
+          min-width: 0;
+          width: 100%;
         }
       }
     </style>
@@ -1344,16 +1457,46 @@
       <section class="panel time-panel">
         <header>
           <h2>Clock</h2>
-          <span class="pill">local</span>
+          <span class="pill">UTC+8</span>
         </header>
         <div class="time-content">
-          <div>
+          <div class="time-main">
             <div class="clock" id="clock">--:--:--</div>
             <div class="date" id="date">Loading</div>
+            <div class="time-zone" id="time-zone">Asia/Shanghai</div>
+          </div>
+          <div class="weather-card" id="weather-card">
+            <div>
+              <div class="weather-place" id="weather-place">深圳 · 今日天气</div>
+              <div class="weather-now">
+                <span class="weather-temp" id="weather-temp">--°C</span>
+                <span class="weather-condition" id="weather-condition">loading</span>
+              </div>
+            </div>
+            <div class="weather-stats">
+              <div class="weather-stat">
+                <small>高 / 低</small>
+                <span id="weather-range">-- / --</span>
+              </div>
+              <div class="weather-stat">
+                <small>体感</small>
+                <span id="weather-feels">--</span>
+              </div>
+              <div class="weather-stat">
+                <small>湿度</small>
+                <span id="weather-humidity">--</span>
+              </div>
+              <div class="weather-stat">
+                <small>风速</small>
+                <span id="weather-wind">--</span>
+              </div>
+              <div class="weather-updated" id="weather-updated">Open-Meteo</div>
+            </div>
           </div>
         </div>
         <div class="chart-legend">
-          <span><i class="legend-dot" style="--dot: var(--md-accent-primary)"></i>kiosk active</span>
+          <span><i class="legend-dot" style="--dot: var(--md-accent-primary)"></i>Asia/Shanghai</span>
+          <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>深圳</span>
         </div>
       </section>
 
@@ -1389,13 +1532,16 @@
       const diskFallbackUrl = "./disks.mock.json";
       const dockerFallbackUrl = "./docker.mock.json";
       const telemetryFallbackUrl = "./telemetry.mock.json";
+      const weatherFallbackUrl = "./weather.mock.json";
       const diskSourceUrl = params.get("disks") || "/runtime/disks.json";
       const dockerSourceUrl = params.get("docker") || "/runtime/docker.json";
       const telemetrySourceUrl = params.get("telemetry") || "/runtime/telemetry.json";
+      const weatherSourceUrl = params.get("weather") || "/runtime/weather-shenzhen.json";
       const agentRefreshMs = Number(params.get("agentsRefreshMs") || 3000);
       const diskRefreshMs = Number(params.get("disksRefreshMs") || 43200000);
       const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 600000);
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 600000);
+      const weatherRefreshMs = Number(params.get("weatherRefreshMs") || 1800000);
       const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
       const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
       const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
@@ -1415,6 +1561,14 @@
       const diskUpdated = document.getElementById("disk-updated");
       const dockerSummary = document.getElementById("docker-summary");
       const dockerList = document.getElementById("docker-list");
+      const weatherPlace = document.getElementById("weather-place");
+      const weatherTemp = document.getElementById("weather-temp");
+      const weatherCondition = document.getElementById("weather-condition");
+      const weatherRange = document.getElementById("weather-range");
+      const weatherFeels = document.getElementById("weather-feels");
+      const weatherHumidity = document.getElementById("weather-humidity");
+      const weatherWind = document.getElementById("weather-wind");
+      const weatherUpdated = document.getElementById("weather-updated");
       const agentBoard = document.getElementById("agent-board");
       const agentSummary = document.getElementById("agent-summary");
       let themeBaseUrl = new URL("../themes/neon-dark/", location.href);
@@ -1522,6 +1676,24 @@
           index += 1;
         }
         return `${size.toFixed(size >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+      }
+
+      function formatTemperature(value, unit = "°C") {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return `--${unit}`;
+        return `${numeric.toFixed(Math.abs(numeric) >= 10 ? 0 : 1)}${unit}`;
+      }
+
+      function formatPercent(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return "--";
+        return `${Math.round(numeric)}%`;
+      }
+
+      function formatSpeed(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return "--";
+        return `${numeric.toFixed(numeric >= 10 ? 0 : 1)} km/h`;
       }
 
       function usageColor(percent, status) {
@@ -2048,21 +2220,73 @@
 
       const clock = document.getElementById("clock");
       const date = document.getElementById("date");
+      const timeZone = document.getElementById("time-zone");
+      const clockTimeZone = "Asia/Shanghai";
 
       function tick() {
         const now = new Date();
         clock.textContent = new Intl.DateTimeFormat("zh-CN", {
+          timeZone: clockTimeZone,
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
           hour12: false
         }).format(now);
-        date.textContent = new Intl.DateTimeFormat("zh-CN", {
-          weekday: "long",
+        const dateText = new Intl.DateTimeFormat("zh-CN", {
+          timeZone: clockTimeZone,
           year: "numeric",
           month: "2-digit",
           day: "2-digit"
         }).format(now);
+        const weekdayText = new Intl.DateTimeFormat("zh-CN", {
+          timeZone: clockTimeZone,
+          weekday: "long"
+        }).format(now);
+        date.textContent = `${dateText} · ${weekdayText}`;
+        timeZone.textContent = "UTC+8 · Asia/Shanghai";
+      }
+
+      function renderWeather(payload) {
+        const current = payload?.current || {};
+        const daily = payload?.daily || {};
+        const location = payload?.location || {};
+        if (payload?.available === false) {
+          weatherPlace.textContent = `${location.name || "深圳"} · 天气不可用`;
+          weatherTemp.textContent = "--°C";
+          weatherCondition.textContent = payload.error || "offline";
+          weatherRange.textContent = "-- / --";
+          weatherFeels.textContent = "--";
+          weatherHumidity.textContent = "--";
+          weatherWind.textContent = "--";
+          weatherUpdated.textContent = "等待 API";
+          return;
+        }
+
+        weatherPlace.textContent = `${location.name || "深圳"} · 今日天气`;
+        weatherTemp.textContent = formatTemperature(current.temperatureC);
+        weatherCondition.textContent = current.condition || daily.condition || "--";
+        weatherRange.textContent = `${formatTemperature(daily.temperatureMaxC, "°")} / ${formatTemperature(daily.temperatureMinC, "°")}`;
+        weatherFeels.textContent = formatTemperature(current.apparentTemperatureC);
+        weatherHumidity.textContent = formatPercent(current.humidityPercent);
+        weatherWind.textContent = formatSpeed(current.windSpeedKmh);
+        const updatedAt = payload?.updatedAt
+          ? new Intl.DateTimeFormat("zh-CN", { timeZone: clockTimeZone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(payload.updatedAt))
+          : "--";
+        const precip = Number.isFinite(Number(daily.precipitationProbabilityPercent))
+          ? ` · 降雨 ${formatPercent(daily.precipitationProbabilityPercent)}`
+          : "";
+        weatherUpdated.textContent = `更新 ${updatedAt}${precip}`;
+      }
+
+      async function loadWeather() {
+        try {
+          renderWeather(await fetchJsonWithFallback(weatherSourceUrl, weatherFallbackUrl));
+        } catch (error) {
+          console.warn("Weather source load failed", error);
+          renderWeather({ available: false, location: { name: "深圳" }, error: "offline" });
+        }
+        const next = Math.max(300000, weatherRefreshMs);
+        window.setTimeout(loadWeather, next);
       }
 
       function initHeroMesh(canvas) {
@@ -2184,6 +2408,7 @@
       loadTelemetry();
       loadDisks();
       loadDocker();
+      loadWeather();
       loadAgents();
       updateMascot();
       initHeroGeometry();

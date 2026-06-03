@@ -8,6 +8,71 @@
 
 本文件记录 Mythe Display 第一批标准组件的显示目标、数据契约和刷新策略。测试页已经实现这些组件的静态 Web 原型，正式运行时后续应把它们拆成独立组件包。
 
+## core.clockWeather
+
+用途：在单个标准网格块中显示固定东八区时间、日期和深圳当天基础天气。
+
+显示规则：
+
+- 时间必须使用 `Asia/Shanghai`，不能依赖服务器本地时区。
+- 时间字号使用大号数字，适合远距离快速读取。
+- 日期、时区和天气信息应围绕时间重排，避免只显示一行小字。
+- 天气默认展示城市、当前温度、天气状态、今日最高/最低、体感、湿度、风速和更新时间。
+- 天气数据默认 30 分钟刷新一次。
+
+数据契约：
+
+```ts
+type WeatherSnapshot = {
+  updatedAt: string;
+  refreshMs: number;
+  available?: boolean;
+  source: "open-meteo" | "mock" | string;
+  sourceUrl?: string;
+  location: {
+    name: string;
+    latitude: number;
+    longitude: number;
+    timezone: "Asia/Shanghai" | string;
+  };
+  current: {
+    observedAt?: string;
+    temperatureC: number | null;
+    apparentTemperatureC?: number | null;
+    humidityPercent?: number | null;
+    windSpeedKmh?: number | null;
+    weatherCode?: number | null;
+    condition: string;
+  };
+  daily: {
+    date?: string;
+    temperatureMaxC?: number | null;
+    temperatureMinC?: number | null;
+    precipitationProbabilityPercent?: number | null;
+    weatherCode?: number | null;
+    condition?: string;
+  };
+};
+```
+
+默认运行时数据：
+
+```text
+public/runtime/weather-shenzhen.json
+```
+
+当前 mock 仅用于开发预览兜底：
+
+```text
+public/kiosk-test/weather.mock.json
+```
+
+真实采集脚本：
+
+```bash
+scripts/collect-weather-snapshot.py --out public/runtime/weather-shenzhen.json --pretty
+```
+
 ## core.diskMatrix
 
 用途：紧凑展示 NAS 多磁盘容量状态，适合 10 到 24 个磁盘的长条屏布局。

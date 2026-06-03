@@ -100,7 +100,7 @@ type DisplayComponentProps<TConfig, TData> = {
 
 ## 核心组件候选
 
-- `core.clock`：时间/日期。
+- `core.clockWeather`：固定东八区时间、日期和深圳当天 Open-Meteo 天气。
 - `core.cpu`：使用率、频率、温度。
 - `core.memory`：内存和 swap。
 - `core.disk`：文件系统占用和磁盘活动。
