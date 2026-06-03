@@ -6,15 +6,16 @@
 
 可行。
 
-当前服务器虽未安装完整 Ubuntu 图形界面，但内核已经通过 `i915` 暴露了 DRM connector 和 `/dev/fb0`。已连接的 HDMI 长条屏是 `card0-HDMI-A-2`，当前 framebuffer 为 `3840x1100`、`32bpp`。这意味着：
+当前服务器虽未安装完整 Ubuntu 图形界面，但内核已经通过 `i915` 暴露了 DRM connector 和 `/dev/fb0`。已连接的 HDMI 长条屏是 `card0-HDMI-A-2`，当前 framebuffer 为 `3840x1100`、`32bpp`。后续测试确认：直接写 `/dev/fb0` 会改变 framebuffer 内存，但不可靠地改变屏幕可见画面；通过 DRM/KMS 设置 scanout 可以成功显示纯色和色条。这意味着：
 
-- 可以用 framebuffer 做最小硬件控制验证，例如纯色填充、色条测试。
+- 可以用 DRM/KMS 做最小硬件控制验证，例如纯色填充、色条测试。
+- framebuffer 只能作为内存诊断，不应作为真实屏幕控制依据。
 - 可以在不安装完整桌面环境的情况下，用极简 kiosk 图形栈运行全屏网页。
 - 开发时可以继续使用普通浏览器访问本地 dev server，实时预览布局和组件。
 
 ## 分层路线
 
-### 1. Framebuffer 颜色测试
+### 1. DRM/KMS 颜色测试
 
 用途：证明程序能控制屏幕像素。
 
@@ -22,6 +23,7 @@
 
 - 不需要 Xorg、Wayland、桌面环境或浏览器。
 - 很适合首个硬件连通性测试。
+- 设置的是真实 scanout，比 fbdev emulation 可靠。
 
 限制：
 
@@ -31,10 +33,12 @@
 当前测试脚本：
 
 ```bash
-python3 scripts/fb-color-test.py info
-sudo python3 scripts/fb-color-test.py fill --color '#0047ff' --duration 5 --restore
-sudo python3 scripts/fb-color-test.py bars --duration 5 --restore
+python3 scripts/kms-color-test.py info
+sg video -c "python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore"
+sg video -c "python3 scripts/kms-color-test.py bars --connector card0-HDMI-A-2 --mode 3840x1100 --duration 5 --restore"
 ```
+
+`scripts/fb-color-test.py` 仍保留，用于读取和诊断 `/dev/fb0`，但不作为可见屏幕控制测试。
 
 ### 2. 极简 Wayland kiosk + 浏览器
 
@@ -81,7 +85,7 @@ systemd
 
 第一阶段：
 
-1. 使用 `scripts/fb-color-test.py` 验证能写屏。
+1. 使用 `scripts/kms-color-test.py` 验证能控制 HDMI scanout。
 2. 记录当前屏幕真实分辨率 `3840x1100`。
 3. 搭建 Web UI 预览服务，先用浏览器访问。
 4. 增加一个纯色页面/布局页面，作为网页层的第二个测试。

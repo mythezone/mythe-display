@@ -60,6 +60,35 @@ sudo python3 scripts/fb-color-test.py fill --color '#0047ff' --duration 5 --rest
 sudo usermod -aG video,render,input mythezone
 ```
 
+如果当前 shell 还没重新登录，但 `/etc/group` 已经包含 `mythezone`，可以用 `sg video -c` 临时启动带 `video` 组的子进程：
+
+```bash
+sg video -c "python3 scripts/kms-color-test.py info"
+```
+
+## 测试结论更新
+
+`/dev/fb0` 写入诊断：
+
+- `scripts/fb-color-test.py` 可以成功写入并读回 `/dev/fb0` 内存。
+- 直接写 fbdev 不一定改变当前 HDMI 屏幕可见画面。
+- 推测原因是当前可见输出应由 DRM/KMS scanout 管理，fbdev emulation 不能作为可靠的屏幕控制路径。
+
+DRM/KMS 测试：
+
+```bash
+sg video -c "python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore"
+sg video -c "python3 scripts/kms-color-test.py bars --connector card0-HDMI-A-2 --mode 3840x1100 --duration 5 --restore"
+```
+
+执行结果：
+
+```text
+已设置 DRM scanout: connector=card0-HDMI-A-2, crtc=51, mode=3840x1100, fb=<id>, pitch=15360, size=16896000
+```
+
+这说明真正可用的底层控制路径是 DRM/KMS，而不是直接写 `/dev/fb0`。
+
 ## 结论
 
-技术上可以控制这块屏幕。最低层验证路径是直接写 `/dev/fb0`。生产图形界面不建议长期直接写 framebuffer，而建议使用最小 Wayland kiosk 运行本地网页界面。
+技术上可以控制这块屏幕。最低层可靠验证路径是 DRM/KMS。生产图形界面不建议直接写 framebuffer，而建议使用最小 Wayland kiosk 运行本地网页界面。

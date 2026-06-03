@@ -9,3 +9,4 @@
 - 记录当前本机 HDMI 长条屏信息：`card0-HDMI-A-2`、`3840x1100`、`/dev/fb0`、`32bpp`。
 - 新增无桌面 Ubuntu kiosk 可行性评估和插件式扩展模型草案。
 - 新增 `scripts/fb-color-test.py`，用于读取显示信息、填充纯色或显示色条，验证 framebuffer 控制能力。
+- 发现当前服务器上直接写 `/dev/fb0` 会改变 framebuffer 内存，但不可靠地改变 HDMI 屏幕可见画面；新增 `scripts/kms-color-test.py`，通过 DRM/KMS 直接设置 HDMI-A-2 scanout，纯色和色条测试均已成功执行并恢复。

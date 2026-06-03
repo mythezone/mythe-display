@@ -94,7 +94,21 @@ components/<component-id>/
 4. 启动本地预览。
 5. 在生产环境安装 kiosk/systemd 服务。
 
-当前可用的底层屏幕测试命令：
+当前可用的真实屏幕控制测试命令：
+
+```bash
+python3 scripts/kms-color-test.py info
+sg video -c "python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore"
+sg video -c "python3 scripts/kms-color-test.py bars --connector card0-HDMI-A-2 --mode 3840x1100 --duration 5 --restore"
+```
+
+如果已经重新登录刷新了 `video` 组权限，也可以不使用 `sg video -c`：
+
+```bash
+python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore
+```
+
+`/dev/fb0` 测试脚本现在只建议作为 framebuffer 内存诊断使用。它可以写入并读回 `i915drmfb`，但在当前服务器上不一定会改变 HDMI 屏幕的真实可见 scanout：
 
 ```bash
 python3 scripts/fb-color-test.py info
