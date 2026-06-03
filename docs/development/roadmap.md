@@ -1,51 +1,51 @@
-# Roadmap
+# 路线图
 
-Date: 2026-06-03
+日期：2026-06-03
 
-## Phase 0: Research and Planning
+## 阶段 0：调研与规划
 
-Status: in progress
+状态：进行中
 
-- Compare open-source options.
-- Decide output hardware strategy.
-- Define initial architecture.
-- Define component contract draft.
-- Establish docs and changelog policy.
+- 对比可用开源项目。
+- 确定显示输出硬件策略。
+- 定义初始架构。
+- 定义组件契约草案。
+- 建立文档和更新记录规范。
 
-## Phase 1: Minimal Runnable Preview
+## 阶段 1：最小可运行预览
 
-- Scaffold React + TypeScript frontend.
-- Add local metrics service.
-- Add WebSocket data bus.
-- Add one sample 1024x600 layout.
-- Add core clock, CPU, memory, disk, and network components.
-- Add preview/mock data mode.
+- 搭建 React + TypeScript 前端。
+- 增加本地指标服务。
+- 增加 WebSocket 数据总线。
+- 增加一个 1024x600 示例布局。
+- 增加时钟、CPU、内存、磁盘、网络核心组件。
+- 增加预览/mock 数据模式。
 
-## Phase 2: Kiosk Deployment
+## 阶段 2：Kiosk 部署
 
-- Add Ubuntu run scripts.
-- Add systemd user service templates.
-- Document HDMI second-monitor setup.
-- Document Chromium kiosk launch.
-- Add startup/restart behavior.
+- 增加 Ubuntu 运行脚本。
+- 增加 systemd 用户服务模板。
+- 文档化 HDMI 第二显示器设置。
+- 文档化 Chromium kiosk 启动方式。
+- 增加启动和异常重启行为。
 
-## Phase 3: Component SDK
+## 阶段 3：组件 SDK
 
-- Add component manifest validation.
-- Add component generator script.
-- Add example custom component.
-- Add design tokens and theme packs.
-- Add visual testing/screenshot checks.
+- 增加组件 manifest 校验。
+- 增加组件生成脚本。
+- 增加自定义组件示例。
+- 增加设计 token 和主题包。
+- 增加视觉测试/截图检查。
 
-## Phase 4: Hardware Adapters
+## 阶段 4：硬件适配
 
-- Add DisplayLink-specific setup notes after testing real hardware.
-- Add optional Turing Smart Screen adapter research/prototype.
-- Add screen rotation and safe-area presets.
+- 在真实硬件验证后补充 DisplayLink 专项设置说明。
+- 调研/原型化可选的 Turing Smart Screen 适配器。
+- 增加屏幕旋转和安全区域预设。
 
-## Phase 5: Editor and Sharing
+## 阶段 5：编辑器与分享
 
-- Add local layout editor.
-- Add theme preview/export.
-- Add shareable layout/component packs.
-- Add gallery documentation.
+- 增加本地布局编辑器。
+- 增加主题预览和导出。
+- 增加可分享的布局包/组件包。
+- 增加 gallery 文档。

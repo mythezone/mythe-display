@@ -1,31 +1,31 @@
-# Documentation Policy
+# 文档维护规范
 
-Date: 2026-06-03
+日期：2026-06-03
 
-## Required Documents
+## 必需文档
 
-- `README.md`: user-facing setup and current project state.
-- `CHANGELOG.md`: material changes by date.
-- `docs/research/`: research notes and source-backed comparisons.
-- `docs/decisions/`: architecture decision records.
-- `docs/development/`: technical design, implementation notes, and future developer guides.
+- `README.md`：用户可见的搭建方式、当前项目状态和主要入口。
+- `CHANGELOG.md`：按日期记录重要变化。
+- `docs/research/`：调研记录和带来源的对比。
+- `docs/decisions/`：架构决策记录。
+- `docs/development/`：技术设计、实现说明和未来开发指南。
 
-## Update Rules
+## 更新规则
 
-- Update `README.md` whenever setup, runtime commands, or user-facing behavior changes.
-- Update `CHANGELOG.md` for each meaningful documentation, architecture, or code change.
-- Add an ADR under `docs/decisions/` when a technical direction becomes durable.
-- Keep raw secrets, local paths with credentials, and private tokens out of all documentation.
-- Link sources for external research so future contributors can verify assumptions.
+- 当搭建方式、运行命令或用户可见行为变化时，更新 `README.md`。
+- 每次有实质性的文档、架构或代码变化时，更新 `CHANGELOG.md`。
+- 当技术方向变成长期决策时，在 `docs/decisions/` 中新增 ADR。
+- 不要把密钥、本地凭据路径或私有 token 写入任何文档。
+- 外部调研需要保留来源链接，方便后续贡献者复核。
 
-## Naming Rules
+## 命名规则
 
-- Research: `docs/research/<topic>.md`.
-- ADRs: `docs/decisions/NNNN-short-title.md`.
-- Development guides: `docs/development/<topic>.md`.
+- 调研文档：`docs/research/<topic>.md`。
+- ADR：`docs/decisions/NNNN-short-title.md`。
+- 开发指南：`docs/development/<topic>.md`。
 
-## Screenshots and Assets
+## 截图和资源
 
-- Prefer upstream image URLs in research docs when evaluating existing open-source projects.
-- Store original generated screenshots under `docs/assets/` only when they are project-owned or clearly reusable.
-- Store local debugging captures under `screenshots/local/`; this path is ignored by Git.
+- 评估现有开源项目时，优先在调研文档中引用上游图片 URL。
+- 只有项目自有或明确可复用的图片，才保存到 `docs/assets/`。
+- 本地调试截图保存到 `screenshots/local/`；该路径已被 Git 忽略。

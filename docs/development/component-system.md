@@ -1,18 +1,18 @@
-# Component System Draft
+# 组件系统草案
 
-Date: 2026-06-03
+日期：2026-06-03
 
-Goal: define the initial standard for user-built components.
+目标：定义用户自建组件的第一版标准。
 
-## Design Principles
+## 设计原则
 
-- Components must be reusable across screen sizes.
-- Component behavior must be declared in a manifest.
-- Component visual style must use shared tokens, not one-off hardcoded themes.
-- Data inputs must be explicit and mockable for preview/testing.
-- A component should fail visibly but gracefully when a sensor or API is unavailable.
+- 组件必须能在不同屏幕尺寸上复用。
+- 组件行为必须通过 manifest 声明。
+- 组件视觉样式必须使用共享 token，避免每个组件硬编码一套主题。
+- 数据输入必须显式声明，并且可以用 mock 数据预览/测试。
+- 当传感器或 API 不可用时，组件应清晰降级，而不是破坏整个界面。
 
-## Planned Folder Shape
+## 计划目录结构
 
 ```text
 components/<component-id>/
@@ -23,14 +23,14 @@ components/<component-id>/
   preview.json
 ```
 
-## Manifest Draft
+## Manifest 草案
 
 ```json
 {
   "id": "core.cpu",
   "name": "CPU",
   "version": "0.1.0",
-  "description": "CPU usage, temperature, and frequency widget.",
+  "description": "CPU 使用率、温度和频率组件。",
   "entry": "./index.tsx",
   "schema": "./schema.json",
   "data": {
@@ -48,7 +48,7 @@ components/<component-id>/
 }
 ```
 
-## Runtime Props Draft
+## 运行时 Props 草案
 
 ```ts
 type DisplayComponentProps<TConfig, TData> = {
@@ -66,7 +66,7 @@ type DisplayComponentProps<TConfig, TData> = {
 };
 ```
 
-## Layout Draft
+## 布局草案
 
 ```json
 {
@@ -96,23 +96,23 @@ type DisplayComponentProps<TConfig, TData> = {
 }
 ```
 
-## Core Component Candidates
+## 核心组件候选
 
-- `core.clock`: time/date.
-- `core.cpu`: usage/frequency/temperature.
-- `core.memory`: RAM/swap.
-- `core.disk`: filesystem usage and activity.
-- `core.network`: throughput/IP/interface state.
-- `core.gpu`: NVIDIA/AMD/Intel metrics when available.
-- `core.temperatures`: lm-sensors labels and values.
-- `core.fans`: fan speed and curves where available.
-- `core.processes`: top CPU/RAM processes.
-- `core.text`: static markdown/status label.
+- `core.clock`：时间/日期。
+- `core.cpu`：使用率、频率、温度。
+- `core.memory`：内存和 swap。
+- `core.disk`：文件系统占用和磁盘活动。
+- `core.network`：吞吐、IP、网卡状态。
+- `core.gpu`：NVIDIA/AMD/Intel 指标，按可用性提供。
+- `core.temperatures`：lm-sensors 标签和值。
+- `core.fans`：可用时显示风扇转速和曲线。
+- `core.processes`：CPU/内存占用最高进程。
+- `core.text`：静态 markdown 或状态文本。
 
-## Component Quality Requirements
+## 组件质量要求
 
-- Responsive at declared minimum size.
-- No layout shift when values change.
-- Loading, stale, error, and unavailable states.
-- Preview data committed with the component.
-- Screenshot or visual test for common display sizes once test tooling exists.
+- 在 manifest 声明的最小尺寸下仍能正常显示。
+- 数值变化时不产生布局跳动。
+- 具备 loading、stale、error、unavailable 状态。
+- 每个组件提交预览数据。
+- 测试工具建立后，为常见显示尺寸提供截图或视觉测试。

@@ -1,18 +1,18 @@
-# Documentation Index
+# 文档索引
 
-This directory stores project research, architecture decisions, development notes, and future implementation guides.
+本目录用于保存项目调研、架构决策、开发说明和后续实现指南。
 
-## Research
+## 调研
 
-- [Open-source options](research/open-source-options.md)
-- [Display output options](research/display-output-options.md)
+- [开源项目调研](research/open-source-options.md)
+- [显示输出方案](research/display-output-options.md)
 
-## Decisions
+## 架构决策
 
-- [ADR 0001: Build a custom web-kiosk runtime](decisions/0001-build-custom-web-kiosk.md)
+- [ADR 0001：自研 Web kiosk 运行时](decisions/0001-build-custom-web-kiosk.md)
 
-## Development
+## 开发文档
 
-- [Component system](development/component-system.md)
-- [Roadmap](development/roadmap.md)
-- [Documentation policy](development/documentation-policy.md)
+- [组件系统草案](development/component-system.md)
+- [路线图](development/roadmap.md)
+- [文档维护规范](development/documentation-policy.md)

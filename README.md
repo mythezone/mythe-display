@@ -1,50 +1,50 @@
 # Mythe Display
 
-Mythe Display is a planned Ubuntu chassis secondary-screen project. The goal is a reproducible, highly customizable display runtime for small HDMI/USB displays mounted in a PC case.
+Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在小尺寸 HDMI/USB 屏幕上运行一个可复现、可高度定制的本地副屏运行时。
 
-Current status: research and architecture planning. No runnable display app has been implemented yet.
+当前状态：调研与架构规划阶段。项目还没有实现可运行的显示应用。
 
-## Goals
+## 项目目标
 
-- Run on Ubuntu as a kiosk-style secondary display.
-- Support arbitrary display size, resolution, pixel density, rotation, and safe-area settings.
-- Let users define layouts as configuration, not by editing application code.
-- Let each region host replaceable components.
-- Let components follow a stable manifest and runtime interface so new widgets are quick to build and visually consistent.
-- Preserve research notes, architecture decisions, technical docs, and change history in this repository.
+- 在 Ubuntu 上以 kiosk/全屏方式运行到副屏。
+- 支持自定义显示屏尺寸、分辨率、像素密度、旋转方向和安全区域。
+- 布局通过配置声明，避免用户为了换界面而改应用源码。
+- 每个区域都可以放置、替换、组合组件。
+- 组件遵循稳定的 manifest 和运行时接口，便于快速构建统一风格、统一数据接口的新组件。
+- 将调研、架构决策、技术文档、更新记录长期保存在仓库中。
 
-## Recommended Direction
+## 推荐方向
 
-Build a custom web-kiosk runtime in this repo, inspired by these projects:
+在本仓库中自研一个 Web kiosk 运行时，而不是直接 fork 现成项目。可参考：
 
-- MagicMirror² for module-driven screen composition.
-- Grafana for panel contracts, dashboard-as-code, and plugin discipline.
-- Turing Smart Screen Python for shareable themes and a simple editor-first workflow.
-- Netdata/Glances for optional metrics data sources.
+- MagicMirror²：模块化屏幕组合方式。
+- Grafana：面板契约、dashboard-as-code、插件规范。
+- Turing Smart Screen Python：主题分享和配置优先的工作流。
+- Netdata/Glances：可选的系统指标数据来源。
 
-The first implementation should prefer HDMI output because it is native, reliable, and driver-light. If a one-cable USB display is mandatory, use a USB-C DP Alt Mode capable port/monitor or a DisplayLink-based USB graphics device. A normal data-only USB-C motherboard port cannot be converted into native video output by software alone.
+第一版应优先支持 HDMI/DisplayPort 输出，因为它是原生显示路径，可靠、低延迟、少驱动问题。如果必须使用一根 USB 线，需要主机 USB-C 支持 DP Alt Mode/USB4/雷电，或者使用 DisplayLink USB 显卡类设备。普通数据型 USB-C 主板接口不能仅靠软件变成原生视频输出口。
 
-## Documentation
+## 文档入口
 
-- [Open-source options research](docs/research/open-source-options.md)
-- [Display output options](docs/research/display-output-options.md)
-- [Recommended architecture decision](docs/decisions/0001-build-custom-web-kiosk.md)
-- [Component system draft](docs/development/component-system.md)
-- [Roadmap](docs/development/roadmap.md)
-- [Documentation policy](docs/development/documentation-policy.md)
-- [Changelog](CHANGELOG.md)
+- [开源项目调研](docs/research/open-source-options.md)
+- [显示输出方案](docs/research/display-output-options.md)
+- [推荐架构决策](docs/decisions/0001-build-custom-web-kiosk.md)
+- [组件系统草案](docs/development/component-system.md)
+- [路线图](docs/development/roadmap.md)
+- [文档维护规范](docs/development/documentation-policy.md)
+- [更新记录](CHANGELOG.md)
 
-## Target Architecture
+## 目标架构
 
-Planned runtime:
+计划中的运行时：
 
-- Frontend: React + TypeScript rendered full-screen in Chromium or an optional desktop shell.
-- Backend: local Node.js service that collects system metrics and exposes WebSocket/REST data streams.
-- Configuration: declarative display and layout files under `config/`.
-- Components: self-contained folders with `manifest.json`, typed props, and a React entrypoint.
-- Packaging: systemd user service plus kiosk launch scripts for Ubuntu.
+- 前端：React + TypeScript，全屏渲染在 Chromium 或可选桌面壳中。
+- 后端：本地 Node.js 服务，采集系统指标并提供 WebSocket/REST 数据。
+- 配置：显示屏、布局、组件配置均以声明式文件保存。
+- 组件：每个组件是独立目录，包含 `manifest.json`、类型化配置、React 入口和预览数据。
+- 部署：为 Ubuntu 提供 systemd 用户服务和 kiosk 启动脚本。
 
-Planned component contract:
+计划中的组件目录：
 
 ```text
 components/<component-id>/
@@ -54,39 +54,39 @@ components/<component-id>/
   README.md
 ```
 
-Each component will declare its inputs, refresh behavior, size expectations, theming support, and fallback state.
+每个组件需要声明输入数据、刷新策略、尺寸约束、主题能力和降级状态。
 
-## Hardware Guidance
+## 硬件建议
 
-Preferred:
+优先选择：
 
-- Small HDMI panel, connected to GPU or motherboard HDMI/DP output.
-- Ubuntu sees it as a normal secondary monitor.
+- 小尺寸 HDMI 屏，连接到独显、核显或主板 HDMI/DP 输出。
+- Ubuntu 将它识别为普通第二显示器。
 
-Acceptable:
+可以接受：
 
-- USB-C display only if the source port supports DP Alt Mode/USB4/Thunderbolt video.
-- DisplayLink USB monitor/adapter if you accept proprietary driver and Ubuntu compatibility risk.
+- USB-C 屏幕，但前提是主机接口支持 DP Alt Mode、USB4 或雷电视频输出。
+- DisplayLink 屏幕/转接器，但需要接受专有驱动和 Ubuntu 版本兼容风险。
 
-Not recommended as the primary path:
+不建议作为主路径：
 
-- Generic USB-C data-only motherboard port.
-- USB serial smart screens unless using a protocol-specific renderer.
+- 只有数据能力的普通 USB-C 主板接口。
+- USB 串口类小屏，除非明确计划开发协议级渲染器。
 
-## Local Setup
+## 本地准备
 
-At this stage there is nothing to run. For future local setup:
+当前阶段还没有应用可运行。后续实现开始后，预期步骤为：
 
-1. Copy `.env.example` to `.env`.
-2. Install project dependencies once implementation begins.
-3. Configure display geometry and components in `config/`.
-4. Run the local preview.
-5. Install the kiosk/systemd service for production use.
+1. 将 `.env.example` 复制为 `.env`。
+2. 安装项目依赖。
+3. 在 `config/` 中配置显示屏几何信息和组件布局。
+4. 启动本地预览。
+5. 在生产环境安装 kiosk/systemd 服务。
 
-## Repository Rules
+## 仓库规则
 
-- Keep secrets in `.env`; never commit them.
-- Keep user-facing setup steps in this README.
-- Save durable research and technical decisions in `docs/`.
-- Update `CHANGELOG.md` for material repository changes.
-- Commit and push after each completed user-facing turn when Git access is available.
+- 密钥只放在 `.env`，不要提交。
+- 用户可复现的搭建步骤写入本 README。
+- 长期有效的调研和技术决策写入 `docs/`。
+- 重要变化更新 `CHANGELOG.md`。
+- 每次完成用户可见任务后，在可用时提交并推送。

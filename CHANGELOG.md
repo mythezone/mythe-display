@@ -1,7 +1,8 @@
-# Changelog
+# 更新记录
 
 ## 2026-06-03
 
-- Initialized project documentation for Ubuntu chassis secondary-screen research.
-- Added open-source project comparison, display-output research, architecture decision, component-system draft, roadmap, documentation policy, `.gitignore`, and `.env.example`.
-- Added a project-local Codex skill with repository workflow rules.
+- 初始化 Ubuntu 机箱副屏项目的调研与架构文档。
+- 新增开源项目对比、显示输出调研、架构决策、组件系统草案、路线图、文档维护规范、`.gitignore` 和 `.env.example`。
+- 新增项目本地 Codex skill，记录仓库工作规则。
+- 将现有 README、docs 文档和本地 skill 中文化，便于后续基于中文文档继续讨论。
