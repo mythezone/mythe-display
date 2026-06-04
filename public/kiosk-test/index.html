@@ -1515,12 +1515,12 @@
       <section class="panel agent-panel">
         <header>
           <h2>Agents</h2>
-          <span class="pill">pixel</span>
+          <span class="pill">Codex</span>
         </header>
         <div class="agent-board" id="agent-board"></div>
         <div class="agent-summary">
           <span id="agent-summary">loading agents</span>
-          <span>mock</span>
+          <span>local</span>
         </div>
       </section>
     </main>
@@ -1528,7 +1528,8 @@
     <script>
       const params = new URLSearchParams(location.search);
       const themeUrl = params.get("theme") || "../themes/neon-dark/theme.json";
-      const agentSourceUrl = params.get("agents") || "./agents.mock.json";
+      const agentFallbackUrl = "./agents.mock.json";
+      const agentSourceUrl = params.get("agents") || "/runtime/codex-agents.json";
       const diskFallbackUrl = "./disks.mock.json";
       const dockerFallbackUrl = "./docker.mock.json";
       const telemetryFallbackUrl = "./telemetry.mock.json";
@@ -1537,7 +1538,7 @@
       const dockerSourceUrl = params.get("docker") || "/runtime/docker.json";
       const telemetrySourceUrl = params.get("telemetry") || "/runtime/telemetry.json";
       const weatherSourceUrl = params.get("weather") || "/runtime/weather-shenzhen.json";
-      const agentRefreshMs = Number(params.get("agentsRefreshMs") || 3000);
+      const agentRefreshMs = Number(params.get("agentsRefreshMs") || 300000);
       const diskRefreshMs = Number(params.get("disksRefreshMs") || 43200000);
       const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 600000);
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 600000);
@@ -2186,7 +2187,7 @@
 
       async function loadAgents() {
         try {
-          agents = normalizeAgents(await fetchJson(agentSourceUrl));
+          agents = normalizeAgents(await fetchJsonWithFallback(agentSourceUrl, agentFallbackUrl));
         } catch (error) {
           console.warn("Agent source load failed, using fallback", error);
           agents = fallbackAgents;

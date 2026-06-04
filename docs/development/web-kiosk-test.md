@@ -24,7 +24,7 @@
 - 看板娘透明资源和随机动作/格言。
 - 磁盘矩阵，默认读取 `public/runtime/disks.json` 真实快照，mock 仅作为兜底。
 - LazyDocker 风格 Docker 竖栏，默认读取 `public/runtime/docker.json` 真实快照，mock 仅作为兜底。
-- 像素 Agent mock：`public/kiosk-test/agents.mock.json`。
+- 像素 Agent 默认读取 `public/runtime/codex-agents.json` 本机 Codex 会话元数据，mock 仅作为兜底。
 - 页面级禁翻译标记：`translate="no"` 和 `notranslate`。
 
 生产上屏需要的组件：
@@ -89,6 +89,7 @@ public/runtime/disks.json       默认 12 小时刷新
 public/runtime/telemetry.json   默认 10 分钟刷新
 public/runtime/docker.json      默认 10 分钟刷新
 public/runtime/weather-shenzhen.json 默认 30 分钟刷新
+public/runtime/codex-agents.json 默认 5 分钟刷新
 ```
 
 这些文件已被 `.gitignore` 忽略。需要临时禁用采集器时可设置：
@@ -237,7 +238,7 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
 http://<server-ip>:23456/kiosk-test/
 ```
 
-该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`、`/runtime/weather-shenzhen.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
+该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`、`/runtime/weather-shenzhen.json`、`/runtime/codex-agents.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
 
 显式切换磁盘数据源：
 
@@ -296,7 +297,7 @@ http://<server-ip>:23456/kiosk-test/?agents=/api/agents/pixel
 调整 Agent 轮询间隔：
 
 ```text
-http://<server-ip>:23456/kiosk-test/?agentsRefreshMs=1000
+http://<server-ip>:23456/kiosk-test/?agentsRefreshMs=300000
 ```
 
 ## 推荐安装

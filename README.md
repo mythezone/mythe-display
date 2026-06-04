@@ -37,6 +37,7 @@ Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在�
 - [主题资源包规范草案](docs/development/theme-resource-pack.md)
 - [组件系统草案](docs/development/component-system.md)
 - [标准组件草案](docs/development/standard-widgets.md)
+- [Codex Agent 本机追踪方案](docs/development/codex-agent-tracking.md)
 - [Codex Pet 兼容规范草案](docs/development/codex-pet-compat.md)
 - [像素 Agent 组件规范草案](docs/development/pixel-agent-widget.md)
 - [插件式扩展模型草案](docs/development/plugin-extension-model.md)
@@ -89,6 +90,7 @@ public/runtime/disks.json       磁盘，默认 12 小时刷新
 public/runtime/telemetry.json   CPU/内存/网络，默认 10 分钟刷新
 public/runtime/docker.json      Docker，默认 10 分钟刷新
 public/runtime/weather-shenzhen.json 深圳天气，默认 30 分钟刷新
+public/runtime/codex-agents.json Codex Agent 元数据，默认 5 分钟刷新
 ```
 
 这些运行时文件由脚本生成，并已被 `.gitignore` 忽略。mock 文件只作为开发预览或采集不可用时的兜底。
@@ -230,7 +232,7 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
 - `core.mascotAssistant`：二次元看板娘，默认每 5 分钟随机切换 CSS 动作和一句短格言；主题可选接入 Rive `.riv` 骨架动画资源。
 - `core.diskMatrix`：紧凑磁盘矩阵，占用两格，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认 12 小时刷新。
 - `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读竖栏，默认 10 分钟刷新并显示真实容器列表。
-- `core.pixelAgents`：OpenClaw 兼容的像素 Agent 状态原型。
+- `core.pixelAgents`：Codex 本机会话元数据和 OpenClaw 兼容的像素 Agent 状态原型。
 
 手动生成一次真实运行时快照：
 
@@ -258,7 +260,13 @@ http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
 
 ## 像素 Agent 原型
 
-测试页已包含 `core.pixelAgents` 原型。默认读取：
+测试页已包含 `core.pixelAgents` 原型。默认读取本机 Codex 会话元数据：
+
+```text
+public/runtime/codex-agents.json
+```
+
+开发预览 fallback：
 
 ```text
 public/kiosk-test/agents.mock.json

@@ -17,6 +17,7 @@ DEFAULT_DISK_MS = 43_200_000
 DEFAULT_TELEMETRY_MS = 600_000
 DEFAULT_DOCKER_MS = 600_000
 DEFAULT_WEATHER_MS = 1_800_000
+DEFAULT_AGENTS_MS = 300_000
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -25,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--telemetry-ms", type=int, default=DEFAULT_TELEMETRY_MS, help="Telemetry 采集间隔，默认 10 分钟。")
     parser.add_argument("--docker-ms", type=int, default=DEFAULT_DOCKER_MS, help="Docker 采集间隔，默认 10 分钟。")
     parser.add_argument("--weather-ms", type=int, default=DEFAULT_WEATHER_MS, help="天气采集间隔，默认 30 分钟。")
+    parser.add_argument("--agents-ms", type=int, default=DEFAULT_AGENTS_MS, help="Codex Agent 采集间隔，默认 5 分钟。")
     parser.add_argument("--once", action="store_true", help="只采集一次后退出。")
     parser.add_argument("--delay-first", action="store_true", help="启动后先等待一个间隔再采集，适合已执行过 --once 的后台循环。")
     parser.add_argument("--pretty", action="store_true", help="使用缩进格式输出 JSON。")
@@ -97,6 +99,20 @@ def main() -> int:
                 "public/runtime/weather-shenzhen.json",
                 "--refresh-ms",
                 str(args.weather_ms),
+                *pretty,
+            ],
+        },
+        {
+            "name": "codex-agents",
+            "interval": max(60, args.agents_ms / 1000),
+            "next": 0.0,
+            "command": [
+                sys.executable,
+                str(ROOT_DIR / "scripts/collect-codex-agents-snapshot.py"),
+                "--out",
+                "public/runtime/codex-agents.json",
+                "--refresh-ms",
+                str(args.agents_ms),
                 *pretty,
             ],
         },

@@ -30,3 +30,4 @@
 - 增强 Pet/Assistant 组件：新增更多 PNG fallback 动作，增加 Codex/Petdex `pet.json` + spritesheet atlas 兼容层，并新增 `scripts/import-codex-pet.py` 与 `mdp pet` 导入命令。
 - 将 Storage、Telemetry、Docker 默认数据源从 mock 切换为运行时真实快照；新增 Telemetry/Docker/Runtime 采集脚本，kiosk 启动时先采集一次再进入低频循环，磁盘默认 12 小时刷新，CPU/内存/网络和 Docker 默认 10 分钟刷新；Storage 改为两格，Docker 改为竖栏并提高容器列表密度。
 - 优化 Clock 组件：固定使用 `Asia/Shanghai` 东八区时间，放大时间字体并重排日期/时区信息；新增深圳 Open-Meteo 天气采集、mock 和运行时快照，显示当天温度、体感、湿度、风速、最高/最低温和降雨概率。
+- 将 Agent 默认数据源从 mock 切换为本机 Codex 元数据快照；新增 `scripts/collect-codex-agents-snapshot.py` 和 Codex Agent 本机追踪方案文档，runtime 默认每 5 分钟生成 `/runtime/codex-agents.json`。

@@ -11,7 +11,8 @@
 当前测试页已经实现一个静态原型：
 
 - 页面：[public/kiosk-test/index.html](../../public/kiosk-test/index.html)
-- Mock 数据：[public/kiosk-test/agents.mock.json](../../public/kiosk-test/agents.mock.json)
+- Codex 本机快照：`public/runtime/codex-agents.json`
+- Mock 数据兜底：[public/kiosk-test/agents.mock.json](../../public/kiosk-test/agents.mock.json)
 - 默认精灵：[public/themes/neon-dark/sprites/](../../public/themes/neon-dark/sprites)
 
 ## 数据模型
@@ -44,6 +45,10 @@ type PixelAgent = {
 
 type PixelAgentSnapshot = {
   updatedAt: string;
+  refreshMs?: number;
+  source?: string;
+  available?: boolean;
+  summary?: Record<string, unknown>;
   agents: PixelAgent[];
 };
 ```
@@ -130,6 +135,42 @@ OpenClaw failed/exception                 -> error
 OpenClaw gateway unreachable              -> offline
 ```
 
+## Codex 本机适配器
+
+当前默认适配器是 `codex.local`：
+
+```bash
+scripts/collect-codex-agents-snapshot.py --out public/runtime/codex-agents.json --pretty
+```
+
+它只读本机 Codex 元数据：
+
+- `~/.codex/session_index.jsonl`
+- 本机 Codex 进程列表
+- `~/.codex/app-server-control/*.sock` 是否存在这一类间接信号
+
+它不会读取：
+
+- `~/.codex/auth.json`
+- `~/.codex/history.jsonl`
+- archived session JSONL 正文
+- app-server websocket 内容
+
+默认隐私策略：
+
+- UI 显示 `Codex 1`、`Codex 2` 这类匿名名称。
+- JSON 不输出线程标题。
+- 如果确实要显示线程标题，设置 `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES=1`。
+
+状态映射是启发式判断：
+
+```text
+最近 15 分钟更新且存在 Codex 进程 -> working
+最近 2 小时更新                  -> thinking
+最近 24 小时更新                 -> idle
+超过 24 小时                     -> offline
+```
+
 ## 插件化扩展
 
 后续插件可以贡献：
@@ -181,9 +222,12 @@ OpenClaw gateway unreachable              -> offline
 
 已完成：
 
-- 测试页读取 `agents.mock.json`。
+- 测试页默认读取 `/runtime/codex-agents.json`。
+- 新增 `scripts/collect-codex-agents-snapshot.py`，把本机 Codex 会话索引转换成 `PixelAgentSnapshot`。
+- Runtime 采集循环默认每 5 分钟生成一次 Codex Agent 快照。
+- `agents.mock.json` 作为开发预览和采集失败 fallback。
 - 支持 `?agents=<url>` 指向任意同结构 JSON。
-- 每 3 秒轮询一次，可用 `?agentsRefreshMs=1000` 调整。
+- 默认每 5 分钟轮询一次，可用 `?agentsRefreshMs=300000` 调整。
 - 状态颜色跟随主题 token。
 - Agent 精灵从主题资源包读取。
 - 默认主题内置更大的自有像素 SVG 精灵，覆盖 `idle`、`walking`、`working`、`thinking`、`building`、`reviewing`、`blocked`、`error`、`offline`。

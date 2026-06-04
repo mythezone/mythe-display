@@ -45,6 +45,7 @@ Usage:
   public/runtime/telemetry.json   默认 10 分钟刷新
   public/runtime/docker.json      默认 10 分钟刷新
   public/runtime/weather-shenzhen.json 默认 30 分钟刷新
+  public/runtime/codex-agents.json 默认 5 分钟刷新
 
 可用 MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 禁用采集器。
 EOF
@@ -150,6 +151,7 @@ if [[ "$URL" == "$DEFAULT_URL" ]]; then
       --telemetry-ms "${MYTHE_DISPLAY_TELEMETRY_REFRESH_MS:-600000}"
       --docker-ms "${MYTHE_DISPLAY_DOCKER_REFRESH_MS:-600000}"
       --weather-ms "${MYTHE_DISPLAY_WEATHER_REFRESH_MS:-1800000}"
+      --agents-ms "${MYTHE_DISPLAY_AGENTS_REFRESH_MS:-300000}"
     )
     python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --once || true
     python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --delay-first &

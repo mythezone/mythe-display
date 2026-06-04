@@ -23,6 +23,7 @@
 - [主题资源包规范草案](development/theme-resource-pack.md)
 - [组件系统草案](development/component-system.md)
 - [标准组件草案](development/standard-widgets.md)
+- [Codex Agent 本机追踪方案](development/codex-agent-tracking.md)
 - [Codex Pet 兼容规范草案](development/codex-pet-compat.md)
 - [像素 Agent 组件规范草案](development/pixel-agent-widget.md)
 - [插件式扩展模型草案](development/plugin-extension-model.md)

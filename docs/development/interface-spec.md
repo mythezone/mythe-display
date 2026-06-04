@@ -316,6 +316,10 @@ type PixelAgent = {
 
 type PixelAgentSnapshot = {
   updatedAt: string;
+  refreshMs?: number;
+  source?: string;
+  available?: boolean;
+  summary?: Record<string, unknown>;
   agents: PixelAgent[];
 };
 ```
