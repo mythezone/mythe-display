@@ -21,7 +21,13 @@ if [[ ! -f "$UNIT_SOURCE" ]]; then
   exit 1
 fi
 
-install -m 0644 "$UNIT_SOURCE" "$UNIT_TARGET"
+escape_sed_replacement() {
+  printf '%s' "$1" | sed -e 's/[\/&|]/\\&/g'
+}
+
+ROOT_DIR_ESCAPED="$(escape_sed_replacement "$ROOT_DIR")"
+sed "s|__MYTHE_DISPLAY_ROOT__|$ROOT_DIR_ESCAPED|g" "$UNIT_SOURCE" > "$UNIT_TARGET"
+chmod 0644 "$UNIT_TARGET"
 if [[ -f "$MDP_SOURCE" ]]; then
   chmod 0755 "$MDP_SOURCE"
   ln -sfn "$MDP_SOURCE" "$MDP_TARGET"
@@ -30,6 +36,7 @@ systemctl daemon-reload
 
 cat <<EOF
 已安装 $UNIT_NAME
+服务路径: $ROOT_DIR
 已安装 $MDP_TARGET
 
 立即启动:

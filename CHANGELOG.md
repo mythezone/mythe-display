@@ -1,5 +1,13 @@
 # 更新记录
 
+## 2026-06-04
+
+- 发布前整理：新增英文正式 `README.md`、中文 `README.zh-CN.md`、MIT `LICENSE`、公开示例截图目录 `examples/screenshots/` 和品牌资产目录 `public/brand/`。
+- 使用 imagegen 生成科技感透明 PNG LOGO，并在 README 顶部引用。
+- 重写 `.env.example`，仅保留非敏感默认值和空占位，并补充中英文注释。
+- 将 systemd 服务改为安装时按当前仓库路径渲染，避免发布版硬编码个人目录；`mdp` 去除个人目录 fallback，并支持读取本地 `.env` 默认值。
+- 扩展本地 Codex skill，补充主题制作、Widget 开发和发布流程 references，便于 Agent 按项目规范进行自然语言定制。
+
 ## 2026-06-03
 
 - 初始化 Ubuntu 机箱副屏项目的调研与架构文档。

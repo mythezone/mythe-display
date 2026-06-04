@@ -90,12 +90,12 @@ MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
 MYTHE_DISPLAY_REMOTE_DEBUG_HOST=127.0.0.1
 ```
 
-systemd 服务模板也使用同样默认值。
+systemd 服务模板也使用同样默认值，安装脚本会按当前仓库路径渲染服务文件。
 
 systemd 服务模板包含：
 
 ```ini
-ExecReload=/home/mythezone/services/mythe/mythe-display/scripts/kiosk-control.py reload
+ExecReload=__MYTHE_DISPLAY_ROOT__/scripts/kiosk-control.py reload
 ```
 
 因此服务安装后可以这样刷新当前界面：

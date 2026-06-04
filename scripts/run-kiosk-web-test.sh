@@ -2,6 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -f "$ROOT_DIR/scripts/load-env.sh" ]]; then
+  # shellcheck source=scripts/load-env.sh
+  source "$ROOT_DIR/scripts/load-env.sh"
+  load_mythe_display_env_defaults "$ROOT_DIR/.env"
+fi
+
 PORT="${MYTHE_DISPLAY_PORT:-23456}"
 HOST="${MYTHE_DISPLAY_HOST:-127.0.0.1}"
 REMOTE_DEBUG_PORT="${MYTHE_DISPLAY_REMOTE_DEBUG_PORT:-23458}"
@@ -111,7 +117,7 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   install -d -m 700 "$XDG_RUNTIME_DIR"
   export LIBSEAT_BACKEND="${LIBSEAT_BACKEND:-builtin}"
   export WLR_BACKENDS="${WLR_BACKENDS:-drm}"
-  export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-/dev/dri/card0}"
+  export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-${MYTHE_DISPLAY_DRM_DEVICE:-/dev/dri/card0}}"
   export WLR_LIBINPUT_NO_DEVICES="${WLR_LIBINPUT_NO_DEVICES:-1}"
   echo "以 root/sudo direct DRM 模式启动: LIBSEAT_BACKEND=$LIBSEAT_BACKEND, WLR_DRM_DEVICES=$WLR_DRM_DEVICES" >&2
 fi

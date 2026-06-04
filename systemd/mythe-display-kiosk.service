@@ -6,17 +6,18 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/mythezone/services/mythe/mythe-display
+WorkingDirectory=__MYTHE_DISPLAY_ROOT__
 Environment=MYTHE_DISPLAY_HOST=127.0.0.1
 Environment=MYTHE_DISPLAY_PORT=23456
 Environment=MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
 Environment=LIBSEAT_BACKEND=builtin
 Environment=WLR_BACKENDS=drm
-Environment=WLR_DRM_DEVICES=/dev/dri/card0
 Environment=WLR_LIBINPUT_NO_DEVICES=1
+Environment=MYTHE_DISPLAY_DRM_DEVICE=/dev/dri/card0
 Environment=MYTHE_DISPLAY_BROWSER=chromium-browser
-ExecStart=/home/mythezone/services/mythe/mythe-display/scripts/run-kiosk-web-test.sh
-ExecReload=/home/mythezone/services/mythe/mythe-display/scripts/kiosk-control.py reload
+EnvironmentFile=-__MYTHE_DISPLAY_ROOT__/.env
+ExecStart=__MYTHE_DISPLAY_ROOT__/scripts/run-kiosk-web-test.sh
+ExecReload=__MYTHE_DISPLAY_ROOT__/scripts/kiosk-control.py reload
 Restart=on-failure
 RestartSec=3
 

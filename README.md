@@ -1,352 +1,299 @@
 # Mythe Display
 
-Mythe Display 是一个面向 Ubuntu 机箱副屏的显示项目。目标是在小尺寸 HDMI/USB 屏幕上运行一个可复现、可高度定制的本地副屏运行时。
+[中文说明](README.zh-CN.md)
 
-当前状态：已有无桌面 Web kiosk 测试页，可以通过 `cage + Chromium` 在 HDMI 长条屏上全屏显示；已提供默认主题资源包、动态背景、运行时真实指标采集、像素 Agent mock 组件和运行时 URL 切换脚本。
+![Mythe Display logo](public/brand/mythe-display-logo.png)
 
-## 项目目标
+Mythe Display is an open-source Ubuntu kiosk runtime for long, narrow secondary screens mounted on servers, NAS boxes, or desktop cases. It runs a local fullscreen Web UI on an HDMI/DisplayPort screen without requiring a full Ubuntu desktop environment.
 
-- 在 Ubuntu 上以 kiosk/全屏方式运行到副屏。
-- 支持自定义显示屏尺寸、分辨率、像素密度、旋转方向和安全区域。
-- 布局通过配置声明，避免用户为了换界面而改应用源码。
-- 每个区域都可以放置、替换、组合组件。
-- 组件遵循稳定的 manifest 和运行时接口，便于快速构建统一风格、统一数据接口的新组件。
-- 将调研、架构决策、技术文档、更新记录长期保存在仓库中。
+The current release keeps the implementation intentionally simple: a static Web kiosk page, Python runtime collectors, a theme resource pack, and a small `mdp` command for service and page control. It is designed to be easy to reproduce, inspect, and customize.
 
-## 推荐方向
+![Mythe Display desktop screenshot](examples/screenshots/kiosk-desktop.png)
 
-在本仓库中自研一个 Web kiosk 运行时，而不是直接 fork 现成项目。可参考：
+## Features
 
-- MagicMirror²：模块化屏幕组合方式。
-- Grafana：面板契约、dashboard-as-code、插件规范。
-- Turing Smart Screen Python：主题分享和配置优先的工作流。
-- Netdata/Glances：可选的系统指标数据来源。
+- Fullscreen Web kiosk for Ubuntu systems without a desktop session.
+- Tested on an HDMI long-bar display at `3840x1100`.
+- Static Web UI served from `public/kiosk-test/`.
+- Runtime JSON snapshots for disks, CPU, memory, network, Docker, Shenzhen weather, and local Codex session metadata.
+- Dynamic URL switching and reload through Chromium DevTools via `mdp`.
+- Theme resource packs with semantic tokens, wallpaper layers, hero artwork, mascot assets, and pixel Agent sprites.
+- Compact standard widgets for NAS-style monitoring.
+- Local Codex skill files that help agents customize themes and widgets safely.
 
-第一版应优先支持 HDMI/DisplayPort 输出，因为它是原生显示路径，可靠、低延迟、少驱动问题。如果必须使用一根 USB 线，需要主机 USB-C 支持 DP Alt Mode/USB4/雷电，或者使用 DisplayLink USB 显卡类设备。普通数据型 USB-C 主板接口不能仅靠软件变成原生视频输出口。
+## Current Implementation
 
-## 文档入口
+The current runtime is a release-ready static kiosk prototype, not yet a React/TypeScript component package. The project intentionally preserves this architecture for the first release because it is reliable on a headless NAS and avoids a framework migration before the core display workflow is stable.
 
-- [开源项目调研](docs/research/open-source-options.md)
-- [显示输出方案](docs/research/display-output-options.md)
-- [当前本机显示设备记录](docs/research/current-hardware-display.md)
-- [推荐架构决策](docs/decisions/0001-build-custom-web-kiosk.md)
-- [Web 主显示层决策](docs/decisions/0002-web-kiosk-runtime.md)
-- [无桌面 Ubuntu kiosk 可行性](docs/development/headless-kiosk-feasibility.md)
-- [接口规范草案](docs/development/interface-spec.md)
-- [主题系统规范草案](docs/development/theme-system.md)
-- [主题资源包规范草案](docs/development/theme-resource-pack.md)
-- [组件系统草案](docs/development/component-system.md)
-- [标准组件草案](docs/development/standard-widgets.md)
-- [Codex Agent 本机追踪方案](docs/development/codex-agent-tracking.md)
-- [Codex Pet 兼容规范草案](docs/development/codex-pet-compat.md)
-- [像素 Agent 组件规范草案](docs/development/pixel-agent-widget.md)
-- [插件式扩展模型草案](docs/development/plugin-extension-model.md)
-- [Web kiosk 测试说明](docs/development/web-kiosk-test.md)
-- [运行时控制规范草案](docs/development/runtime-control.md)
-- [OpenClaw / 像素 Agent 可视化参考调研](docs/research/openclaw-pixel-agent-options.md)
-- [骨架动画与动态背景方案调研](docs/research/animation-and-background-options.md)
-- [路线图](docs/development/roadmap.md)
-- [文档维护规范](docs/development/documentation-policy.md)
-- [更新记录](CHANGELOG.md)
+Implemented today:
 
-## 目标架构
+- `cage + Chromium` kiosk launcher for direct DRM display.
+- Python static server and runtime collectors.
+- `mdp` command for start, reload, switch, status, logs, theme, and pet import workflows.
+- `core.systemHero`, `core.clockWeather`, `core.telemetryTrend`, `core.diskMatrix`, `core.dockerTui`, `core.mascotAssistant`, and `core.pixelAgents` prototypes.
+- Default `neon-dark` theme resource pack.
 
-计划中的运行时：
+Future roadmap:
 
-- 前端：React + TypeScript，全屏渲染在 Chromium 或可选桌面壳中。
-- 后端：本地 Node.js 服务，采集系统指标并提供 WebSocket/REST 数据。
-- 配置：显示屏、布局、组件配置均以声明式文件保存。
-- 组件：每个组件是独立目录，包含 `manifest.json`、类型化配置、React 入口和预览数据。
-- 部署：为 Ubuntu 提供 systemd 用户服务和 kiosk 启动脚本。
+- Component package layout with typed manifests and schemas.
+- React/TypeScript frontend runtime.
+- Plugin-managed widgets and data providers.
+- Additional display adapters beyond normal HDMI/DisplayPort screens.
 
-计划中的组件目录：
+## Project Structure
 
-```text
-components/<component-id>/
-  manifest.json
-  index.tsx
-  schema.json
-  README.md
-```
+| Path | Purpose |
+| --- | --- |
+| `public/kiosk-test/` | Current static kiosk Web UI and mock data. |
+| `public/themes/` | Theme resource packs. |
+| `public/brand/` | Public brand assets used by docs and releases. |
+| `scripts/` | Kiosk launcher, `mdp`, runtime collectors, display tests, and import helpers. |
+| `systemd/` | Service template rendered by the installer. |
+| `docs/` | Research, ADRs, interface specs, runtime control, and roadmap. |
+| `examples/` | Public screenshots and examples referenced by README files. |
+| `.codex/skills/mythe-display/` | Local Codex skill for project-aware customization. |
 
-每个组件需要声明输入数据、刷新策略、尺寸约束、主题能力和降级状态。
+## Hardware Requirements
 
-## Web Kiosk 测试
+Recommended:
 
-当前仓库包含一个静态网页测试页面：
+- Ubuntu server or desktop installation.
+- HDMI or DisplayPort screen connected as a normal display.
+- Intel/AMD/NVIDIA GPU with DRM/KMS support.
+- Long-bar display such as `3840x1100`, though the Web UI can be previewed at other sizes.
 
-- [public/kiosk-test/index.html](public/kiosk-test/index.html)
-- [public/kiosk-test/agents.mock.json](public/kiosk-test/agents.mock.json)
-- [public/kiosk-test/disks.mock.json](public/kiosk-test/disks.mock.json)
-- [public/kiosk-test/docker.mock.json](public/kiosk-test/docker.mock.json)
-- [public/kiosk-test/telemetry.mock.json](public/kiosk-test/telemetry.mock.json)
-- [public/kiosk-test/weather.mock.json](public/kiosk-test/weather.mock.json)
-- [public/themes/neon-dark/theme.json](public/themes/neon-dark/theme.json)
+For USB display output:
 
-默认 kiosk 页面会优先读取运行时快照：
+- A normal USB-C data port cannot become a native video output through software.
+- USB-C video requires DP Alt Mode, USB4, or Thunderbolt support in hardware.
+- DisplayLink USB adapters are possible but require separate Linux driver support and are not the default path.
 
-```text
-public/runtime/disks.json       磁盘，默认 12 小时刷新
-public/runtime/telemetry.json   CPU/内存/网络，默认 10 分钟刷新
-public/runtime/docker.json      Docker，默认 10 分钟刷新
-public/runtime/weather-shenzhen.json 深圳天气，默认 30 分钟刷新
-public/runtime/codex-agents.json Codex Agent 元数据，默认 5 分钟刷新
-```
+## Quick Start
 
-这些运行时文件由脚本生成，并已被 `.gitignore` 忽略。mock 文件只作为开发预览或采集不可用时的兜底。
-
-本地预览：
+Install runtime dependencies:
 
 ```bash
+sudo apt update
+sudo apt install cage chromium-browser python3
+```
+
+Clone the repository and preview in a browser:
+
+```bash
+git clone <repo-url> mythe-display
+cd mythe-display
 python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23456
 ```
 
-浏览器访问：
+Open:
 
 ```text
 http://<server-ip>:23456/kiosk-test/
 ```
 
-无浏览器控制条上屏需要 kiosk compositor 和浏览器。当前服务器已检测到 `cage` 和 `chromium-browser`。
-
-NAS 无头远程启动推荐使用 sudo direct DRM 模式：
-
-```bash
-sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
-```
-
-该模式会使用 `LIBSEAT_BACKEND=builtin`、`WLR_DRM_DEVICES=/dev/dri/card0` 和 `WLR_LIBINPUT_NO_DEVICES=1`，不依赖物理键鼠登录。
-默认本地测试页启动时会先生成一次 Storage、Telemetry、Docker、Weather 真实快照，再启动 `scripts/collect-runtime-snapshots.py` 低频循环。需要临时禁用采集器时可设置 `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1`。
-
-如果未来在本机 TTY 登录，也可以普通用户运行：
-
-```bash
-scripts/run-kiosk-web-test.sh
-```
-
-安装为 systemd 服务：
-
-```bash
-sudo scripts/install-kiosk-service.sh
-mdp start
-mdp enable
-```
-
-只安装/更新短命令入口：
-
-```bash
-sudo scripts/install-mdp-command.sh
-```
-
-如果只安装了短命令，也可以直接运行：
-
-```bash
-mdp start
-```
-
-`mdp start` 会在找不到 `mythe-display-kiosk.service` 时自动安装 systemd 服务，然后启动它。
-
-也可以测试任意网页：
-
-```bash
-scripts/run-kiosk-web-test.sh https://example.com
-```
-
-运行后动态切换当前 kiosk 页面：
-
-```bash
-mdp list
-mdp current
-mdp switch '/kiosk-test/?theme=../themes/neon-dark/theme.json'
-mdp switch https://example.com
-mdp reload
-```
-
-安装为 systemd 后，刷新当前界面不需要重启服务：
-
-```bash
-sudo systemctl reload mythe-display-kiosk
-```
-
-`reload` 会通过 Chromium DevTools 控制当前页面，并追加 `assetCacheBust` 参数，让主题资源重新加载。它不会执行 `systemctl restart`，因此不会重新抢占 DRM seat。
-
-日常建议使用更短的命令：
-
-```bash
-mdp reload
-mdp status
-mdp logs
-```
-
-导入已下载的 Codex/Petdex pet 包：
-
-```bash
-mdp pet ~/.codex/pets/<pet-name> --force
-mdp reload
-```
-
-Chromium 控制端口默认只绑定本机：
-
-```text
-MYTHE_DISPLAY_REMOTE_DEBUG_PORT=23458
-```
-
-该切换能力依赖 Chromium DevTools 控制端口；Firefox kiosk 暂不支持。
-
-测试页默认禁止浏览器翻译提示：页面设置 `translate="no"` 和 `notranslate`，Chromium 启动参数也会关闭翻译 UI。如果仍看到翻译气泡，先删除旧 kiosk profile 后重启：
-
-```bash
-sudo rm -rf /tmp/mythe-display-kiosk-profile
-sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
-```
-
-## 主题资源包
-
-默认主题资源包位于：
-
-```text
-public/themes/neon-dark/
-```
-
-它包含：
-
-- `theme.json`：语义 token、动态背景层、Hero/Pet 资源和 Agent 精灵映射。
-- `backgrounds/`：可循环播放的 SVG 背景层。
-- `hero/`：透明 MytheNAS 科技感图标资源。
-- `mascot/`：透明看板娘资源。
-- `sprites/`：像素 Agent 的 `idle`、`walking`、`working`、`thinking`、`building`、`reviewing`、`blocked`、`error`、`offline` 状态资源。
-
-用户可以复制整个目录创建新主题，并在预览 URL 中指定：
-
-```text
-http://<server-ip>:23456/kiosk-test/?theme=../themes/<theme-id>/theme.json
-```
-
-## 标准组件原型
-
-测试页现在包含这些标准组件原型：
-
-- `core.systemHero`：MytheNAS 图标、动态发光和本地 Canvas 三角网格背景。
-- `core.clockWeather`：东八区超大时间、日期和深圳当天 Open-Meteo 天气，默认 30 分钟刷新天气。
-- `core.telemetryTrend`：CPU、Memory、Network 真实低频快照合并折线图，单格显示，默认 10 分钟刷新，带颜色图例和坐标轴。
-- `core.mascotAssistant`：二次元看板娘，默认每 5 分钟随机切换 CSS 动作和一句短格言；主题可选接入 Rive `.riv` 骨架动画资源。
-- `core.diskMatrix`：紧凑磁盘矩阵，占用两格，支持 HDD/NVMe/SSD/USB 图标和使用率外圈，默认 12 小时刷新。
-- `core.dockerTui`：参考 lazydocker 信息密度的 Docker 只读竖栏，默认 10 分钟刷新并显示真实容器列表。
-- `core.pixelAgents`：Codex 本机会话元数据和 OpenClaw 兼容的像素 Agent 状态原型。
-
-手动生成一次真实运行时快照：
+Generate runtime snapshots once:
 
 ```bash
 scripts/collect-runtime-snapshots.py --once --pretty
 ```
 
-持续生成真实运行时快照：
+Run the kiosk directly on a headless NAS:
+
+```bash
+sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
+```
+
+## Install as a Service
+
+Install the systemd service and `mdp` command:
+
+```bash
+sudo scripts/install-kiosk-service.sh
+```
+
+The installer renders `systemd/mythe-display-kiosk.service` with the current checkout path, so the repository can live outside `/opt` or a user-specific home directory.
+
+Start and enable the display:
+
+```bash
+mdp start
+mdp enable
+```
+
+Common commands:
+
+```bash
+mdp status
+mdp logs
+mdp reload
+mdp switch /kiosk-test/
+mdp restart
+```
+
+Important behavior:
+
+- `mdp reload` refreshes the current Chromium page only.
+- `mdp restart` restarts the systemd service and reloads collector/script changes.
+- Use `mdp restart` after changing runtime collector scripts or service environment variables.
+
+## Configuration
+
+Copy `.env.example` to `.env` for local-only overrides:
+
+```bash
+cp .env.example .env
+```
+
+The public template contains only non-secret defaults and empty placeholders. Never commit `.env`. The kiosk runner, installed systemd service, and `mdp` command read this file when it exists; explicitly exported shell variables still take priority for direct command runs.
+
+Common environment variables:
+
+- `MYTHE_DISPLAY_HOST`: local static server bind address.
+- `MYTHE_DISPLAY_PORT`: static Web server port, default `23456`.
+- `MYTHE_DISPLAY_REMOTE_DEBUG_HOST`: Chromium DevTools host, default `127.0.0.1`.
+- `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`: Chromium DevTools control port, default `23458`.
+- `MYTHE_DISPLAY_BROWSER`: browser command, such as `chromium-browser`.
+- `MYTHE_DISPLAY_DRM_DEVICE`: DRM card used by Cage/wlroots, default `/dev/dri/card0`.
+- `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`: set to `1` to disable runtime JSON collectors.
+- `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`: set to `1` only if showing Codex thread titles on the screen is acceptable.
+
+## Runtime Data
+
+The default page reads local JSON snapshots from `public/runtime/`. That directory is ignored by Git.
+
+| Snapshot | Default refresh | Collector |
+| --- | ---: | --- |
+| `/runtime/disks.json` | 12 hours | `scripts/collect-disk-snapshot.py` |
+| `/runtime/telemetry.json` | 10 minutes | `scripts/collect-telemetry-snapshot.py` |
+| `/runtime/docker.json` | 10 minutes | `scripts/collect-docker-snapshot.py` |
+| `/runtime/weather-shenzhen.json` | 30 minutes | `scripts/collect-weather-snapshot.py` |
+| `/runtime/codex-agents.json` | 5 minutes | `scripts/collect-codex-agents-snapshot.py` |
+
+Run all collectors once:
+
+```bash
+scripts/collect-runtime-snapshots.py --once --pretty
+```
+
+For local verification without touching the default runtime directory:
+
+```bash
+scripts/collect-runtime-snapshots.py --once --pretty --runtime-dir tmp/verify-runtime
+```
+
+Run the continuous collector loop:
 
 ```bash
 scripts/collect-runtime-snapshots.py
 ```
 
-也可以只生成磁盘快照：
+## Theme Customization
 
-```bash
-scripts/collect-disk-snapshot.py --out public/runtime/disks.json --refresh-ms 43200000 --pretty
-```
-
-默认页面已经读取真实快照；也可以显式指定数据源：
+The default theme lives in:
 
 ```text
-http://<server-ip>:23456/kiosk-test/?disks=/runtime/disks.json
+public/themes/neon-dark/
 ```
 
-## 像素 Agent 原型
+A theme pack includes:
 
-测试页已包含 `core.pixelAgents` 原型。默认读取本机 Codex 会话元数据：
+- `theme.json` semantic tokens and asset references.
+- `backgrounds/` wallpaper layers.
+- `hero/` identity artwork.
+- `mascot/` assistant artwork or optional Codex/Petdex assets.
+- `sprites/` pixel Agent state images.
+
+Create a new theme:
+
+```bash
+cp -R public/themes/neon-dark public/themes/my-theme
+```
+
+Preview it:
 
 ```text
-public/runtime/codex-agents.json
+http://<server-ip>:23456/kiosk-test/?theme=../themes/my-theme/theme.json
 ```
 
-开发预览 fallback：
+See [Theme Resource Pack](docs/development/theme-resource-pack.md) and [Theme System](docs/development/theme-system.md).
+
+## Custom Widget Development
+
+The first release uses static HTML/CSS/JS widgets inside `public/kiosk-test/index.html`. A future React/TypeScript runtime is planned, but the current customization path is:
+
+1. Define or reuse a JSON snapshot shape.
+2. Add a collector or data provider that writes to `public/runtime/<name>.json`.
+3. Add preview mock data under `public/kiosk-test/`.
+4. Render the widget in the kiosk page.
+5. Document the data contract in `docs/development/interface-spec.md`.
+
+Current widget contracts are documented in:
+
+- [Interface Spec](docs/development/interface-spec.md)
+- [Standard Widgets](docs/development/standard-widgets.md)
+- [Pixel Agent Widget](docs/development/pixel-agent-widget.md)
+- [Codex Agent Tracking](docs/development/codex-agent-tracking.md)
+
+## Agent-Assisted Customization
+
+This repository includes a local Codex skill:
 
 ```text
-public/kiosk-test/agents.mock.json
+.codex/skills/mythe-display/SKILL.md
 ```
 
-也可以通过 URL 参数接入任意同结构 JSON：
+It helps agents understand this project and safely perform customization tasks such as:
 
-```text
-http://<server-ip>:23456/kiosk-test/?agents=/api/agents/pixel
-```
+- creating a new theme resource pack,
+- adding a runtime collector,
+- designing a widget data contract,
+- updating screenshots and docs,
+- keeping secrets out of Git.
 
-目标是后续用 `openclaw.compat` 适配器把 OpenClaw Agent 状态转换为统一的 `PixelAgentSnapshot`，而不是让 UI 直接依赖 OpenClaw 内部接口。
+## Developer Documentation
 
-## 硬件建议
+- [Documentation Index](docs/README.md)
+- [Web Kiosk Runtime ADR](docs/decisions/0002-web-kiosk-runtime.md)
+- [Headless Kiosk Feasibility](docs/development/headless-kiosk-feasibility.md)
+- [Runtime Control](docs/development/runtime-control.md)
+- [Plugin Extension Model](docs/development/plugin-extension-model.md)
+- [Roadmap](docs/development/roadmap.md)
 
-当前本机已检测到 HDMI 长条屏：
+## Examples
 
-- connector：`card0-HDMI-A-2`
-- framebuffer：`/dev/fb0`
-- 分辨率：`3840x1100`
-- 色深：`32bpp`
-- framebuffer 驱动：`i915drmfb`
+Desktop long-bar screenshot:
 
-优先选择：
+![Desktop long-bar screenshot](examples/screenshots/kiosk-desktop.png)
 
-- 小尺寸 HDMI 屏，连接到独显、核显或主板 HDMI/DP 输出。
-- Ubuntu 将它识别为普通第二显示器。
+Mobile/narrow preview:
 
-可以接受：
+![Mobile preview](examples/screenshots/kiosk-mobile.png)
 
-- USB-C 屏幕，但前提是主机接口支持 DP Alt Mode、USB4 或雷电视频输出。
-- DisplayLink 屏幕/转接器，但需要接受专有驱动和 Ubuntu 版本兼容风险。
+## Contributing
 
-不建议作为主路径：
+Keep changes focused on the current static kiosk architecture unless a migration is explicitly planned. For user-visible behavior changes, update the English README, Chinese README, `CHANGELOG.md`, and any relevant files under `docs/`. Do not commit `.env`, runtime snapshots, local screenshots, cache folders, or private credentials.
 
-- 只有数据能力的普通 USB-C 主板接口。
-- USB 串口类小屏，除非明确计划开发协议级渲染器。
-
-## 本地准备
-
-当前阶段仍是原型和接口规范阶段。后续正式应用实现后，预期步骤为：
-
-1. 将 `.env.example` 复制为 `.env`。
-2. 安装项目依赖。
-3. 在 `config/` 中配置显示屏几何信息和组件布局。
-4. 启动本地预览。
-5. 在生产环境安装 kiosk/systemd 服务。
-
-当前可用的真实屏幕控制测试命令：
+Recommended checks before submitting:
 
 ```bash
-python3 scripts/kms-color-test.py info
-sg video -c "python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore"
-sg video -c "python3 scripts/kms-color-test.py bars --connector card0-HDMI-A-2 --mode 3840x1100 --duration 5 --restore"
+python3 -m py_compile scripts/*.py
+bash -n scripts/*.sh scripts/mdp
+scripts/collect-runtime-snapshots.py --once --pretty --runtime-dir tmp/verify-runtime
+git status --ignored --short
 ```
 
-如果已经重新登录刷新了 `video` 组权限，也可以不使用 `sg video -c`：
+## Acknowledgements
 
-```bash
-python3 scripts/kms-color-test.py fill --connector card0-HDMI-A-2 --mode 3840x1100 --color '#0047ff' --duration 5 --restore
-```
+Mythe Display is informed by several mature projects and ideas:
 
-`/dev/fb0` 测试脚本现在只建议作为 framebuffer 内存诊断使用。它可以写入并读回 `i915drmfb`，但在当前服务器上不一定会改变 HDMI 屏幕的真实可见 scanout：
+- [MagicMirror²](https://magicmirror.builders/) for modular display dashboards.
+- [Grafana](https://grafana.com/) for panel contracts and dashboard thinking.
+- [Netdata](https://www.netdata.cloud/) and [Glances](https://nicolargo.github.io/glances/) for system monitoring approaches.
+- [lazydocker](https://github.com/jesseduffield/lazydocker) for compact Docker status density.
+- Codex/Petdex-style sprite pets for mascot resource compatibility.
 
-```bash
-python3 scripts/fb-color-test.py info
-sudo python3 scripts/fb-color-test.py fill --color '#0047ff' --duration 5 --restore
-sudo python3 scripts/fb-color-test.py bars --duration 5 --restore
-```
+See [Open Source Options](docs/research/open-source-options.md) for the full research notes.
 
-如果不想每次写屏都使用 `sudo`，可以将运行用户加入图形设备相关组后重新登录或重启：
+## License
 
-```bash
-sudo usermod -aG video,render,input mythezone
-```
-
-## 仓库规则
-
-- 密钥只放在 `.env`，不要提交。
-- 用户可复现的搭建步骤写入本 README。
-- 长期有效的调研和技术决策写入 `docs/`。
-- 重要变化更新 `CHANGELOG.md`。
-- 每次完成用户可见任务后，在可用时提交并推送。
+MIT. See [LICENSE](LICENSE).

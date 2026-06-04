@@ -1,38 +1,37 @@
 ---
 name: mythe-display
-description: 适用于本仓库的所有工作：Ubuntu 机箱副屏显示项目开发、中文文档维护、README/CHANGELOG 更新、密钥保护，以及每次完成用户可见任务后提交并推送。
+description: 适用于本仓库的所有工作：Mythe Display Ubuntu 副屏 kiosk 开发、主题和 Widget 定制、运行时采集器、文档发布整理、密钥保护，以及完成用户可见任务后的提交与推送。
 ---
 
-# Mythe Display 仓库工作规范
+# Mythe Display 项目定制助手
 
-## 核心规则
+## 基本规则
 
-- 除非用户另有要求，使用中文沟通和维护项目文档。
-- 将本仓库视为 Ubuntu 机箱副屏/kiosk 显示项目。
-- `.env` 和凭据只作本地使用，绝不打印、写入文档或提交。
-- 长期有效的调研保存在 `docs/research/`。
-- 长期技术决策保存在 `docs/decisions/`，以 ADR 形式记录。
-- 实现说明、开发指南和组件规范保存在 `docs/development/`。
-- 搭建方式、运行命令、架构方向或复现步骤变化时，更新 `README.md`。
-- 每次有实质性仓库变化时，更新 `CHANGELOG.md`。
+- 默认用中文沟通；根 `README.md` 是正式英文入口，中文入口是 `README.zh-CN.md`。
+- 当前发布版保留静态 Web kiosk + Python collector 架构；除非用户明确要求，不迁移 React/TypeScript。
+- `.env`、API token、个人路径、私有主机名和运行时产物绝不提交或写入文档。
+- 不提交 `public/runtime/`、`tmp/`、`screenshots/local/`、缓存目录或本地调试输出。
+- 用户可见功能、命令、配置或复现步骤变化时，同步更新 README、相关 `docs/` 和 `CHANGELOG.md`。
+- 完成实质性仓库变更后，只 stage 相关文件，commit 并 push。
 
 ## 产品方向
 
-- 默认渲染器：运行在普通 Ubuntu 第二显示器上的 Web kiosk 应用。
-- 推荐输出方式：优先 HDMI/DisplayPort。
-- USB-C 只有在硬件支持 DP Alt Mode、USB4 或雷电时，才能作为普通视频输出。
-- DisplayLink 是可选 USB 显卡回退方案，但存在驱动和系统版本兼容风险。
-- USB 智能小屏需要协议级渲染器，应作为适配器处理，而不是普通显示器。
+- 目标是 Ubuntu 服务器、NAS 或机箱上的普通 HDMI/DisplayPort 副屏。
+- 默认运行方式是 `cage + Chromium` direct DRM fullscreen kiosk，不依赖完整 Ubuntu 桌面环境。
+- Web 端预览和物理屏 kiosk 应显示同一套页面、主题和 Widget。
+- USB-C 只有在硬件支持 DP Alt Mode、USB4 或雷电时才能作为普通视频输出；DisplayLink 属于可选适配器方向。
 
-## 工程方向
+## 常用命令
 
-- 优先使用 React + TypeScript 前端和本地指标服务。
-- 使用声明式显示屏/布局配置。
-- 组件应包含 manifest、配置 schema、类型化运行时 props、预览数据和明确的 unavailable/error 状态。
-- 配置中应保留任意显示尺寸、分辨率、像素密度、旋转方向和安全区域能力。
+- Web 预览：`python3 scripts/serve-web-test.py --host 0.0.0.0 --port 23456`
+- 物理屏测试：`sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh`
+- 安装服务：`sudo scripts/install-kiosk-service.sh`
+- 控制服务：`mdp start`、`mdp reload`、`mdp switch /kiosk-test/`、`mdp restart`、`mdp logs`
+- 静态检查：`python3 -m py_compile scripts/*.py` 和 `bash -n scripts/*.sh scripts/mdp`
 
-## Git 工作流
+## 定制工作流
 
-- 完成每个用户可见任务后，只 stage 相关文件，commit 并 push。
-- 不要 stage `.env` 或本地生成截图/调试产物。
-- 如果 push 因认证或远端配置失败，先检查非密钥 Git 配置。只有确实需要时才使用 `.env` 凭据，并且不要暴露凭据内容。
+- 制作主题时，优先复制 `public/themes/neon-dark/`，再修改 `theme.json` 和资源文件；详见 `references/theme-authoring.md`。
+- 开发 Widget 时，先定义 JSON 数据契约、mock 数据和低频 runtime collector，再改 `public/kiosk-test/index.html`；详见 `references/widget-authoring.md`。
+- 发布整理、截图、验证和提交流程见 `references/release-workflow.md`。
+- 长期调研写入 `docs/research/`，技术决策写入 `docs/decisions/`，开发规范写入 `docs/development/`。

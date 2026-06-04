@@ -22,6 +22,7 @@ DEFAULT_AGENTS_MS = 300_000
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="循环生成 Mythe Display runtime JSON 快照。")
+    parser.add_argument("--runtime-dir", type=Path, default=Path("public/runtime"), help="runtime JSON 输出目录。")
     parser.add_argument("--disk-ms", type=int, default=DEFAULT_DISK_MS, help="磁盘采集间隔，默认 12 小时。")
     parser.add_argument("--telemetry-ms", type=int, default=DEFAULT_TELEMETRY_MS, help="Telemetry 采集间隔，默认 10 分钟。")
     parser.add_argument("--docker-ms", type=int, default=DEFAULT_DOCKER_MS, help="Docker 采集间隔，默认 10 分钟。")
@@ -33,16 +34,19 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run_collector(name: str, command: list[str]) -> None:
+def run_collector(name: str, command: list[str]) -> bool:
     try:
         subprocess.run(command, cwd=ROOT_DIR, check=True)
+        return True
     except subprocess.CalledProcessError as exc:
         print(f"[runtime] {name} 采集失败: {exc}", file=sys.stderr)
+        return False
 
 
 def main() -> int:
     args = build_parser().parse_args()
     pretty = ["--pretty"] if args.pretty else []
+    runtime_dir = args.runtime_dir
     collectors = [
         {
             "name": "disk",
@@ -52,7 +56,7 @@ def main() -> int:
                 sys.executable,
                 str(ROOT_DIR / "scripts/collect-disk-snapshot.py"),
                 "--out",
-                "public/runtime/disks.json",
+                str(runtime_dir / "disks.json"),
                 "--refresh-ms",
                 str(args.disk_ms),
                 *pretty,
@@ -66,9 +70,9 @@ def main() -> int:
                 sys.executable,
                 str(ROOT_DIR / "scripts/collect-telemetry-snapshot.py"),
                 "--out",
-                "public/runtime/telemetry.json",
+                str(runtime_dir / "telemetry.json"),
                 "--state",
-                "public/runtime/telemetry-state.json",
+                str(runtime_dir / "telemetry-state.json"),
                 "--refresh-ms",
                 str(args.telemetry_ms),
                 *pretty,
@@ -82,7 +86,7 @@ def main() -> int:
                 sys.executable,
                 str(ROOT_DIR / "scripts/collect-docker-snapshot.py"),
                 "--out",
-                "public/runtime/docker.json",
+                str(runtime_dir / "docker.json"),
                 "--refresh-ms",
                 str(args.docker_ms),
                 *pretty,
@@ -96,7 +100,7 @@ def main() -> int:
                 sys.executable,
                 str(ROOT_DIR / "scripts/collect-weather-snapshot.py"),
                 "--out",
-                "public/runtime/weather-shenzhen.json",
+                str(runtime_dir / "weather-shenzhen.json"),
                 "--refresh-ms",
                 str(args.weather_ms),
                 *pretty,
@@ -110,7 +114,7 @@ def main() -> int:
                 sys.executable,
                 str(ROOT_DIR / "scripts/collect-codex-agents-snapshot.py"),
                 "--out",
-                "public/runtime/codex-agents.json",
+                str(runtime_dir / "codex-agents.json"),
                 "--refresh-ms",
                 str(args.agents_ms),
                 *pretty,
@@ -124,12 +128,14 @@ def main() -> int:
 
     while True:
         now = time.monotonic()
+        had_failure = False
         for collector in collectors:
             if now >= collector["next"]:
-                run_collector(collector["name"], collector["command"])
+                if not run_collector(collector["name"], collector["command"]):
+                    had_failure = True
                 collector["next"] = time.monotonic() + collector["interval"]
         if args.once:
-            return 0
+            return 1 if had_failure else 0
         next_due = min(collector["next"] for collector in collectors)
         time.sleep(max(1.0, min(30.0, next_due - time.monotonic())))
 

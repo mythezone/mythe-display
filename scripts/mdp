@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-UNIT_NAME="${MYTHE_DISPLAY_UNIT_NAME:-mythe-display-kiosk}"
-DEFAULT_ROOT="/home/mythezone/services/mythe/mythe-display"
-CONTROL_WAIT_SECONDS="${MYTHE_DISPLAY_CONTROL_WAIT_SECONDS:-18}"
+DEFAULT_ROOT="${MYTHE_DISPLAY_DEFAULT_ROOT:-/opt/mythe-display}"
 
 resolve_root() {
   local source="${BASH_SOURCE[0]}"
@@ -37,6 +35,14 @@ resolve_root() {
 }
 
 ROOT_DIR="$(resolve_root)"
+if [[ -f "$ROOT_DIR/scripts/load-env.sh" ]]; then
+  # shellcheck source=scripts/load-env.sh
+  source "$ROOT_DIR/scripts/load-env.sh"
+  load_mythe_display_env_defaults "$ROOT_DIR/.env"
+fi
+
+UNIT_NAME="${MYTHE_DISPLAY_UNIT_NAME:-mythe-display-kiosk}"
+CONTROL_WAIT_SECONDS="${MYTHE_DISPLAY_CONTROL_WAIT_SECONDS:-18}"
 CONTROL="$ROOT_DIR/scripts/kiosk-control.py"
 RUN_KIOSK="$ROOT_DIR/scripts/run-kiosk-web-test.sh"
 INSTALL_SERVICE="$ROOT_DIR/scripts/install-kiosk-service.sh"
