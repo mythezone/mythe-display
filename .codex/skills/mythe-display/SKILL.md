@@ -12,7 +12,7 @@ description: 适用于本仓库的所有工作：Mythe Display Ubuntu 副屏 kio
 - `.env`、API token、个人路径、私有主机名和运行时产物绝不提交或写入文档。
 - 不提交 `public/runtime/`、`tmp/`、`screenshots/local/`、缓存目录或本地调试输出。
 - 用户可见功能、命令、配置或复现步骤变化时，同步更新 README、相关 `docs/` 和 `CHANGELOG.md`。
-- 完成实质性仓库变更后，只 stage 相关文件，commit 并 push。
+- 完成实质性仓库变更后，只 stage 相关文件，commit 并同步到两个远程仓库。
 
 ## 产品方向
 
@@ -28,6 +28,7 @@ description: 适用于本仓库的所有工作：Mythe Display Ubuntu 副屏 kio
 - 安装服务：`sudo scripts/install-kiosk-service.sh`
 - 控制服务：`mdp start`、`mdp reload`、`mdp switch /kiosk-test/`、`mdp restart`、`mdp logs`
 - 静态检查：`python3 -m py_compile scripts/*.py` 和 `bash -n scripts/*.sh scripts/mdp`
+- 代码同步：优先使用 `git push origin HEAD`，本地 `origin` 的 pushurl 应同时包含 GitLab 和 GitHub；必要时再执行 `git push github HEAD` 验证 GitHub。
 
 ## 定制工作流
 
