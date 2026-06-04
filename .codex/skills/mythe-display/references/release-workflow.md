@@ -35,6 +35,6 @@ scripts/collect-runtime-snapshots.py --once --pretty --runtime-dir tmp/verify-ru
 
 - 只 stage 与当前任务相关的文件。
 - 提交前检查没有 `.env`、runtime、cache、local screenshots 或调试产物。
-- 本地应配置两个远程仓库：`origin` 指向 GitLab，`github` 指向 `https://github.com/mythezone/mythe-display.git`。
-- `origin` 的 pushurl 应同时包含 GitLab 和 GitHub，方便一次 `git push origin HEAD` 同步两个仓库。
+- 本地应配置两个远程仓库：`origin` fetch 指向 GitLab，`github` fetch 指向 `https://github.com/mythezone/mythe-display.git`。
+- `origin` 的 pushurl 应同时包含 GitLab 和 GitHub，方便一次 `git push origin HEAD` 同步两个仓库；GitHub push 可使用 `git@github.com:mythezone/mythe-display.git`。
 - 完成后 commit 并同步两个远程；如果任一远程 push 失败，说明具体原因，不暴露凭据。

@@ -28,7 +28,7 @@ description: 适用于本仓库的所有工作：Mythe Display Ubuntu 副屏 kio
 - 安装服务：`sudo scripts/install-kiosk-service.sh`
 - 控制服务：`mdp start`、`mdp reload`、`mdp switch /kiosk-test/`、`mdp restart`、`mdp logs`
 - 静态检查：`python3 -m py_compile scripts/*.py` 和 `bash -n scripts/*.sh scripts/mdp`
-- 代码同步：优先使用 `git push origin HEAD`，本地 `origin` 的 pushurl 应同时包含 GitLab 和 GitHub；必要时再执行 `git push github HEAD` 验证 GitHub。
+- 代码同步：优先使用 `git push origin HEAD`，本地 `origin` 的 pushurl 应同时包含 GitLab 和 GitHub；GitHub fetch 可用 HTTPS，push 推荐使用已验证的 SSH 地址。
 
 ## 定制工作流
 
