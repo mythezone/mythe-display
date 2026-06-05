@@ -14,6 +14,8 @@ Environment=LIBSEAT_BACKEND=builtin
 Environment=WLR_BACKENDS=drm
 Environment=WLR_LIBINPUT_NO_DEVICES=1
 Environment=MYTHE_DISPLAY_DRM_DEVICE=/dev/dri/card0
+Environment=MYTHE_DISPLAY_DISABLE_DRM_ATOMIC=1
+Environment=MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS=1
 Environment=MYTHE_DISPLAY_BROWSER=chromium-browser
 EnvironmentFile=-__MYTHE_DISPLAY_ROOT__/.env
 ExecStart=__MYTHE_DISPLAY_ROOT__/scripts/run-kiosk-web-test.sh

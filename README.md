@@ -154,6 +154,8 @@ Common environment variables:
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`: Chromium DevTools control port, default `23458`.
 - `MYTHE_DISPLAY_BROWSER`: browser command, such as `chromium-browser`.
 - `MYTHE_DISPLAY_DRM_DEVICE`: DRM card used by Cage/wlroots, default `/dev/dri/card0`.
+- `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`: set to `1` to use wlroots legacy DRM commits, default `1` for long-bar display stability.
+- `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS`: set to `1` to disable DRM modifiers, default `1` for compatibility.
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`: set to `1` to disable runtime JSON collectors.
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`: set to `1` only if showing Codex thread titles on the screen is acceptable.
 

@@ -154,6 +154,8 @@ cp .env.example .env
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`：Chromium DevTools 控制端口，默认 `23458`。
 - `MYTHE_DISPLAY_BROWSER`：浏览器命令，例如 `chromium-browser`。
 - `MYTHE_DISPLAY_DRM_DEVICE`：Cage/wlroots 使用的 DRM 设备，默认 `/dev/dri/card0`。
+- `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`：设为 `1` 使用 wlroots legacy DRM commit，默认 `1`，提高长条屏稳定性。
+- `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS`：设为 `1` 禁用 DRM modifiers，默认 `1`，提高兼容性。
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`：设为 `1` 可禁用运行时采集。
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`：设为 `1` 才会在副屏显示 Codex 线程标题。
 

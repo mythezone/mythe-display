@@ -1,5 +1,9 @@
 # 更新记录
 
+## 2026-06-05
+
+- 修复长条屏 kiosk 长时间运行后可能卡住的问题：direct DRM 模式默认禁用 wlroots atomic KMS 和 DRM modifiers，以规避 `Atomic commit failed: Device or resource busy` 导致的 scanout 更新失败；同时禁用 Chromium 后台 timer/renderer 降级策略，避免无桌面 kiosk 被误判为后台页面。
+
 ## 2026-06-04
 
 - 发布前整理：新增英文正式 `README.md`、中文 `README.zh-CN.md`、MIT `LICENSE`、公开示例截图目录 `examples/screenshots/` 和品牌资产目录 `public/brand/`。

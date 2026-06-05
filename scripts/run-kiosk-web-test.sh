@@ -119,7 +119,13 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   export WLR_BACKENDS="${WLR_BACKENDS:-drm}"
   export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-${MYTHE_DISPLAY_DRM_DEVICE:-/dev/dri/card0}}"
   export WLR_LIBINPUT_NO_DEVICES="${WLR_LIBINPUT_NO_DEVICES:-1}"
-  echo "以 root/sudo direct DRM 模式启动: LIBSEAT_BACKEND=$LIBSEAT_BACKEND, WLR_DRM_DEVICES=$WLR_DRM_DEVICES" >&2
+  if [[ "${MYTHE_DISPLAY_DISABLE_DRM_ATOMIC:-1}" == "1" ]]; then
+    export WLR_DRM_NO_ATOMIC="${WLR_DRM_NO_ATOMIC:-1}"
+  fi
+  if [[ "${MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS:-1}" == "1" ]]; then
+    export WLR_DRM_NO_MODIFIERS="${WLR_DRM_NO_MODIFIERS:-1}"
+  fi
+  echo "以 root/sudo direct DRM 模式启动: LIBSEAT_BACKEND=$LIBSEAT_BACKEND, WLR_DRM_DEVICES=$WLR_DRM_DEVICES, WLR_DRM_NO_ATOMIC=${WLR_DRM_NO_ATOMIC:-0}, WLR_DRM_NO_MODIFIERS=${WLR_DRM_NO_MODIFIERS:-0}" >&2
 fi
 
 if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_ALLOW_REMOTE_KIOSK:-0}" != "1" ]]; then
@@ -231,7 +237,10 @@ CHROMIUM_ARGS=(
   --disable-infobars
   --disable-session-crashed-bubble
   --disable-translate
-  --disable-features=Translate,TranslateUI
+  --disable-features=Translate,TranslateUI,CalculateNativeWinOcclusion
+  --disable-background-timer-throttling
+  --disable-renderer-backgrounding
+  --disable-backgrounding-occluded-windows
   --lang=zh-CN
   --accept-lang=zh-CN,zh,en
   --proxy-bypass-list="<-loopback>"
