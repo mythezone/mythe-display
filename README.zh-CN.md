@@ -15,7 +15,7 @@ Mythe Display 是一个面向 Ubuntu 服务器、NAS 和机箱副屏的开源 We
 - 支持无桌面 Ubuntu 的 `cage + Chromium` 全屏 kiosk。
 - 已在 `3840x1100` HDMI 长条屏上验证。
 - 默认静态页面位于 `public/kiosk-test/`。
-- 运行时 JSON 快照支持磁盘、CPU、内存、网络、Docker、深圳天气和本机 Codex 会话元数据。
+- 运行时 JSON 快照支持磁盘、CPU、内存、GPU、网络、系统健康、Docker、深圳天气和本机 Codex 会话元数据。
 - 通过 `mdp` 支持启动、刷新、切换页面、查看日志、导入 pet 资源。
 - 主题资源包支持语义 token、动态背景、Hero 图、看板娘和像素 Agent 精灵。
 - 已包含 NAS 场景常用的紧凑监控组件原型。
@@ -30,7 +30,7 @@ Mythe Display 是一个面向 Ubuntu 服务器、NAS 和机箱副屏的开源 We
 - `cage + Chromium` direct DRM kiosk 启动。
 - 静态 Web 服务和 Python runtime collector。
 - `mdp` 短命令。
-- `core.systemHero`、`core.clockWeather`、`core.telemetryTrend`、`core.diskMatrix`、`core.dockerTui`、`core.mascotAssistant`、`core.pixelAgents` 原型。
+- `core.systemHero`、`core.clockWeather`、`core.telemetryTrend`、`core.systemHealth`、`core.diskMatrix`、`core.dockerTui`、`core.mascotAssistant`、`core.pixelAgents` 原型。
 - 默认 `neon-dark` 主题资源包。
 
 未来路线：

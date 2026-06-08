@@ -305,6 +305,7 @@
       .agent-panel,
       .disk-panel,
       .docker-panel,
+      .health-panel,
       .time-panel {
         padding: 22px;
         display: grid;
@@ -317,6 +318,7 @@
       .agent-panel header,
       .disk-panel header,
       .docker-panel header,
+      .health-panel header,
       .time-panel header {
         display: flex;
         align-items: center;
@@ -329,6 +331,7 @@
       .agent-panel h2,
       .disk-panel h2,
       .docker-panel h2,
+      .health-panel h2,
       .time-panel h2 {
         margin: 0;
         font-size: 24px;
@@ -351,7 +354,7 @@
 
       .telemetry-readouts {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
       }
 
@@ -372,7 +375,7 @@
       .readout strong {
         display: block;
         margin-top: 4px;
-        font-size: 22px;
+        font-size: 20px;
         line-height: 1;
         font-variant-numeric: tabular-nums;
       }
@@ -834,34 +837,36 @@
       }
 
       .disk-panel {
-        grid-column: span 2;
+        grid-column: span 1;
       }
 
       .disk-grid {
         min-height: 0;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 4px;
+        overflow: hidden;
       }
 
       .disk-tile {
         min-width: 0;
         min-height: 0;
         display: grid;
-        grid-template-columns: 36px 1fr auto;
+        grid-template-columns: 24px 1fr 40px;
         align-items: center;
-        gap: 7px;
+        gap: 6px;
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 8px;
-        padding: 6px 7px;
+        padding: 3px 5px;
         background: rgba(255, 255, 255, 0.04);
       }
 
       .drive-icon {
         --used: 0%;
         --usage-color: var(--md-metric-good);
-        width: 34px;
-        height: 34px;
+        width: 23px;
+        height: 23px;
         display: grid;
         place-items: center;
         border-radius: 50%;
@@ -870,9 +875,9 @@
       }
 
       .drive-glyph {
-        width: 24px;
-        height: 24px;
-        border-radius: 6px;
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
         position: relative;
         background: rgba(4, 8, 13, 0.96);
         border: 1px solid rgba(255, 255, 255, 0.28);
@@ -881,8 +886,8 @@
       .drive-icon.hdd .drive-glyph::before {
         content: "";
         position: absolute;
-        inset: 5px;
-        border: 2px solid currentColor;
+        inset: 4px;
+        border: 1px solid currentColor;
         border-radius: 50%;
         opacity: 0.78;
       }
@@ -890,18 +895,18 @@
       .drive-icon.hdd .drive-glyph::after {
         content: "";
         position: absolute;
-        right: 4px;
-        bottom: 4px;
-        width: 5px;
-        height: 5px;
+        right: 3px;
+        bottom: 3px;
+        width: 3px;
+        height: 3px;
         border-radius: 50%;
         background: currentColor;
       }
 
       .drive-icon.nvme .drive-glyph,
       .drive-icon.ssd .drive-glyph {
-        width: 30px;
-        height: 13px;
+        width: 20px;
+        height: 9px;
         border-radius: 3px;
       }
 
@@ -909,24 +914,24 @@
       .drive-icon.ssd .drive-glyph::before {
         content: "";
         position: absolute;
-        inset: 3px 5px;
-        background: repeating-linear-gradient(90deg, currentColor 0 3px, transparent 3px 6px);
+        inset: 2px 4px;
+        background: repeating-linear-gradient(90deg, currentColor 0 2px, transparent 2px 4px);
         opacity: 0.7;
       }
 
       .drive-icon.usb .drive-glyph {
-        width: 15px;
-        height: 29px;
+        width: 10px;
+        height: 19px;
         border-radius: 4px 4px 7px 7px;
       }
 
       .drive-icon.usb .drive-glyph::before {
         content: "";
         position: absolute;
-        top: -5px;
-        left: 3px;
-        width: 9px;
-        height: 6px;
+        top: -4px;
+        left: 2px;
+        width: 6px;
+        height: 5px;
         border-radius: 2px 2px 0 0;
         background: currentColor;
       }
@@ -944,18 +949,19 @@
       }
 
       .disk-info strong {
-        font-size: 14px;
+        font-size: 11px;
         line-height: 1.1;
       }
 
       .disk-info span {
-        margin-top: 3px;
+        margin-top: 1px;
         color: var(--md-text-muted);
-        font-size: 11px;
+        font-size: 9px;
       }
 
       .disk-percent {
-        font-size: 18px;
+        text-align: right;
+        font-size: 13px;
         font-variant-numeric: tabular-nums;
       }
 
@@ -965,6 +971,80 @@
         gap: 14px;
         color: var(--md-text-secondary);
         font-size: 13px;
+      }
+
+      .health-panel {
+        background:
+          radial-gradient(circle at 24% 22%, rgba(48, 209, 88, 0.13), transparent 32%),
+          radial-gradient(circle at 78% 76%, rgba(10, 132, 255, 0.12), transparent 34%),
+          var(--md-surface-panel);
+      }
+
+      .health-body {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-content: start;
+      }
+
+      .health-card {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .health-card small {
+        display: block;
+        color: var(--md-text-muted);
+        font-size: 11px;
+      }
+
+      .health-card strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 23px;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .health-card span {
+        display: block;
+        margin-top: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--md-text-secondary);
+        font-size: 11px;
+      }
+
+      .health-temperature-list {
+        grid-column: 1 / -1;
+        display: grid;
+        gap: 4px;
+        min-height: 0;
+      }
+
+      .health-temperature-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        padding: 5px 7px;
+        border-left: 3px solid var(--temp-color);
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--md-text-secondary);
+        font-size: 11px;
+      }
+
+      .health-temperature-row strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--md-text-primary);
+        font-size: 11px;
       }
 
       .agent-board {
@@ -1245,8 +1325,7 @@
         }
 
         .hero,
-        .telemetry,
-        .disk-panel {
+        .telemetry {
           grid-column: span 2;
         }
 
@@ -1275,6 +1354,7 @@
         .hero,
         .telemetry,
         .docker-panel,
+        .health-panel,
         .disk-panel {
           grid-column: auto;
         }
@@ -1330,6 +1410,7 @@
 
         .docker-panel,
         .time-panel,
+        .health-panel,
         .agent-panel {
           min-height: 360px;
         }
@@ -1405,6 +1486,7 @@
         <div class="chart-legend telemetry-legend">
           <span><i class="legend-dot" style="--dot: var(--md-accent-primary)"></i>CPU</span>
           <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>Memory</span>
+          <span><i class="legend-dot" style="--dot: var(--md-metric-warn)"></i>GPU</span>
           <span><i class="legend-dot" style="--dot: var(--md-metric-good)"></i>Network</span>
         </div>
         <div class="telemetry-readouts">
@@ -1415,6 +1497,10 @@
           <div class="readout">
             <small>Memory</small>
             <strong id="memory-value">--%</strong>
+          </div>
+          <div class="readout">
+            <small>GPU</small>
+            <strong id="gpu-value">--%</strong>
           </div>
           <div class="readout">
             <small>Network</small>
@@ -1512,6 +1598,41 @@
         </div>
       </section>
 
+      <section class="panel health-panel">
+        <header>
+          <h2>Health</h2>
+          <span class="pill">10 min</span>
+        </header>
+        <div class="health-body">
+          <div class="health-card">
+            <small>Max temp</small>
+            <strong id="health-max-temp">--°C</strong>
+            <span id="health-max-label">waiting</span>
+          </div>
+          <div class="health-card">
+            <small>GPU</small>
+            <strong id="health-gpu">--</strong>
+            <span id="health-gpu-meta">unavailable</span>
+          </div>
+          <div class="health-card">
+            <small>Load 1m</small>
+            <strong id="health-load">--</strong>
+            <span id="health-load-meta">5m / 15m --</span>
+          </div>
+          <div class="health-card">
+            <small>Uptime</small>
+            <strong id="health-uptime">--</strong>
+            <span>system</span>
+          </div>
+          <div class="health-temperature-list" id="health-temperature-list"></div>
+        </div>
+        <div class="chart-legend">
+          <span><i class="legend-dot" style="--dot: var(--md-metric-good)"></i>normal</span>
+          <span><i class="legend-dot" style="--dot: var(--md-metric-warn)"></i>warm</span>
+          <span><i class="legend-dot" style="--dot: var(--md-metric-bad)"></i>hot</span>
+        </div>
+      </section>
+
       <section class="panel agent-panel">
         <header>
           <h2>Agents</h2>
@@ -1557,6 +1678,14 @@
       const mascotQuote = document.getElementById("mascot-quote");
       const mascotAction = document.getElementById("mascot-action");
       const telemetryChart = document.getElementById("telemetry-chart");
+      const healthMaxTemp = document.getElementById("health-max-temp");
+      const healthMaxLabel = document.getElementById("health-max-label");
+      const healthGpu = document.getElementById("health-gpu");
+      const healthGpuMeta = document.getElementById("health-gpu-meta");
+      const healthLoad = document.getElementById("health-load");
+      const healthLoadMeta = document.getElementById("health-load-meta");
+      const healthUptime = document.getElementById("health-uptime");
+      const healthTemperatureList = document.getElementById("health-temperature-list");
       const diskGrid = document.getElementById("disk-grid");
       const diskSummary = document.getElementById("disk-summary");
       const diskUpdated = document.getElementById("disk-updated");
@@ -1697,9 +1826,27 @@
         return `${numeric.toFixed(numeric >= 10 ? 0 : 1)} km/h`;
       }
 
+      function formatDuration(seconds) {
+        const totalMinutes = Math.floor(Math.max(0, Number(seconds) || 0) / 60);
+        const days = Math.floor(totalMinutes / 1440);
+        const hours = Math.floor((totalMinutes % 1440) / 60);
+        const minutes = totalMinutes % 60;
+        if (days) return `${days}d ${hours}h`;
+        if (hours) return `${hours}h ${minutes}m`;
+        return `${minutes}m`;
+      }
+
       function usageColor(percent, status) {
         if (status === "bad" || percent >= 90) return "var(--md-metric-bad)";
         if (status === "warn" || percent >= 78) return "var(--md-metric-warn)";
+        return "var(--md-metric-good)";
+      }
+
+      function temperatureColor(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return "var(--md-text-muted)";
+        if (numeric >= 82) return "var(--md-metric-bad)";
+        if (numeric >= 68) return "var(--md-metric-warn)";
         return "var(--md-metric-good)";
       }
 
@@ -1932,6 +2079,7 @@
         const series = [
           ["cpu", telemetry.series.cpu, getComputedStyle(document.documentElement).getPropertyValue("--md-accent-primary").trim()],
           ["memory", telemetry.series.memory, getComputedStyle(document.documentElement).getPropertyValue("--md-accent-secondary").trim()],
+          ["gpu", telemetry.series.gpu, getComputedStyle(document.documentElement).getPropertyValue("--md-metric-warn").trim()],
           ["network", telemetry.series.network, getComputedStyle(document.documentElement).getPropertyValue("--md-metric-good").trim()]
         ];
 
@@ -1988,24 +2136,75 @@
         }
       }
 
+      function renderHealth(payload) {
+        const metrics = payload?.metrics || {};
+        const health = payload?.health || {};
+        const temperatures = Array.isArray(health.temperatures) ? health.temperatures : [];
+        healthMaxTemp.textContent = formatTemperature(health.maxTemperatureC);
+        healthMaxLabel.textContent = health.maxTemperatureLabel || "no sensor";
+
+        if (metrics.gpuAvailable) {
+          healthGpu.textContent = formatPercent(metrics.gpuPercent);
+          const gpuTemp = Number.isFinite(Number(metrics.gpuTemperatureC)) ? formatTemperature(metrics.gpuTemperatureC) : "--°C";
+          const gpuMem = Number.isFinite(Number(metrics.gpuMemoryPercent)) ? ` · VRAM ${formatPercent(metrics.gpuMemoryPercent)}` : "";
+          healthGpuMeta.textContent = `${metrics.gpuName || "GPU"} · ${gpuTemp}${gpuMem}`;
+        } else {
+          healthGpu.textContent = "--";
+          healthGpuMeta.textContent = "unavailable";
+        }
+
+        const load = health.load || {};
+        healthLoad.textContent = Number.isFinite(Number(load.one)) ? Number(load.one).toFixed(2) : "--";
+        healthLoadMeta.textContent = `5m ${Number.isFinite(Number(load.five)) ? Number(load.five).toFixed(2) : "--"} · 15m ${Number.isFinite(Number(load.fifteen)) ? Number(load.fifteen).toFixed(2) : "--"}`;
+        healthUptime.textContent = health.uptime || formatDuration(health.uptimeSeconds);
+
+        healthTemperatureList.replaceChildren();
+        for (const item of temperatures.slice(0, 4)) {
+          const row = document.createElement("div");
+          row.className = "health-temperature-row";
+          row.style.setProperty("--temp-color", temperatureColor(item.celsius));
+          const label = document.createElement("strong");
+          label.textContent = item.label || "sensor";
+          const value = document.createElement("span");
+          value.textContent = formatTemperature(item.celsius);
+          row.append(label, value);
+          healthTemperatureList.appendChild(row);
+        }
+        if (!temperatures.length) {
+          const row = document.createElement("div");
+          row.className = "health-temperature-row";
+          row.style.setProperty("--temp-color", "var(--md-text-muted)");
+          const label = document.createElement("strong");
+          label.textContent = "No temperature sensors";
+          const value = document.createElement("span");
+          value.textContent = "--";
+          row.append(label, value);
+          healthTemperatureList.appendChild(row);
+        }
+      }
+
       async function loadTelemetry() {
         try {
           telemetry = await fetchJsonWithFallback(telemetrySourceUrl, telemetryFallbackUrl);
         } catch (error) {
           console.warn("Telemetry source load failed", error);
           telemetry = {
-            series: { cpu: [37], memory: [62], network: [68] },
-            metrics: { cpuPercent: 37, memoryPercent: 62, networkRx: "--" }
+            series: { cpu: [37], memory: [62], gpu: [0], network: [68] },
+            metrics: { cpuPercent: 37, memoryPercent: 62, gpuAvailable: false, gpuPercent: null, networkRx: "--" },
+            health: { uptimeSeconds: 0, load: {}, temperatures: [] }
           };
         }
         telemetry.series = telemetry.series || {};
         telemetry.series.cpu = Array.isArray(telemetry.series.cpu) ? telemetry.series.cpu : [Number(telemetry.metrics?.cpuPercent) || 0];
         telemetry.series.memory = Array.isArray(telemetry.series.memory) ? telemetry.series.memory : [Number(telemetry.metrics?.memoryPercent) || 0];
+        telemetry.series.gpu = Array.isArray(telemetry.series.gpu) ? telemetry.series.gpu : [Number(telemetry.metrics?.gpuPercent) || 0];
         telemetry.series.network = Array.isArray(telemetry.series.network) ? telemetry.series.network : [Number(telemetry.metrics?.networkPercent) || 0];
         telemetry.metrics = telemetry.metrics || {};
         document.getElementById("cpu-value").textContent = `${telemetry.metrics.cpuPercent ?? "--"}%`;
         document.getElementById("memory-value").textContent = `${telemetry.metrics.memoryPercent ?? "--"}%`;
+        document.getElementById("gpu-value").textContent = telemetry.metrics.gpuAvailable ? `${telemetry.metrics.gpuPercent ?? "--"}%` : "--";
         document.getElementById("network-value").textContent = telemetry.metrics.networkRx || "--";
+        renderHealth(telemetry);
         drawTelemetryChart();
       }
 

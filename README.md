@@ -15,7 +15,7 @@ The current release keeps the implementation intentionally simple: a static Web 
 - Fullscreen Web kiosk for Ubuntu systems without a desktop session.
 - Tested on an HDMI long-bar display at `3840x1100`.
 - Static Web UI served from `public/kiosk-test/`.
-- Runtime JSON snapshots for disks, CPU, memory, network, Docker, Shenzhen weather, and local Codex session metadata.
+- Runtime JSON snapshots for disks, CPU, memory, GPU, network, health, Docker, Shenzhen weather, and local Codex session metadata.
 - Dynamic URL switching and reload through Chromium DevTools via `mdp`.
 - Theme resource packs with semantic tokens, wallpaper layers, hero artwork, mascot assets, and pixel Agent sprites.
 - Compact standard widgets for NAS-style monitoring.
@@ -30,7 +30,7 @@ Implemented today:
 - `cage + Chromium` kiosk launcher for direct DRM display.
 - Python static server and runtime collectors.
 - `mdp` command for start, reload, switch, status, logs, theme, and pet import workflows.
-- `core.systemHero`, `core.clockWeather`, `core.telemetryTrend`, `core.diskMatrix`, `core.dockerTui`, `core.mascotAssistant`, and `core.pixelAgents` prototypes.
+- `core.systemHero`, `core.clockWeather`, `core.telemetryTrend`, `core.systemHealth`, `core.diskMatrix`, `core.dockerTui`, `core.mascotAssistant`, and `core.pixelAgents` prototypes.
 - Default `neon-dark` theme resource pack.
 
 Future roadmap:

@@ -2,6 +2,7 @@
 
 ## 2026-06-05
 
+- Telemetry 趋势组件新增 GPU 曲线和读数，采集器支持 `nvidia-smi` 与 sysfs GPU busy percent；新增单格 `core.systemHealth` 组件展示最高温、GPU、load 和 uptime；Storage 从双格改为单格紧凑布局。
 - 修复长条屏 kiosk 长时间运行后可能卡住的问题：direct DRM 模式默认禁用 wlroots atomic KMS 和 DRM modifiers，以规避 `Atomic commit failed: Device or resource busy` 导致的 scanout 更新失败；同时禁用 Chromium 后台 timer/renderer 降级策略，避免无桌面 kiosk 被误判为后台页面。
 
 ## 2026-06-04

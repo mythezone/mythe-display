@@ -83,7 +83,7 @@ scripts/collect-weather-snapshot.py --out public/runtime/weather-shenzhen.json -
 - 图标外圈使用 `conic-gradient` 表示 `usedPercent`。
 - 图标内部形状区分 `hdd`、`nvme`、`ssd`、`usb`。
 - `metric.good/warn/bad` 表达正常、接近满、严重占满。
-- 默认占用两个标准网格块，适合 16 盘位 NAS。
+- 默认占用一个标准网格块，使用更紧凑的单列密度展示 16 盘位 NAS。
 - 默认刷新周期是 `43200000ms`，也就是 12 小时一次。
 
 数据契约：
@@ -202,16 +202,18 @@ public/kiosk-test/docker.mock.json
 
 ## core.telemetryTrend
 
-用途：把 CPU、Memory、Network 三个原本分散的指标合并为一个趋势组件。
+用途：把 CPU、Memory、GPU、Network 四个常用指标合并为一个趋势组件。
 
 显示规则：
 
 - 默认占用一个标准网格块，不再横跨两格。
-- 一个 canvas 折线图显示三条曲线。
-- 必须显示颜色图例：CPU 使用 `accent.primary`，Memory 使用 `accent.secondary`，Network 使用 `metric.good`。
+- 一个 canvas 折线图显示四条曲线。
+- 必须显示颜色图例：CPU 使用 `accent.primary`，Memory 使用 `accent.secondary`，GPU 使用 `metric.warn`，Network 使用 `metric.good`。
 - 必须显示基础坐标轴：纵轴 `0/50/100`，横轴 `history/now`。
 - 底部保留当前数值，避免只看图难以读数。
-- 正式运行时默认读取 `/proc` 采集快照，每 10 分钟刷新一次。
+- 正式运行时默认读取 `/proc`、`nvidia-smi` 或 sysfs 采集快照，每 10 分钟刷新一次。
+- GPU 优先使用 `nvidia-smi`，其次使用 `/sys/class/drm/card*/device/gpu_busy_percent`；不可用时显示 unavailable。
+- 同一个快照提供 Health 组件需要的 uptime、load 和温度传感器摘要。
 - mock 只作为开发预览兜底；测试页不再用随机数伪造趋势。
 
 数据契约：
@@ -223,14 +225,37 @@ type TelemetryTrendSnapshot = {
   series: {
     cpu: number[];
     memory: number[];
+    gpu: number[];
     network: number[];
   };
   metrics: {
     cpuPercent: number;
     memoryPercent: number;
+    gpuAvailable: boolean;
+    gpuPercent?: number | null;
+    gpuName?: string;
+    gpuTemperatureC?: number | null;
+    gpuMemoryUsedMiB?: number | null;
+    gpuMemoryTotalMiB?: number | null;
+    gpuMemoryPercent?: number | null;
     networkPercent?: number;
     networkRx: string;
     networkTx?: string;
+  };
+  health?: {
+    uptimeSeconds: number;
+    uptime: string;
+    load: {
+      one: number;
+      five: number;
+      fifteen: number;
+    };
+    temperatures: {
+      label: string;
+      celsius: number;
+    }[];
+    maxTemperatureC?: number;
+    maxTemperatureLabel?: string;
   };
 };
 ```
@@ -251,6 +276,30 @@ scripts/collect-telemetry-snapshot.py --out public/runtime/telemetry.json --stat
 
 ```text
 public/kiosk-test/telemetry.mock.json
+```
+
+## core.systemHealth
+
+用途：在一个标准网格块中展示系统健康摘要，适合 NAS 常驻副屏快速判断温度、负载、GPU 和 uptime。
+
+显示规则：
+
+- 默认占用一个标准网格块，放在 Storage 缩减后腾出的单格位置。
+- 读取 `core.telemetryTrend` 同一个 `/runtime/telemetry.json` 快照，不新增采集频率。
+- 顶部展示最高温度、GPU 当前负载、1 分钟 load 和 uptime。
+- 下方展示最热的前几个温度传感器。
+- 温度颜色遵循 `metric.good/warn/bad`。
+- GPU 或温度传感器不可用时必须显示 unavailable/no sensor，不使用 mock 冒充真实数据。
+
+数据契约：
+
+```ts
+type SystemHealthSnapshot = Pick<TelemetryTrendSnapshot, "updatedAt" | "refreshMs" | "health"> & {
+  metrics: Pick<
+    TelemetryTrendSnapshot["metrics"],
+    "gpuAvailable" | "gpuPercent" | "gpuName" | "gpuTemperatureC" | "gpuMemoryPercent"
+  >;
+};
 ```
 
 ## core.systemHero

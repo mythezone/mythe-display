@@ -394,7 +394,7 @@ type DiskSnapshot = {
 
 ## TelemetryTrendSnapshot
 
-CPU、Memory、Network 合并趋势组件使用同一份快照。
+CPU、Memory、GPU、Network 合并趋势组件和 System Health 组件使用同一份快照。
 
 ```ts
 type TelemetryTrendSnapshot = {
@@ -403,14 +403,37 @@ type TelemetryTrendSnapshot = {
   series: {
     cpu: number[];
     memory: number[];
+    gpu: number[];
     network: number[];
   };
   metrics: {
     cpuPercent: number;
     memoryPercent: number;
+    gpuAvailable: boolean;
+    gpuPercent?: number | null;
+    gpuName?: string;
+    gpuTemperatureC?: number | null;
+    gpuMemoryUsedMiB?: number | null;
+    gpuMemoryTotalMiB?: number | null;
+    gpuMemoryPercent?: number | null;
     networkPercent?: number;
     networkRx: string;
     networkTx?: string;
+  };
+  health?: {
+    uptimeSeconds: number;
+    uptime: string;
+    load: {
+      one: number;
+      five: number;
+      fifteen: number;
+    };
+    temperatures: {
+      label: string;
+      celsius: number;
+    }[];
+    maxTemperatureC?: number;
+    maxTemperatureLabel?: string;
   };
 };
 ```

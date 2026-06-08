@@ -4,12 +4,37 @@
   "series": {
     "cpu": [28, 33, 31, 40, 37, 45, 42, 48, 44, 39, 37, 43, 41, 46, 38, 35, 37, 42],
     "memory": [57, 58, 60, 61, 62, 63, 62, 64, 65, 63, 62, 61, 63, 64, 62, 61, 62, 63],
+    "gpu": [5, 6, 8, 4, 7, 11, 9, 14, 10, 8, 6, 9, 12, 7, 5, 4, 6, 8],
     "network": [18, 22, 35, 28, 48, 64, 58, 73, 52, 42, 55, 78, 61, 49, 66, 72, 59, 68]
   },
   "metrics": {
     "cpuPercent": 37,
     "memoryPercent": 62,
+    "gpuAvailable": true,
+    "gpuPercent": 8,
+    "gpuName": "Tesla P4",
+    "gpuTemperatureC": 50,
+    "gpuMemoryUsedMiB": 512,
+    "gpuMemoryTotalMiB": 7680,
+    "gpuMemoryPercent": 7,
     "networkRx": "82 MB/s",
     "networkTx": "27 MB/s"
+  },
+  "health": {
+    "uptimeSeconds": 499181,
+    "uptime": "5d 18h",
+    "load": {
+      "one": 1.91,
+      "five": 2.2,
+      "fifteen": 3.57
+    },
+    "temperatures": [
+      { "label": "coretemp Package id 0", "celsius": 72 },
+      { "label": "nvme Sensor 2", "celsius": 52.9 },
+      { "label": "Tesla P4", "celsius": 50 },
+      { "label": "iwlwifi_1", "celsius": 43 }
+    ],
+    "maxTemperatureC": 72,
+    "maxTemperatureLabel": "coretemp Package id 0"
   }
 }
