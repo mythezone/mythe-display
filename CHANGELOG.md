@@ -4,6 +4,7 @@
 
 - Telemetry 趋势组件新增 GPU 曲线和读数，采集器支持 `nvidia-smi` 与 sysfs GPU busy percent；新增单格 `core.systemHealth` 组件展示最高温、GPU、load 和 uptime；Storage 从双格改为单格紧凑布局。
 - 修复长条屏 kiosk 长时间运行后可能卡住的问题：direct DRM 模式默认禁用 wlroots atomic KMS 和 DRM modifiers，以规避 `Atomic commit failed: Device or resource busy` 导致的 scanout 更新失败；同时禁用 Chromium 后台 timer/renderer 降级策略，避免无桌面 kiosk 被误判为后台页面。
+- 修复重启后 DRM card 编号变化导致 kiosk 无法启动的问题：`MYTHE_DISPLAY_DRM_DEVICE` 默认改为 `auto`，root direct DRM 模式会自动选择带 connected connector 的 `/dev/dri/cardN`，并保留 `MYTHE_DISPLAY_DRM_DEVICE_STRICT=1` 作为固定设备的逃生口。
 
 ## 2026-06-04
 

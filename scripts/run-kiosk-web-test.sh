@@ -88,6 +88,53 @@ first_command() {
   return 1
 }
 
+drm_device_has_connected_connector() {
+  local device="$1"
+  local card="${device##*/}"
+  local status_file=""
+
+  for status_file in /sys/class/drm/"$card"-*/status; do
+    [[ -e "$status_file" ]] || continue
+    if [[ "$(cat "$status_file" 2>/dev/null || true)" == "connected" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_drm_device() {
+  local configured="${MYTHE_DISPLAY_DRM_DEVICE:-auto}"
+  local status_file=""
+  local connector=""
+  local card=""
+  local device=""
+
+  if [[ "$configured" != "auto" && -e "$configured" ]]; then
+    if [[ "${MYTHE_DISPLAY_DRM_DEVICE_STRICT:-0}" == "1" ]] || drm_device_has_connected_connector "$configured"; then
+      printf '%s\n' "$configured"
+      return 0
+    fi
+  fi
+
+  for status_file in /sys/class/drm/card*-*/status; do
+    [[ -e "$status_file" ]] || continue
+    [[ "$(cat "$status_file" 2>/dev/null || true)" == "connected" ]] || continue
+    connector="$(basename "$(dirname "$status_file")")"
+    card="${connector%%-*}"
+    device="/dev/dri/$card"
+    if [[ -e "$device" ]]; then
+      printf '%s\n' "$device"
+      return 0
+    fi
+  done
+
+  if [[ "$configured" != "auto" ]]; then
+    printf '%s\n' "$configured"
+  else
+    printf '%s\n' "/dev/dri/card0"
+  fi
+}
+
 fail_environment() {
   cat >&2 <<EOF
 $1
@@ -117,7 +164,8 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   install -d -m 700 "$XDG_RUNTIME_DIR"
   export LIBSEAT_BACKEND="${LIBSEAT_BACKEND:-builtin}"
   export WLR_BACKENDS="${WLR_BACKENDS:-drm}"
-  export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-${MYTHE_DISPLAY_DRM_DEVICE:-/dev/dri/card0}}"
+  RESOLVED_DRM_DEVICE="$(resolve_drm_device)"
+  export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-$RESOLVED_DRM_DEVICE}"
   export WLR_LIBINPUT_NO_DEVICES="${WLR_LIBINPUT_NO_DEVICES:-1}"
   if [[ "${MYTHE_DISPLAY_DISABLE_DRM_ATOMIC:-1}" == "1" ]]; then
     export WLR_DRM_NO_ATOMIC="${WLR_DRM_NO_ATOMIC:-1}"
@@ -148,9 +196,12 @@ if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_ALLOW_REMOTE_KIOSK:-0}" != "1" ]]; th
 fi
 
 if [[ "$IS_ROOT" -eq 0 && "${MYTHE_DISPLAY_SKIP_GROUP_CHECK:-0}" != "1" ]]; then
-  USER_GROUPS="$(id -nG)"
+  user_groups="$(id -nG 2>/dev/null || true)"
+  if [[ -z "$user_groups" ]]; then
+    fail_environment "无法读取当前用户组。"
+  fi
   for required_group in video render input; do
-    if [[ " $USER_GROUPS " != *" $required_group "* ]]; then
+    if [[ " $user_groups " != *" $required_group "* ]]; then
       fail_environment "当前用户组缺少 $required_group。"
     fi
   done

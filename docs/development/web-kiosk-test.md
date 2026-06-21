@@ -76,11 +76,13 @@ sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 XDG_RUNTIME_DIR=/run/user/0
 LIBSEAT_BACKEND=builtin
 WLR_BACKENDS=drm
-WLR_DRM_DEVICES=/dev/dri/card0
+WLR_DRM_DEVICES=<auto-detected connected DRM card>
 WLR_LIBINPUT_NO_DEVICES=1
 WLR_DRM_NO_ATOMIC=1
 WLR_DRM_NO_MODIFIERS=1
 ```
+
+`MYTHE_DISPLAY_DRM_DEVICE` 默认是 `auto`。脚本会扫描 `/sys/class/drm/card*-*/status`，选择拥有 `connected` HDMI/DP connector 的 `/dev/dri/cardN`。这可以避免重启后 Linux 把 i915/NVIDIA/AMD card 编号重排，例如实际长条屏从 `/dev/dri/card0` 变成 `/dev/dri/card1` 时，服务仍然能启动。只有需要强制固定设备时才设置 `MYTHE_DISPLAY_DRM_DEVICE=/dev/dri/cardN` 和 `MYTHE_DISPLAY_DRM_DEVICE_STRICT=1`。
 
 `WLR_DRM_NO_ATOMIC=1` 和 `WLR_DRM_NO_MODIFIERS=1` 是默认兼容模式，用于规避部分长条屏/i915 组合在运行数分钟后出现 `Atomic commit failed: Device or resource busy` 并导致画面卡住。可以通过 `.env` 中的 `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC=0` 或 `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS=0` 关闭。
 

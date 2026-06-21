@@ -153,7 +153,8 @@ cp .env.example .env
 - `MYTHE_DISPLAY_REMOTE_DEBUG_HOST`：Chromium DevTools 监听地址，默认 `127.0.0.1`。
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`：Chromium DevTools 控制端口，默认 `23458`。
 - `MYTHE_DISPLAY_BROWSER`：浏览器命令，例如 `chromium-browser`。
-- `MYTHE_DISPLAY_DRM_DEVICE`：Cage/wlroots 使用的 DRM 设备，默认 `/dev/dri/card0`。
+- `MYTHE_DISPLAY_DRM_DEVICE`：Cage/wlroots 使用的 DRM 设备，默认 `auto`，会选择带 connected 显示连接器的 card。
+- `MYTHE_DISPLAY_DRM_DEVICE_STRICT`：设为 `1` 时强制使用配置的 DRM card，即使另一个 card 才连接了显示器。
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`：设为 `1` 使用 wlroots legacy DRM commit，默认 `1`，提高长条屏稳定性。
 - `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS`：设为 `1` 禁用 DRM modifiers，默认 `1`，提高兼容性。
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`：设为 `1` 可禁用运行时采集。

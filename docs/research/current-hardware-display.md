@@ -4,6 +4,8 @@
 
 本文件记录当前服务器上实际连接的显示设备信息，用于后续开发时避免只停留在抽象假设。
 
+> 2026-06-21 更新：重启后 Linux DRM card 编号发生变化，NVIDIA 设备占用了 `/dev/dri/card0`，实际连接 HDMI 长条屏的 i915 变为 `/dev/dri/card1`，connector 为 `card1-HDMI-A-2`。生产 kiosk 不应固定依赖 card 编号，当前启动脚本已改为默认自动选择带 `connected` connector 的 DRM card。
+
 ## 系统环境
 
 - 主机名：`mythenas`
