@@ -281,7 +281,7 @@ hw:0,7  HDMI 1
 hw:0,8  HDMI 2
 ```
 
-`/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。默认情况下 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 留空，由 Chromium/ALSA 选择默认输出。需要固定输出时可在 `.env` 中设置：
+`/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,3`，让 Chromium 优先走 HDMI 副屏音频。需要切换输出时可在 `.env` 中设置：
 
 ```bash
 MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,3  # HDMI 副屏音频
