@@ -74,6 +74,9 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
     def handle_faio_proxy(self, parsed: parse.ParseResult, *, head_only: bool) -> None:
         try:
             snapshot = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SNAPSHOT_FILE", DEFAULT_SNAPSHOT_FILE)))
+            if parsed.path == "/faio-listen/public-output":
+                self.handle_faio_public_output(snapshot, head_only=head_only)
+                return
             session = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SESSION_FILE", DEFAULT_SESSION_FILE)))
             base_url = str(session.get("baseUrl") or snapshot.get("baseUrl") or "").rstrip("/")
             room_id = str(session.get("roomId") or snapshot.get("roomId") or "")
@@ -92,8 +95,28 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
             self.log_error("FAIO listen proxy failed: %s", exc)
             self.send_error(502, "FAIO listen proxy failed")
 
+    def handle_faio_public_output(self, snapshot: dict, *, head_only: bool) -> None:
+        payload = snapshot.get("publicOutput") if isinstance(snapshot.get("publicOutput"), dict) else {}
+        body = json.dumps(
+            {
+                "revision": int(payload.get("revision") or 0),
+                "playing": payload.get("playing", True) is not False,
+                "volume": max(0, min(100, int(payload.get("volume", 70)))),
+                "updatedAt": str(payload.get("updatedAt") or payload.get("updated_at") or ""),
+            },
+            ensure_ascii=False,
+        ).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(body)
+
     def resolve_faio_upstream_path(self, path: str, snapshot: dict, room_id: str) -> str:
         quoted_room = parse.quote(room_id)
+        if path == "/faio-listen/public-output":
+            return f"/music/rooms/{quoted_room}/public-output"
         if path == "/faio-listen/media/current":
             playback = snapshot.get("playback") if isinstance(snapshot.get("playback"), dict) else {}
             file_id = str(playback.get("fileId") or "")

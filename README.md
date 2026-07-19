@@ -154,7 +154,7 @@ Common environment variables:
 - `MYTHE_DISPLAY_REMOTE_DEBUG_HOST`: Chromium DevTools host, default `127.0.0.1`.
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`: Chromium DevTools control port, default `23458`.
 - `MYTHE_DISPLAY_BROWSER`: browser command, such as `chromium-browser`.
-- `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`: Chromium ALSA output device, default `hw:0,3` for the connected HDMI audio endpoint on the current NAS; use `hw:0,0` for motherboard analog audio.
+- `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`: ALSA output device for FAIO audio, default `plughw:0,3` for the connected HDMI endpoint on the current NAS; use `hw:0,0` for motherboard analog audio.
 - `MYTHE_DISPLAY_DRM_DEVICE`: DRM card used by Cage/wlroots, default `auto` to select the card with a connected display connector.
 - `MYTHE_DISPLAY_DRM_DEVICE_STRICT`: set to `1` to force the configured DRM card even when another card owns the connected display.
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`: set to `1` to use wlroots legacy DRM commits, default `1` for long-bar display stability.
@@ -164,6 +164,8 @@ Common environment variables:
 - `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`: FAIO room URL, default `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`.
 - `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`: read-only room participant name, default `MytheNAS`.
 - `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`: FAIO room snapshot refresh interval, default `10000`.
+- `MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER`: set to `1` to disable the FFmpeg/ALSA FAIO audio follower.
+- `MYTHE_DISPLAY_FAIO_BROWSER_AUDIO`: set to `1` to keep browser-side FAIO audio enabled while the audio follower is running.
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`: set to `1` only if showing Codex thread titles on the screen is acceptable.
 
 ## Runtime Data

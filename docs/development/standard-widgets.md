@@ -69,6 +69,12 @@ type FaioListenSnapshot = {
       sourceType?: "library" | "external" | string;
     };
   };
+  publicOutput?: {
+    revision: number;
+    playing: boolean;
+    volume: number;
+    updatedAt?: string;
+  };
   lyrics: {
     time: number;
     text: string;

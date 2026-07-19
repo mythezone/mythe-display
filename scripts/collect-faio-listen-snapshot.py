@@ -42,6 +42,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="加入房间时使用的显示名。",
     )
     parser.add_argument(
+        "--passcode",
+        default=os.environ.get("MYTHE_DISPLAY_FAIO_LISTEN_PASSCODE", ""),
+        help="显示名已锁定时使用的用户口令。",
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         default=Path("public/runtime/faio-listen.json"),
@@ -68,11 +73,9 @@ def atomic_write_json(path: Path, payload: dict[str, Any], *, pretty: bool = Fal
         tmp_path = Path(handle.name)
         json.dump(payload, handle, ensure_ascii=False, indent=2 if pretty else None)
         handle.write("\n")
-    if private:
-        os.chmod(tmp_path, 0o600)
+    os.chmod(tmp_path, 0o600 if private else 0o644)
     tmp_path.replace(path)
-    if private:
-        os.chmod(path, 0o600)
+    os.chmod(path, 0o600 if private else 0o644)
 
 
 def parse_room_url(value: str) -> tuple[str, str]:
@@ -168,6 +171,7 @@ def ensure_joined(
     base_url: str,
     room_id: str,
     display_name: str,
+    passcode: str,
     session_file: Path,
 ) -> dict[str, Any]:
     display_name = display_name.strip() or "MytheNAS"
@@ -176,7 +180,7 @@ def ensure_joined(
             opener,
             api_url(base_url, f"/music/rooms/{urllib.parse.quote(room_id)}/join"),
             method="POST",
-            body={"display_name": display_name},
+            body={"display_name": display_name, "passcode": passcode},
         )
         save_session_metadata(session_file, base_url, room_id, jar)
     try:
@@ -188,7 +192,7 @@ def ensure_joined(
             opener,
             api_url(base_url, f"/music/rooms/{urllib.parse.quote(room_id)}/join"),
             method="POST",
-            body={"display_name": display_name},
+            body={"display_name": display_name, "passcode": passcode},
         )
         save_session_metadata(session_file, base_url, room_id, jar)
         return read_json(opener, api_url(base_url, f"/music/rooms/{urllib.parse.quote(room_id)}/snapshot"))
@@ -269,6 +273,7 @@ def normalize_snapshot(
 ) -> dict[str, Any]:
     room = raw.get("room") if isinstance(raw.get("room"), dict) else {}
     playback = raw.get("playback") if isinstance(raw.get("playback"), dict) else {}
+    public_output = raw.get("public_output") if isinstance(raw.get("public_output"), dict) else {}
     revision = playback.get("revision", 0)
     file_id = str(playback.get("file_id") or "")
     source_type = str(playback.get("source_type") or "library")
@@ -323,6 +328,12 @@ def normalize_snapshot(
                 "sourceType": str(playback.get("next_source_type") or "library"),
             },
         },
+        "publicOutput": {
+            "revision": int(public_output.get("revision") or 0),
+            "playing": bool(public_output.get("playing", True)),
+            "volume": max(0, min(100, int(public_output.get("volume", 70)))),
+            "updatedAt": str(public_output.get("updated_at") or ""),
+        },
         "lyrics": lyrics[:120],
         "queue": [normalize_track(item, revision=revision) for item in queue_rows[:12] if isinstance(item, dict)],
         "_upstream": {
@@ -351,6 +362,7 @@ def error_payload(room_url: str, message: str, refresh_ms: int) -> dict[str, Any
             "coverUrl": "",
             "mediaUrl": "",
         },
+        "publicOutput": {"revision": 0, "playing": False, "volume": 0, "updatedAt": ""},
         "lyrics": [],
         "queue": [],
         "error": message,
@@ -370,6 +382,7 @@ def main() -> int:
             base_url=base_url,
             room_id=room_id,
             display_name=args.display_name,
+            passcode=args.passcode,
             session_file=args.session_file,
         )
         playback = raw.get("playback") if isinstance(raw.get("playback"), dict) else {}

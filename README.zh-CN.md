@@ -154,7 +154,7 @@ cp .env.example .env
 - `MYTHE_DISPLAY_REMOTE_DEBUG_HOST`：Chromium DevTools 监听地址，默认 `127.0.0.1`。
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`：Chromium DevTools 控制端口，默认 `23458`。
 - `MYTHE_DISPLAY_BROWSER`：浏览器命令，例如 `chromium-browser`。
-- `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`：Chromium ALSA 输出设备，当前 NAS 默认 `hw:0,3` 走在线 HDMI 副屏音频端点；如需主板模拟音频口可改为 `hw:0,0`。
+- `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`：FAIO 音频使用的 ALSA 输出设备，当前 NAS 默认 `plughw:0,3` 走在线 HDMI 副屏音频端点；如需主板模拟音频口可改为 `hw:0,0`。
 - `MYTHE_DISPLAY_DRM_DEVICE`：Cage/wlroots 使用的 DRM 设备，默认 `auto`，会选择带 connected 显示连接器的 card。
 - `MYTHE_DISPLAY_DRM_DEVICE_STRICT`：设为 `1` 时强制使用配置的 DRM card，即使另一个 card 才连接了显示器。
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`：设为 `1` 使用 wlroots legacy DRM commit，默认 `1`，提高长条屏稳定性。
@@ -164,6 +164,8 @@ cp .env.example .env
 - `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`：FAIO 一起听歌房间 URL，默认 `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`。
 - `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`：副屏只读听众名称，默认 `MytheNAS`。
 - `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`：FAIO 房间快照刷新间隔，默认 `10000`。
+- `MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER`：设为 `1` 可禁用 FFmpeg/ALSA FAIO 独立音频播放器。
+- `MYTHE_DISPLAY_FAIO_BROWSER_AUDIO`：设为 `1` 可在独立播放器运行时仍保留浏览器内置 FAIO 音频。
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`：设为 `1` 才会在副屏显示 Codex 线程标题。
 
 ## 运行时数据

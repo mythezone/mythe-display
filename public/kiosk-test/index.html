@@ -2025,10 +2025,12 @@
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 600000);
       const weatherRefreshMs = Number(params.get("weatherRefreshMs") || 1800000);
       const faioRefreshMs = Number(params.get("faioListenRefreshMs") || 10000);
+      const faioPublicOutputRefreshMs = Number(params.get("faioPublicOutputRefreshMs") || 1000);
       const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
       const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
       const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
       const initialAssetCacheBust = params.get("assetCacheBust") || "";
+      const browserAudioEnabled = params.get("browserAudio") !== "0";
 
       const wallpaper = document.getElementById("wallpaper");
       const heroLogo = document.getElementById("hero-logo");
@@ -2081,6 +2083,7 @@
       let agents = [];
       let telemetry = null;
       let faioListen = null;
+      let faioPublicOutput = { revision: 0, playing: true, volume: 70, updatedAt: "" };
       let faioAudioFileId = "";
       let faioPendingSeek = null;
       let riveMascot = null;
@@ -2827,8 +2830,16 @@
         });
       }
 
-      function syncFaioAudio(playback) {
+      function syncFaioAudio(playback, publicOutput = faioPublicOutput) {
         if (!faioAudio) return;
+        if (!browserAudioEnabled) {
+          faioAudio.pause();
+          faioAudio.removeAttribute("src");
+          faioAudio.load();
+          faioAudioFileId = "";
+          faioPendingSeek = null;
+          return;
+        }
         const fileId = String(playback?.fileId || "");
         const mediaUrl = String(playback?.mediaUrl || "");
         if (!fileId || !mediaUrl) {
@@ -2858,7 +2869,9 @@
             }
           }
         }
-        if (playback?.status === "playing") {
+        const volume = Math.max(0, Math.min(100, Number(publicOutput?.volume ?? 70)));
+        faioAudio.volume = volume / 100;
+        if (playback?.status === "playing" && publicOutput?.playing !== false) {
           faioAudio.play().catch((error) => {
             console.warn("FAIO audio autoplay failed", error);
           });
@@ -2880,6 +2893,9 @@
 
       function renderFaioListen(payload) {
         faioListen = payload || {};
+        if (faioListen.publicOutput && typeof faioListen.publicOutput === "object") {
+          faioPublicOutput = { ...faioPublicOutput, ...faioListen.publicOutput };
+        }
         const room = faioListen.room || {};
         const playback = faioListen.playback || {};
         const connected = faioListen.status !== "error" && room.status !== "closed";
@@ -2899,7 +2915,7 @@
         }
         renderFaioQueue(faioListen.queue);
         renderFaioPlaybackFrame();
-        syncFaioAudio(playback);
+        syncFaioAudio(playback, faioPublicOutput);
       }
 
       async function loadFaioListen() {
@@ -2910,6 +2926,26 @@
           renderFaioListen({ status: "error", room: { name: "一起听歌", onlineCount: 0 }, playback: { title: "FAIO 房间不可用", artist: "等待本地采集器", durationSeconds: 0 }, lyrics: [], queue: [] });
         }
         window.setTimeout(loadFaioListen, Math.max(5000, faioRefreshMs));
+      }
+
+      async function loadFaioPublicOutput() {
+        try {
+          const response = await fetch("/faio-listen/public-output?_=" + Date.now(), {
+            cache: "no-store",
+          });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const payload = await response.json();
+          faioPublicOutput = {
+            revision: Number(payload.revision || 0),
+            playing: payload.playing !== false,
+            volume: Math.max(0, Math.min(100, Number(payload.volume ?? 70))),
+            updatedAt: String(payload.updated_at || payload.updatedAt || ""),
+          };
+          syncFaioAudio(faioListen?.playback || {}, faioPublicOutput);
+        } catch (error) {
+          console.warn("FAIO public output control load failed", error);
+        }
+        window.setTimeout(loadFaioPublicOutput, Math.max(750, faioPublicOutputRefreshMs));
       }
 
       function renderAgents() {
@@ -3184,6 +3220,7 @@
       loadDocker();
       loadWeather();
       loadFaioListen();
+      loadFaioPublicOutput();
       loadAgents();
       updateMascot();
       initHeroGeometry();

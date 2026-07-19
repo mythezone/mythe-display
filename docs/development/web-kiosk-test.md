@@ -269,7 +269,7 @@ MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL=http://127.0.0.1:4173/listen/XatSqhcP6LmROQyK
 MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME=MytheNAS
 ```
 
-副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供 `/faio-listen/media/<file_id>` 和 `/faio-listen/cover/<file_id>` 本地代理，让 Chromium 可以在 kiosk 内播放 NAS 音频和读取封面。
+副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供 `/faio-listen/media/<file_id>` 和 `/faio-listen/cover/<file_id>` 本地代理，让 kiosk 能读取音频和封面。
 
 当前 NAS 的 ALSA 设备来自同一个 `HDA Intel PCH` 声卡：
 
@@ -281,14 +281,24 @@ hw:0,7  HDMI 1
 hw:0,8  HDMI 2
 ```
 
-`/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,3`，让 Chromium 优先走 HDMI 副屏音频。需要切换输出时可在 `.env` 中设置：
+`/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3`，由 `scripts/faio-listen-audio-player.py` 使用 FFmpeg 直接输出到 HDMI ALSA 端点。这样可以绕过无桌面 snap Chromium 中 HTML audio 显示播放但不打开 ALSA PCM 的问题。
+
+需要切换输出时可在 `.env` 中设置：
 
 ```bash
-MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,3  # HDMI 副屏音频
-MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,0  # 主板模拟音频口
+MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3  # HDMI 副屏音频，推荐
+MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,0      # 主板模拟音频口
 ```
 
-修改后需要 `sudo mdp restart`，因为这是 Chromium 启动参数。
+默认运行时会启动独立音频播放器，并给 kiosk 页面追加 `browserAudio=0`，让浏览器只负责显示播放状态。可用以下变量调整：
+
+```bash
+MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER=1  # 禁用独立音频播放器
+MYTHE_DISPLAY_FAIO_BROWSER_AUDIO=1         # 保留浏览器内置 FAIO audio
+MYTHE_DISPLAY_FAIO_AUDIO_POLL_MS=2000      # 独立播放器轮询快照间隔
+```
+
+修改后需要 `sudo mdp restart`，因为这是服务启动行为。
 
 显式切换磁盘数据源：
 

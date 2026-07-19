@@ -11,13 +11,14 @@ fi
 PORT="${MYTHE_DISPLAY_PORT:-23456}"
 HOST="${MYTHE_DISPLAY_HOST:-127.0.0.1}"
 REMOTE_DEBUG_PORT="${MYTHE_DISPLAY_REMOTE_DEBUG_PORT:-23458}"
-ALSA_OUTPUT_DEVICE="${MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE:-hw:0,3}"
+ALSA_OUTPUT_DEVICE="${MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE:-plughw:0,3}"
 DEFAULT_URL="http://${HOST}:${PORT}/kiosk-test/"
 URL="${1:-$DEFAULT_URL}"
 KIOSK_URL="$URL"
 SERVER_PID=""
 KIOSK_PID=""
 RUNTIME_COLLECTOR_PID=""
+FAIO_AUDIO_PLAYER_PID=""
 IS_ROOT=0
 
 export no_proxy="${no_proxy:-localhost,127.0.0.1,::1}"
@@ -58,6 +59,8 @@ Usage:
 
 可用 MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 禁用采集器。
 可用 MYTHE_DISPLAY_DISABLE_FAIO_LISTEN=1 禁用 FAIO 一起听歌采集。
+默认本地测试页会启动 FFmpeg/ALSA 音频播放器，直接输出到 MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE。
+可用 MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER=1 禁用独立音频播放器。
 默认本地测试页启动时会追加 assetCacheBust，避免 Chromium profile 恢复旧 HTML；
 可用 MYTHE_DISPLAY_START_CACHE_BUST=0 关闭。
 EOF
@@ -65,6 +68,10 @@ EOF
 fi
 
 cleanup() {
+  if [[ -n "$FAIO_AUDIO_PLAYER_PID" ]]; then
+    kill "$FAIO_AUDIO_PLAYER_PID" >/dev/null 2>&1 || true
+    wait "$FAIO_AUDIO_PLAYER_PID" >/dev/null 2>&1 || true
+  fi
   if [[ -n "$RUNTIME_COLLECTOR_PID" ]]; then
     kill "$RUNTIME_COLLECTOR_PID" >/dev/null 2>&1 || true
     wait "$RUNTIME_COLLECTOR_PID" >/dev/null 2>&1 || true
@@ -92,6 +99,17 @@ first_command() {
     fi
   done
   return 1
+}
+
+append_query_param() {
+  local url="$1"
+  local key="$2"
+  local value="$3"
+  local sep="?"
+  if [[ "$url" == *"?"* ]]; then
+    sep="&"
+  fi
+  printf '%s%s%s=%s\n' "$url" "$sep" "$key" "$value"
 }
 
 drm_device_has_connected_connector() {
@@ -244,14 +262,22 @@ if [[ "$URL" == "$DEFAULT_URL" ]]; then
 EOF
     exit 1
   fi
+
+  if [[ "${MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER:-0}" != "1" && "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" != "1" ]]; then
+    python3 "$ROOT_DIR/scripts/faio-listen-audio-player.py" \
+      --snapshot "$ROOT_DIR/public/runtime/faio-listen.json" \
+      --base-url "${MYTHE_DISPLAY_FAIO_AUDIO_BASE_URL:-http://127.0.0.1:${PORT}}" \
+      --alsa-device "$ALSA_OUTPUT_DEVICE" \
+      --poll-ms "${MYTHE_DISPLAY_FAIO_AUDIO_POLL_MS:-2000}" &
+    FAIO_AUDIO_PLAYER_PID="$!"
+    if [[ "${MYTHE_DISPLAY_FAIO_BROWSER_AUDIO:-0}" != "1" ]]; then
+      KIOSK_URL="$(append_query_param "$KIOSK_URL" browserAudio 0)"
+    fi
+  fi
 fi
 
 if [[ "$URL" == "$DEFAULT_URL" && "${MYTHE_DISPLAY_START_CACHE_BUST:-1}" != "0" ]]; then
-  cache_sep="?"
-  if [[ "$KIOSK_URL" == *"?"* ]]; then
-    cache_sep="&"
-  fi
-  KIOSK_URL="${KIOSK_URL}${cache_sep}assetCacheBust=$(date +%s%3N)"
+  KIOSK_URL="$(append_query_param "$KIOSK_URL" assetCacheBust "$(date +%s%3N)")"
 fi
 
 BROWSER="${MYTHE_DISPLAY_BROWSER:-$(first_command chromium chromium-browser google-chrome firefox firefox-esr || true)}"
