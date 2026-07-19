@@ -11,8 +11,10 @@ fi
 PORT="${MYTHE_DISPLAY_PORT:-23456}"
 HOST="${MYTHE_DISPLAY_HOST:-127.0.0.1}"
 REMOTE_DEBUG_PORT="${MYTHE_DISPLAY_REMOTE_DEBUG_PORT:-23458}"
+ALSA_OUTPUT_DEVICE="${MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE:-}"
 DEFAULT_URL="http://${HOST}:${PORT}/kiosk-test/"
 URL="${1:-$DEFAULT_URL}"
+KIOSK_URL="$URL"
 SERVER_PID=""
 KIOSK_PID=""
 RUNTIME_COLLECTOR_PID=""
@@ -56,6 +58,8 @@ Usage:
 
 可用 MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 禁用采集器。
 可用 MYTHE_DISPLAY_DISABLE_FAIO_LISTEN=1 禁用 FAIO 一起听歌采集。
+默认本地测试页启动时会追加 assetCacheBust，避免 Chromium profile 恢复旧 HTML；
+可用 MYTHE_DISPLAY_START_CACHE_BUST=0 关闭。
 EOF
   exit 0
 fi
@@ -242,6 +246,14 @@ EOF
   fi
 fi
 
+if [[ "$URL" == "$DEFAULT_URL" && "${MYTHE_DISPLAY_START_CACHE_BUST:-1}" != "0" ]]; then
+  cache_sep="?"
+  if [[ "$KIOSK_URL" == *"?"* ]]; then
+    cache_sep="&"
+  fi
+  KIOSK_URL="${KIOSK_URL}${cache_sep}assetCacheBust=$(date +%s%3N)"
+fi
+
 BROWSER="${MYTHE_DISPLAY_BROWSER:-$(first_command chromium chromium-browser google-chrome firefox firefox-esr || true)}"
 if [[ -z "$BROWSER" ]]; then
   cat >&2 <<'EOF'
@@ -274,7 +286,7 @@ fi
 
 if [[ "$BROWSER" == "firefox" || "$BROWSER" == "firefox-esr" ]]; then
   FIREFOX_ENV=("MOZ_ENABLE_WAYLAND=1")
-  dbus-run-session -- cage "${CAGE_ARGS[@]}" -- env "${FIREFOX_ENV[@]}" "$BROWSER" --kiosk "$URL" &
+  dbus-run-session -- cage "${CAGE_ARGS[@]}" -- env "${FIREFOX_ENV[@]}" "$BROWSER" --kiosk "$KIOSK_URL" &
   KIOSK_PID="$!"
   set +e
   wait "$KIOSK_PID"
@@ -288,7 +300,7 @@ USER_DATA_DIR="${MYTHE_DISPLAY_BROWSER_PROFILE:-/tmp/mythe-display-kiosk-profile
 mkdir -p "$USER_DATA_DIR"
 
 CHROMIUM_ARGS=(
-  --kiosk "$URL"
+  --kiosk "$KIOSK_URL"
   --user-data-dir="$USER_DATA_DIR"
   --noerrdialogs
   --disable-infobars
@@ -306,6 +318,10 @@ CHROMIUM_ARGS=(
   --remote-debugging-address=127.0.0.1
   --remote-debugging-port="$REMOTE_DEBUG_PORT"
 )
+
+if [[ -n "$ALSA_OUTPUT_DEVICE" ]]; then
+  CHROMIUM_ARGS+=(--alsa-output-device="$ALSA_OUTPUT_DEVICE")
+fi
 
 if [[ "$IS_ROOT" -eq 1 ]]; then
   CHROMIUM_ARGS+=(--no-sandbox --disable-dev-shm-usage)

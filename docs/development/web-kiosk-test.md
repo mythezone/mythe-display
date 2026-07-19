@@ -221,6 +221,8 @@ sudo systemctl reload mythe-display-kiosk
 
 该命令对应服务模板中的 `ExecReload=scripts/kiosk-control.py reload`。它会创建一个刷新后的 Chromium page target，并关闭旧 target；这比 `systemctl restart` 更适合正在占用 HDMI/DRM 的 kiosk。
 
+`mdp reload` 默认会追加 `assetCacheBust` 查询参数，避免 Chromium profile 使用旧 HTML 或旧主题资源。`scripts/run-kiosk-web-test.sh` 启动默认本地页面时也会追加该参数，可用 `MYTHE_DISPLAY_START_CACHE_BUST=0` 关闭。`scripts/serve-web-test.py` 会对本地 kiosk/runtime 响应发送 `Cache-Control: no-store`，发布调试时不应依赖浏览器缓存。
+
 日常操作可直接使用短命令：
 
 ```bash
@@ -268,6 +270,25 @@ MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME=MytheNAS
 ```
 
 副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供 `/faio-listen/media/<file_id>` 和 `/faio-listen/cover/<file_id>` 本地代理，让 Chromium 可以在 kiosk 内播放 NAS 音频和读取封面。
+
+当前 NAS 的 ALSA 设备来自同一个 `HDA Intel PCH` 声卡：
+
+```text
+hw:0,0  ALCS1200A Analog   主板模拟音频口
+hw:0,1  ALCS1200A Digital  数字音频口
+hw:0,3  HDMI 0             当前在线 HDMI 副屏音频端点
+hw:0,7  HDMI 1
+hw:0,8  HDMI 2
+```
+
+`/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。默认情况下 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 留空，由 Chromium/ALSA 选择默认输出。需要固定输出时可在 `.env` 中设置：
+
+```bash
+MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,3  # HDMI 副屏音频
+MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,0  # 主板模拟音频口
+```
+
+修改后需要 `sudo mdp restart`，因为这是 Chromium 启动参数。
 
 显式切换磁盘数据源：
 

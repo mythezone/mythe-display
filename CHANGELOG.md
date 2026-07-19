@@ -3,6 +3,8 @@
 ## 2026-07-19
 
 - 新增 FAIO 一起听歌只读组件：默认连接本机 `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`，以 `MytheNAS` 加入房间，展示当前专辑封面、歌词、待播放列表，并通过本地 `/faio-listen/media/<file_id>` 代理在 NAS 音频接口播放；左侧 MytheNAS Hero 被替换为一起听歌，Hero 缩为右下角组件。
+- 修复 Chromium kiosk 重启后可能从旧 profile 缓存恢复旧 HTML 的问题：本地静态服务返回 `Cache-Control: no-store`，默认 kiosk 启动 URL 追加 `assetCacheBust`。
+- 新增 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`，可明确指定 Chromium ALSA 输出设备，例如 `hw:0,3` 走 HDMI 副屏音频，`hw:0,0` 走主板模拟音频口。
 
 ## 2026-06-05
 

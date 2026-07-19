@@ -26,6 +26,12 @@ def repo_path(value: str | Path) -> Path:
 class MytheDisplayHandler(SimpleHTTPRequestHandler):
     repo_root: Path = ROOT_DIR
 
+    def end_headers(self) -> None:
+        self.send_header("Cache-Control", "no-store, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
     def do_GET(self) -> None:
         parsed = parse.urlparse(self.path)
         if parsed.path == "/runtime/faio-listen.json":
