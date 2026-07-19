@@ -54,7 +54,7 @@
         min-height: 0;
         padding: 30px;
         display: grid;
-        grid-template-columns: 1.08fr 1fr 1fr 0.84fr 0.84fr;
+        grid-template-columns: 1.34fr 1fr 1fr 0.84fr 0.84fr;
         grid-template-rows: 1fr 1fr;
         gap: 16px;
         isolation: isolate;
@@ -170,7 +170,6 @@
       }
 
       .hero {
-        grid-row: span 2;
         padding: 28px;
         display: grid;
         grid-template-rows: auto 1fr auto;
@@ -179,6 +178,62 @@
           radial-gradient(circle at 52% 40%, rgba(10, 132, 255, 0.18), transparent 36%),
           radial-gradient(circle at 72% 74%, rgba(48, 209, 88, 0.12), transparent 34%),
           linear-gradient(145deg, rgba(8, 14, 22, 0.9), rgba(4, 7, 12, 0.92));
+      }
+
+      .hero-compact {
+        padding: 22px;
+      }
+
+      .hero-compact .hero-geometry {
+        opacity: 0.7;
+      }
+
+      .hero-compact .eyebrow {
+        font-size: 12px;
+      }
+
+      .hero-compact .host {
+        align-self: center;
+        justify-items: center;
+        gap: 12px;
+        text-align: center;
+      }
+
+      .hero-compact .hero-logo-wrap {
+        width: 132px;
+        height: 132px;
+      }
+
+      .hero-compact .hero-logo {
+        width: 116px;
+        height: 116px;
+      }
+
+      .hero-compact .host h1 {
+        font-size: 38px;
+        line-height: 1;
+      }
+
+      .hero-compact .host p {
+        font-size: 14px;
+      }
+
+      .hero-compact .status-row {
+        gap: 8px;
+      }
+
+      .hero-compact .status-chip {
+        padding: 9px 8px;
+        text-align: center;
+      }
+
+      .hero-compact .status-chip strong {
+        margin-bottom: 3px;
+        font-size: 18px;
+      }
+
+      .hero-compact .status-chip span {
+        font-size: 10px;
       }
 
       .hero-geometry {
@@ -301,6 +356,7 @@
       }
 
       .metric,
+      .listen-panel,
       .mascot-panel,
       .agent-panel,
       .disk-panel,
@@ -314,6 +370,7 @@
       }
 
       .metric header,
+      .listen-panel header,
       .mascot-panel header,
       .agent-panel header,
       .disk-panel header,
@@ -327,6 +384,7 @@
       }
 
       .metric h2,
+      .listen-panel h2,
       .mascot-panel h2,
       .agent-panel h2,
       .disk-panel h2,
@@ -346,6 +404,251 @@
         color: var(--md-text-secondary);
         font-size: 13px;
         white-space: nowrap;
+      }
+
+      .listen-panel {
+        grid-row: span 2;
+        background:
+          radial-gradient(circle at 16% 12%, rgba(255, 95, 114, 0.2), transparent 34%),
+          radial-gradient(circle at 76% 86%, rgba(112, 215, 204, 0.14), transparent 36%),
+          linear-gradient(145deg, rgba(17, 18, 25, 0.94), rgba(5, 8, 13, 0.92));
+      }
+
+      .listen-body {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(220px, 0.76fr);
+        gap: 16px;
+      }
+
+      .listen-player {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto auto auto 1fr;
+        gap: 14px;
+      }
+
+      .listen-cover-wrap {
+        position: relative;
+        width: min(100%, 330px);
+        aspect-ratio: 1;
+        justify-self: center;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.12), transparent 30%),
+          rgba(255, 255, 255, 0.05);
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .listen-cover-wrap img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
+
+      .listen-cover-empty {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: rgba(255, 255, 255, 0.44);
+        font-size: 78px;
+      }
+
+      .listen-live {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        background: rgba(8, 10, 14, 0.74);
+        color: var(--md-text-secondary);
+        font-size: 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .listen-live i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--md-metric-good);
+        box-shadow: 0 0 0 5px rgba(48, 209, 88, 0.14);
+      }
+
+      .listen-track h3 {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 34px;
+        line-height: 1.05;
+      }
+
+      .listen-track p,
+      .listen-track small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .listen-track p {
+        margin: 8px 0 0;
+        color: var(--md-text-secondary);
+        font-size: 17px;
+      }
+
+      .listen-track small {
+        margin-top: 7px;
+        color: #70d7cc;
+        font-size: 12px;
+      }
+
+      .listen-progress {
+        display: grid;
+        gap: 6px;
+      }
+
+      .listen-progress-track {
+        height: 7px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .listen-progress-bar {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ff5f72, #70d7cc);
+        box-shadow: 0 0 18px rgba(112, 215, 204, 0.35);
+      }
+
+      .listen-timecodes {
+        display: flex;
+        justify-content: space-between;
+        color: var(--md-text-muted);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .listen-lyrics {
+        min-height: 0;
+        align-self: stretch;
+        overflow: hidden;
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        padding: 12px 0;
+        mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
+      }
+
+      .listen-lyric {
+        margin: 0;
+        color: rgba(244, 247, 251, 0.46);
+        font-size: 18px;
+        line-height: 1.32;
+        text-align: center;
+      }
+
+      .listen-lyric.is-active {
+        color: #fff;
+        font-size: 27px;
+        font-weight: 800;
+        text-shadow: 0 0 24px rgba(112, 215, 204, 0.32);
+      }
+
+      .listen-queue {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        gap: 12px;
+        overflow: hidden;
+      }
+
+      .listen-queue-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--md-text-secondary);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .listen-queue-list {
+        min-height: 0;
+        display: grid;
+        grid-auto-rows: minmax(58px, auto);
+        overflow: hidden;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .listen-queue-row {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 22px 42px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+      }
+
+      .listen-queue-index,
+      .listen-queue-row time {
+        color: var(--md-text-muted);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .listen-queue-cover {
+        width: 42px;
+        height: 42px;
+        overflow: hidden;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .listen-queue-cover img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
+
+      .listen-queue-main {
+        min-width: 0;
+      }
+
+      .listen-queue-main strong,
+      .listen-queue-main span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .listen-queue-main strong {
+        font-size: 13px;
+      }
+
+      .listen-queue-main span {
+        margin-top: 3px;
+        color: var(--md-text-secondary);
+        font-size: 11px;
+      }
+
+      .listen-audio {
+        display: none;
       }
 
       .telemetry {
@@ -1324,6 +1627,7 @@
           grid-template-rows: auto;
         }
 
+        .listen-panel,
         .hero,
         .telemetry {
           grid-column: span 2;
@@ -1351,6 +1655,7 @@
           gap: 14px;
         }
 
+        .listen-panel,
         .hero,
         .telemetry,
         .docker-panel,
@@ -1362,6 +1667,26 @@
         .hero {
           min-height: 640px;
           padding: 22px;
+        }
+
+        .listen-panel {
+          min-height: 920px;
+        }
+
+        .listen-body {
+          grid-template-columns: 1fr;
+        }
+
+        .listen-cover-wrap {
+          width: min(100%, 300px);
+        }
+
+        .listen-track h3 {
+          font-size: 28px;
+        }
+
+        .listen-lyric.is-active {
+          font-size: 23px;
         }
 
         .host {
@@ -1447,32 +1772,49 @@
     <main class="screen" aria-label="Mythe Display 测试界面">
       <div class="wallpaper" id="wallpaper"></div>
 
-      <section class="panel hero">
-        <canvas class="hero-geometry" id="hero-geometry" aria-hidden="true"></canvas>
-        <div class="eyebrow">Mythe Display · HDMI-A-2</div>
-        <div class="host">
-          <div class="hero-logo-wrap">
-            <img class="hero-logo" id="hero-logo" alt="MytheNAS" />
+      <section class="panel listen-panel">
+        <header>
+          <h2>FAIO Listen</h2>
+          <span class="pill" id="faio-room-pill">connecting</span>
+        </header>
+        <div class="listen-body">
+          <div class="listen-player">
+            <div class="listen-cover-wrap">
+              <img id="faio-cover" alt="Album cover" />
+              <div class="listen-cover-empty" id="faio-cover-empty">♪</div>
+              <div class="listen-live"><i></i><span id="faio-online">-- online</span></div>
+            </div>
+            <div class="listen-track">
+              <h3 id="faio-title">Waiting for FAIO</h3>
+              <p id="faio-artist">一起听歌 · MytheNAS</p>
+              <small id="faio-contributor">read-only listener</small>
+            </div>
+            <div class="listen-progress">
+              <div class="listen-progress-track">
+                <div class="listen-progress-bar" id="faio-progress"></div>
+              </div>
+              <div class="listen-timecodes">
+                <span id="faio-elapsed">0:00</span>
+                <span id="faio-duration">0:00</span>
+              </div>
+            </div>
+            <div class="listen-lyrics" id="faio-lyrics">
+              <p class="listen-lyric is-active">播放开始后显示歌词</p>
+            </div>
           </div>
-          <div>
-            <h1>MytheNAS</h1>
-            <p>3840 x 1100 · Web Kiosk Runtime</p>
-          </div>
+          <aside class="listen-queue">
+            <div class="listen-queue-title">
+              <strong>UP NEXT</strong>
+              <span id="faio-queue-count">-- tracks</span>
+            </div>
+            <div class="listen-queue-list" id="faio-queue"></div>
+          </aside>
         </div>
-        <div class="status-row">
-          <div class="status-chip">
-            <strong>DRM</strong>
-            <span>KMS ready</span>
-          </div>
-          <div class="status-chip">
-            <strong>16</strong>
-            <span>drive slots</span>
-          </div>
-          <div class="status-chip">
-            <strong>23456</strong>
-            <span>local web port</span>
-          </div>
+        <div class="chart-legend">
+          <span><i class="legend-dot" style="--dot: #ff5f72"></i>FAIO room</span>
+          <span><i class="legend-dot" style="--dot: #70d7cc"></i>NAS audio</span>
         </div>
+        <audio class="listen-audio" id="faio-audio" preload="auto"></audio>
       </section>
 
       <section class="panel metric telemetry">
@@ -1633,15 +1975,31 @@
         </div>
       </section>
 
-      <section class="panel agent-panel">
-        <header>
-          <h2>Agents</h2>
-          <span class="pill">Codex</span>
-        </header>
-        <div class="agent-board" id="agent-board"></div>
-        <div class="agent-summary">
-          <span id="agent-summary">loading agents</span>
-          <span>local</span>
+      <section class="panel hero hero-compact">
+        <canvas class="hero-geometry" id="hero-geometry" aria-hidden="true"></canvas>
+        <div class="eyebrow">Mythe Display</div>
+        <div class="host">
+          <div class="hero-logo-wrap">
+            <img class="hero-logo" id="hero-logo" alt="MytheNAS" />
+          </div>
+          <div>
+            <h1>MytheNAS</h1>
+            <p>Web Kiosk Runtime</p>
+          </div>
+        </div>
+        <div class="status-row">
+          <div class="status-chip">
+            <strong>DRM</strong>
+            <span>KMS</span>
+          </div>
+          <div class="status-chip">
+            <strong>16</strong>
+            <span>drives</span>
+          </div>
+          <div class="status-chip">
+            <strong>23456</strong>
+            <span>web</span>
+          </div>
         </div>
       </section>
     </main>
@@ -1655,15 +2013,18 @@
       const dockerFallbackUrl = "./docker.mock.json";
       const telemetryFallbackUrl = "./telemetry.mock.json";
       const weatherFallbackUrl = "./weather.mock.json";
+      const faioFallbackUrl = "./faio-listen.mock.json";
       const diskSourceUrl = params.get("disks") || "/runtime/disks.json";
       const dockerSourceUrl = params.get("docker") || "/runtime/docker.json";
       const telemetrySourceUrl = params.get("telemetry") || "/runtime/telemetry.json";
       const weatherSourceUrl = params.get("weather") || "/runtime/weather-shenzhen.json";
+      const faioSourceUrl = params.get("faioListen") || "/runtime/faio-listen.json";
       const agentRefreshMs = Number(params.get("agentsRefreshMs") || 300000);
       const diskRefreshMs = Number(params.get("disksRefreshMs") || 43200000);
       const dockerRefreshMs = Number(params.get("dockerRefreshMs") || 600000);
       const telemetryRefreshMs = Number(params.get("telemetryRefreshMs") || 600000);
       const weatherRefreshMs = Number(params.get("weatherRefreshMs") || 1800000);
+      const faioRefreshMs = Number(params.get("faioListenRefreshMs") || 10000);
       const mascotActionMs = Number(params.get("mascotActionMs") || 300000);
       const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
       const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
@@ -1699,17 +2060,51 @@
       const weatherHumidity = document.getElementById("weather-humidity");
       const weatherWind = document.getElementById("weather-wind");
       const weatherUpdated = document.getElementById("weather-updated");
+      const faioRoomPill = document.getElementById("faio-room-pill");
+      const faioOnline = document.getElementById("faio-online");
+      const faioCover = document.getElementById("faio-cover");
+      const faioCoverEmpty = document.getElementById("faio-cover-empty");
+      const faioTitle = document.getElementById("faio-title");
+      const faioArtist = document.getElementById("faio-artist");
+      const faioContributor = document.getElementById("faio-contributor");
+      const faioProgress = document.getElementById("faio-progress");
+      const faioElapsed = document.getElementById("faio-elapsed");
+      const faioDuration = document.getElementById("faio-duration");
+      const faioLyrics = document.getElementById("faio-lyrics");
+      const faioQueueCount = document.getElementById("faio-queue-count");
+      const faioQueue = document.getElementById("faio-queue");
+      const faioAudio = document.getElementById("faio-audio");
       const agentBoard = document.getElementById("agent-board");
       const agentSummary = document.getElementById("agent-summary");
       let themeBaseUrl = new URL("../themes/neon-dark/", location.href);
       let agentSprites = {};
       let agents = [];
       let telemetry = null;
+      let faioListen = null;
+      let faioAudioFileId = "";
+      let faioPendingSeek = null;
       let riveMascot = null;
       let riveMascotResizeBound = false;
       let themeAssetVersion = initialAssetCacheBust;
       let mascotActionRows = {};
       let mascotSpriteConfig = null;
+
+      faioAudio.addEventListener("loadedmetadata", () => {
+        if (faioPendingSeek === null) return;
+        try {
+          faioAudio.currentTime = faioPendingSeek;
+          faioPendingSeek = null;
+        } catch {
+          // Keep the pending seek for the next metadata/progress event.
+        }
+      });
+      faioAudio.addEventListener("ended", () => {
+        loadFaioListen();
+      });
+      faioCover.addEventListener("error", () => {
+        faioCover.style.display = "none";
+        faioCoverEmpty.style.display = "grid";
+      });
 
       const fallbackAgents = [
         { id: "planner", name: "Planner", project: "mythe-display", status: "thinking", activity: "mapping widget API", progress: 72 },
@@ -1834,6 +2229,15 @@
         if (days) return `${days}d ${hours}h`;
         if (hours) return `${hours}h ${minutes}m`;
         return `${minutes}m`;
+      }
+
+      function formatTrackTime(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const rest = total % 60;
+        if (hours) return `${hours}:${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+        return `${minutes}:${String(rest).padStart(2, "0")}`;
       }
 
       function usageColor(percent, status) {
@@ -2340,7 +2744,176 @@
         window.setTimeout(loadDocker, next);
       }
 
+      function desiredFaioPosition(playback) {
+        const position = Math.max(0, Number(playback?.positionSeconds) || 0);
+        const duration = Math.max(0, Number(playback?.durationSeconds) || 0);
+        let target = position;
+        const serverTime = Date.parse(playback?.serverTime || "");
+        if (playback?.status === "playing" && Number.isFinite(serverTime)) {
+          target += Math.max(0, (Date.now() - serverTime) / 1000);
+        }
+        return duration > 0 ? Math.min(duration, target) : target;
+      }
+
+      function renderFaioLyrics(lines, position) {
+        faioLyrics.replaceChildren();
+        const rows = Array.isArray(lines) ? lines : [];
+        if (!rows.length) {
+          const empty = document.createElement("p");
+          empty.className = "listen-lyric is-active";
+          empty.textContent = faioListen?.playback?.fileId ? "暂无歌词" : "播放开始后显示歌词";
+          faioLyrics.appendChild(empty);
+          return;
+        }
+        let active = -1;
+        rows.forEach((line, index) => {
+          if (Number(line.time) <= position) active = index;
+        });
+        if (active < 0) active = 0;
+        const start = Math.max(0, active - 2);
+        const windowRows = rows.slice(start, start + 6);
+        for (let index = 0; index < windowRows.length; index += 1) {
+          const absoluteIndex = start + index;
+          const line = document.createElement("p");
+          line.className = `listen-lyric${absoluteIndex === active ? " is-active" : ""}`;
+          line.textContent = windowRows[index].text || "·";
+          faioLyrics.appendChild(line);
+        }
+      }
+
+      function renderFaioQueue(rows = []) {
+        faioQueue.replaceChildren();
+        const items = Array.isArray(rows) ? rows.slice(0, 8) : [];
+        faioQueueCount.textContent = `${items.length} tracks`;
+        if (!items.length) {
+          const row = document.createElement("div");
+          row.className = "listen-queue-row";
+          row.style.gridTemplateColumns = "1fr";
+          row.textContent = "待播放列表为空";
+          faioQueue.appendChild(row);
+          return;
+        }
+        items.forEach((item, index) => {
+          const row = document.createElement("article");
+          row.className = "listen-queue-row";
+
+          const order = document.createElement("div");
+          order.className = "listen-queue-index";
+          order.textContent = String(index + 1);
+
+          const cover = document.createElement("div");
+          cover.className = "listen-queue-cover";
+          if (item.coverUrl) {
+            const img = document.createElement("img");
+            img.src = item.coverUrl;
+            img.alt = "";
+            img.loading = "lazy";
+            cover.appendChild(img);
+          }
+
+          const main = document.createElement("div");
+          main.className = "listen-queue-main";
+          const title = document.createElement("strong");
+          title.textContent = item.title || "Untitled";
+          const artist = document.createElement("span");
+          artist.textContent = [item.artist, item.albumTitle].filter(Boolean).join(" · ") || "--";
+          main.append(title, artist);
+
+          const duration = document.createElement("time");
+          duration.textContent = formatTrackTime(item.durationSeconds);
+
+          row.append(order, cover, main, duration);
+          faioQueue.appendChild(row);
+        });
+      }
+
+      function syncFaioAudio(playback) {
+        if (!faioAudio) return;
+        const fileId = String(playback?.fileId || "");
+        const mediaUrl = String(playback?.mediaUrl || "");
+        if (!fileId || !mediaUrl) {
+          faioAudio.pause();
+          faioAudio.removeAttribute("src");
+          faioAudio.load();
+          faioAudioFileId = "";
+          return;
+        }
+        const nextSrc = new URL(mediaUrl, location.href).toString();
+        const changed = faioAudioFileId !== fileId || faioAudio.src !== nextSrc;
+        const target = desiredFaioPosition(playback);
+        if (changed) {
+          faioAudioFileId = fileId;
+          faioPendingSeek = target;
+          faioAudio.src = nextSrc;
+          faioAudio.load();
+        }
+        if (faioAudio.readyState > 0) {
+          const drift = Math.abs((faioAudio.currentTime || 0) - target);
+          if (changed || drift > 3) {
+            try {
+              faioAudio.currentTime = target;
+              faioPendingSeek = null;
+            } catch {
+              faioPendingSeek = target;
+            }
+          }
+        }
+        if (playback?.status === "playing") {
+          faioAudio.play().catch((error) => {
+            console.warn("FAIO audio autoplay failed", error);
+          });
+        } else {
+          faioAudio.pause();
+        }
+      }
+
+      function renderFaioPlaybackFrame() {
+        const playback = faioListen?.playback || {};
+        const position = desiredFaioPosition(playback);
+        const duration = Math.max(0, Number(playback.durationSeconds) || 0);
+        const percent = duration > 0 ? Math.max(0, Math.min(100, (position / duration) * 100)) : 0;
+        faioProgress.style.width = `${percent}%`;
+        faioElapsed.textContent = formatTrackTime(position);
+        faioDuration.textContent = formatTrackTime(duration);
+        renderFaioLyrics(faioListen?.lyrics || [], position);
+      }
+
+      function renderFaioListen(payload) {
+        faioListen = payload || {};
+        const room = faioListen.room || {};
+        const playback = faioListen.playback || {};
+        const connected = faioListen.status !== "error" && room.status !== "closed";
+        faioRoomPill.textContent = connected ? room.name || "一起听歌" : "offline";
+        faioOnline.textContent = `${room.onlineCount ?? "--"} online`;
+        faioTitle.textContent = playback.title || "等待点歌";
+        faioArtist.textContent = [playback.artist, playback.albumTitle].filter(Boolean).join(" · ") || "一起听歌";
+        faioContributor.textContent = playback.contributorName ? `由 ${playback.contributorName} 点播` : "MytheNAS read-only listener";
+        if (playback.coverUrl) {
+          faioCover.src = playback.coverUrl;
+          faioCover.style.display = "block";
+          faioCoverEmpty.style.display = "none";
+        } else {
+          faioCover.removeAttribute("src");
+          faioCover.style.display = "none";
+          faioCoverEmpty.style.display = "grid";
+        }
+        renderFaioQueue(faioListen.queue);
+        renderFaioPlaybackFrame();
+        syncFaioAudio(playback);
+      }
+
+      async function loadFaioListen() {
+        try {
+          renderFaioListen(await fetchJsonWithFallback(faioSourceUrl, faioFallbackUrl));
+        } catch (error) {
+          console.warn("FAIO listen source load failed", error);
+          renderFaioListen({ status: "error", room: { name: "一起听歌", onlineCount: 0 }, playback: { title: "FAIO 房间不可用", artist: "等待本地采集器", durationSeconds: 0 }, lyrics: [], queue: [] });
+        }
+        window.setTimeout(loadFaioListen, Math.max(5000, faioRefreshMs));
+      }
+
       function renderAgents() {
+        if (!agentBoard || !agentSummary) return;
         agentBoard.replaceChildren();
         const counts = {};
         for (const agent of (agents.length ? agents : fallbackAgents).slice(0, 4)) {
@@ -2385,6 +2958,7 @@
       }
 
       async function loadAgents() {
+        if (!agentBoard) return;
         try {
           agents = normalizeAgents(await fetchJsonWithFallback(agentSourceUrl, agentFallbackUrl));
         } catch (error) {
@@ -2609,11 +3183,13 @@
       loadDisks();
       loadDocker();
       loadWeather();
+      loadFaioListen();
       loadAgents();
       updateMascot();
       initHeroGeometry();
       tick();
       setInterval(tick, 1000);
+      setInterval(renderFaioPlaybackFrame, 1000);
       setInterval(loadTelemetry, Math.max(60000, telemetryRefreshMs));
       setInterval(loadAgents, Math.max(1000, agentRefreshMs));
       setInterval(updateMascot, Math.max(60000, mascotActionMs));

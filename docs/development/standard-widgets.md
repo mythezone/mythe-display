@@ -8,6 +8,113 @@
 
 本文件记录 Mythe Display 第一批标准组件的显示目标、数据契约和刷新策略。测试页已经实现这些组件的静态 Web 原型，正式运行时后续应把它们拆成独立组件包。
 
+## core.faioListenRoom
+
+用途：把 FAIO “一起听歌”房间作为副屏主组件展示。副屏只做播放状态展示和本机音频跟随播放，不提供点歌、队列管理或播放控制。
+
+显示规则：
+
+- 默认占用左侧两行的大组件区域，取代原 MytheNAS 大 Hero。
+- 左侧显示专辑封面、曲名、歌手、专辑、点播者、进度条和歌词。
+- 右侧显示待播放列表，包含序号、小封面、曲名、歌手/专辑和时长。
+- 不显示点歌入口、上传入口、聊天、播放控制按钮或队列编辑按钮。
+- 音频通过 Mythe Display 本地代理 `/faio-listen/media/<file_id>` 播放，避免浏览器直接跨端口访问 FAIO 并处理房间 cookie。
+- 默认房间地址使用同机 FAIO Webapp：`http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`。
+- 默认显示名为 `MytheNAS`。
+- 默认刷新周期为 `10000ms`，页面端每秒根据 `serverTime + positionSeconds` 推进进度和歌词。
+
+数据契约：
+
+```ts
+type FaioListenSnapshot = {
+  schemaVersion: 1;
+  generatedAt: string;
+  source: "faio.musicRoom" | string;
+  status: "connected" | "error";
+  refreshMs: number;
+  roomUrl: string;
+  baseUrl?: string;
+  roomId?: string;
+  displayName?: string;
+  room: {
+    name: string;
+    ownerDisplayName?: string;
+    onlineCount: number;
+    queueCount: number;
+    shareUrl?: string;
+    status: "open" | "closed" | "unknown" | string;
+  };
+  playback: {
+    revision?: number;
+    serverTime?: string;
+    status: "playing" | "paused" | string;
+    pausedForEmpty?: boolean;
+    positionSeconds: number;
+    anchorServerTime?: string;
+    fileId?: string;
+    title: string;
+    artist: string;
+    albumTitle?: string;
+    durationSeconds: number;
+    coverUrl?: string;
+    mediaUrl?: string;
+    contributorName?: string;
+    sourceType?: "library" | "external" | string;
+    next?: {
+      fileId?: string;
+      title?: string;
+      artist?: string;
+      albumTitle?: string;
+      coverUrl?: string;
+      sourceType?: "library" | "external" | string;
+    };
+  };
+  lyrics: {
+    time: number;
+    text: string;
+  }[];
+  queue: {
+    fileId: string;
+    queueId: string;
+    title: string;
+    artist: string;
+    albumTitle?: string;
+    durationSeconds: number;
+    contributorName?: string;
+    sourceType?: "library" | "external" | string;
+    coverUrl?: string;
+  }[];
+  error?: string;
+};
+```
+
+默认运行时数据：
+
+```text
+public/runtime/faio-listen.json
+```
+
+当前 mock 仅用于开发预览兜底：
+
+```text
+public/kiosk-test/faio-listen.mock.json
+```
+
+真实采集脚本：
+
+```bash
+scripts/collect-faio-listen-snapshot.py --out public/runtime/faio-listen.json --pretty
+```
+
+本地验证推荐写入临时目录：
+
+```bash
+scripts/collect-faio-listen-snapshot.py \
+  --out tmp/verify-runtime/faio-listen.json \
+  --session-file tmp/verify-runtime/faio-listen-session.json \
+  --pretty
+```
+
 ## core.clockWeather
 
 用途：在单个标准网格块中显示固定东八区时间、日期和深圳当天基础天气。

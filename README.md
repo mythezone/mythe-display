@@ -15,7 +15,8 @@ The current release keeps the implementation intentionally simple: a static Web 
 - Fullscreen Web kiosk for Ubuntu systems without a desktop session.
 - Tested on an HDMI long-bar display at `3840x1100`.
 - Static Web UI served from `public/kiosk-test/`.
-- Runtime JSON snapshots for disks, CPU, memory, GPU, network, health, Docker, Shenzhen weather, and local Codex session metadata.
+- Runtime JSON snapshots for FAIO listening rooms, disks, CPU, memory, GPU, network, health, Docker, Shenzhen weather, and local Codex session metadata.
+- Read-only FAIO listening-room widget with cover art, lyrics, queue, and local NAS audio playback.
 - Dynamic URL switching and reload through Chromium DevTools via `mdp`.
 - Theme resource packs with semantic tokens, wallpaper layers, hero artwork, mascot assets, and pixel Agent sprites.
 - Compact standard widgets for NAS-style monitoring.
@@ -30,7 +31,7 @@ Implemented today:
 - `cage + Chromium` kiosk launcher for direct DRM display.
 - Python static server and runtime collectors.
 - `mdp` command for start, reload, switch, status, logs, theme, and pet import workflows.
-- `core.systemHero`, `core.clockWeather`, `core.telemetryTrend`, `core.systemHealth`, `core.diskMatrix`, `core.dockerTui`, `core.mascotAssistant`, and `core.pixelAgents` prototypes.
+- `core.faioListenRoom`, `core.systemHero`, `core.clockWeather`, `core.telemetryTrend`, `core.systemHealth`, `core.diskMatrix`, `core.dockerTui`, and `core.mascotAssistant` prototypes.
 - Default `neon-dark` theme resource pack.
 
 Future roadmap:
@@ -158,6 +159,9 @@ Common environment variables:
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`: set to `1` to use wlroots legacy DRM commits, default `1` for long-bar display stability.
 - `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS`: set to `1` to disable DRM modifiers, default `1` for compatibility.
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`: set to `1` to disable runtime JSON collectors.
+- `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`: FAIO room URL, default `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`.
+- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`: read-only room participant name, default `MytheNAS`.
+- `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`: FAIO room snapshot refresh interval, default `10000`.
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`: set to `1` only if showing Codex thread titles on the screen is acceptable.
 
 ## Runtime Data
@@ -171,6 +175,7 @@ The default page reads local JSON snapshots from `public/runtime/`. That directo
 | `/runtime/docker.json` | 10 minutes | `scripts/collect-docker-snapshot.py` |
 | `/runtime/weather-shenzhen.json` | 30 minutes | `scripts/collect-weather-snapshot.py` |
 | `/runtime/codex-agents.json` | 5 minutes | `scripts/collect-codex-agents-snapshot.py` |
+| `/runtime/faio-listen.json` | 10 seconds | `scripts/collect-faio-listen-snapshot.py` |
 
 Run all collectors once:
 

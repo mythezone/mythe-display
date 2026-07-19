@@ -52,8 +52,10 @@ Usage:
   public/runtime/docker.json      默认 10 分钟刷新
   public/runtime/weather-shenzhen.json 默认 30 分钟刷新
   public/runtime/codex-agents.json 默认 5 分钟刷新
+  public/runtime/faio-listen.json 默认 10 秒刷新
 
 可用 MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR=1 禁用采集器。
+可用 MYTHE_DISPLAY_DISABLE_FAIO_LISTEN=1 禁用 FAIO 一起听歌采集。
 EOF
   exit 0
 fi
@@ -215,7 +217,11 @@ if [[ "$URL" == "$DEFAULT_URL" ]]; then
       --docker-ms "${MYTHE_DISPLAY_DOCKER_REFRESH_MS:-600000}"
       --weather-ms "${MYTHE_DISPLAY_WEATHER_REFRESH_MS:-1800000}"
       --agents-ms "${MYTHE_DISPLAY_AGENTS_REFRESH_MS:-300000}"
+      --faio-listen-ms "${MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS:-10000}"
     )
+    if [[ "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" == "1" ]]; then
+      RUNTIME_COLLECTOR_ARGS+=(--disable-faio-listen)
+    fi
     python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --once || true
     python3 "$ROOT_DIR/scripts/collect-runtime-snapshots.py" "${RUNTIME_COLLECTOR_ARGS[@]}" --delay-first &
     RUNTIME_COLLECTOR_PID="$!"
@@ -292,6 +298,7 @@ CHROMIUM_ARGS=(
   --disable-background-timer-throttling
   --disable-renderer-backgrounding
   --disable-backgrounding-occluded-windows
+  --autoplay-policy=no-user-gesture-required
   --lang=zh-CN
   --accept-lang=zh-CN,zh,en
   --proxy-bypass-list="<-loopback>"

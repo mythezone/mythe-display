@@ -15,7 +15,8 @@ Mythe Display 是一个面向 Ubuntu 服务器、NAS 和机箱副屏的开源 We
 - 支持无桌面 Ubuntu 的 `cage + Chromium` 全屏 kiosk。
 - 已在 `3840x1100` HDMI 长条屏上验证。
 - 默认静态页面位于 `public/kiosk-test/`。
-- 运行时 JSON 快照支持磁盘、CPU、内存、GPU、网络、系统健康、Docker、深圳天气和本机 Codex 会话元数据。
+- 运行时 JSON 快照支持 FAIO 一起听歌、磁盘、CPU、内存、GPU、网络、系统健康、Docker、深圳天气和本机 Codex 会话元数据。
+- 一起听歌只读组件展示专辑封面、歌词和待播放列表，并通过 NAS 本机音频接口播放。
 - 通过 `mdp` 支持启动、刷新、切换页面、查看日志、导入 pet 资源。
 - 主题资源包支持语义 token、动态背景、Hero 图、看板娘和像素 Agent 精灵。
 - 已包含 NAS 场景常用的紧凑监控组件原型。
@@ -30,7 +31,7 @@ Mythe Display 是一个面向 Ubuntu 服务器、NAS 和机箱副屏的开源 We
 - `cage + Chromium` direct DRM kiosk 启动。
 - 静态 Web 服务和 Python runtime collector。
 - `mdp` 短命令。
-- `core.systemHero`、`core.clockWeather`、`core.telemetryTrend`、`core.systemHealth`、`core.diskMatrix`、`core.dockerTui`、`core.mascotAssistant`、`core.pixelAgents` 原型。
+- `core.faioListenRoom`、`core.systemHero`、`core.clockWeather`、`core.telemetryTrend`、`core.systemHealth`、`core.diskMatrix`、`core.dockerTui`、`core.mascotAssistant` 原型。
 - 默认 `neon-dark` 主题资源包。
 
 未来路线：
@@ -158,6 +159,9 @@ cp .env.example .env
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`：设为 `1` 使用 wlroots legacy DRM commit，默认 `1`，提高长条屏稳定性。
 - `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS`：设为 `1` 禁用 DRM modifiers，默认 `1`，提高兼容性。
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`：设为 `1` 可禁用运行时采集。
+- `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`：FAIO 一起听歌房间 URL，默认 `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`。
+- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`：副屏只读听众名称，默认 `MytheNAS`。
+- `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`：FAIO 房间快照刷新间隔，默认 `10000`。
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`：设为 `1` 才会在副屏显示 Codex 线程标题。
 
 ## 运行时数据
@@ -171,6 +175,7 @@ cp .env.example .env
 | `/runtime/docker.json` | 10 分钟 | `scripts/collect-docker-snapshot.py` |
 | `/runtime/weather-shenzhen.json` | 30 分钟 | `scripts/collect-weather-snapshot.py` |
 | `/runtime/codex-agents.json` | 5 分钟 | `scripts/collect-codex-agents-snapshot.py` |
+| `/runtime/faio-listen.json` | 10 秒 | `scripts/collect-faio-listen-snapshot.py` |
 
 验证采集器但不写入默认 runtime 目录时，可以使用临时目录：
 

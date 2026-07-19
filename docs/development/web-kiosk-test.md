@@ -18,13 +18,14 @@
 
 - 默认主题资源包：`public/themes/neon-dark/theme.json`。
 - 多层循环背景和纯色 fallback。
-- MytheNAS hero 图标和动态几何背景。
+- FAIO 一起听歌只读组件：展示当前专辑封面、歌词和待播放列表，并通过本机代理播放 NAS 音频。
+- MytheNAS hero 图标和动态几何背景，默认缩为右下角身份组件。
 - Clock 组件固定 `Asia/Shanghai` 东八区时间，并默认读取 `public/runtime/weather-shenzhen.json` 展示深圳当天 Open-Meteo 天气。
 - CPU、Memory、Network 单格合并趋势图，默认读取 `public/runtime/telemetry.json` 真实快照，mock 仅作为兜底。
 - 看板娘透明资源和随机动作/格言。
 - 磁盘矩阵，默认读取 `public/runtime/disks.json` 真实快照，mock 仅作为兜底。
 - LazyDocker 风格 Docker 竖栏，默认读取 `public/runtime/docker.json` 真实快照，mock 仅作为兜底。
-- 像素 Agent 默认读取 `public/runtime/codex-agents.json` 本机 Codex 会话元数据，mock 仅作为兜底。
+- Codex Agent 采集仍保留为运行时数据源；默认界面不再展示 Agent 面板。
 - 页面级禁翻译标记：`translate="no"` 和 `notranslate`。
 
 生产上屏需要的组件：
@@ -96,6 +97,7 @@ public/runtime/telemetry.json   默认 10 分钟刷新
 public/runtime/docker.json      默认 10 分钟刷新
 public/runtime/weather-shenzhen.json 默认 30 分钟刷新
 public/runtime/codex-agents.json 默认 5 分钟刷新
+public/runtime/faio-listen.json 默认 10 秒刷新
 ```
 
 这些文件已被 `.gitignore` 忽略。需要临时禁用采集器时可设置：
@@ -244,7 +246,28 @@ http://<server-ip>:23456/kiosk-test/?theme=../themes/neon-dark/theme.json
 http://<server-ip>:23456/kiosk-test/
 ```
 
-该页面会优先读取 `/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`、`/runtime/weather-shenzhen.json`、`/runtime/codex-agents.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
+该页面会优先读取 `/runtime/faio-listen.json`、`/runtime/disks.json`、`/runtime/telemetry.json`、`/runtime/docker.json`、`/runtime/weather-shenzhen.json`、`/runtime/codex-agents.json`。如果 runtime 文件还不存在，页面会回退到 `public/kiosk-test/*.mock.json`，便于开发预览。
+
+切换 FAIO 一起听歌数据源：
+
+```text
+http://<server-ip>:23456/kiosk-test/?faioListen=/runtime/faio-listen.json
+```
+
+FAIO 一起听歌默认 10 秒刷新一次：
+
+```text
+http://<server-ip>:23456/kiosk-test/?faioListenRefreshMs=10000
+```
+
+默认房间通过本机 FAIO Webapp 代理访问：
+
+```text
+MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL=http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg
+MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME=MytheNAS
+```
+
+副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供 `/faio-listen/media/<file_id>` 和 `/faio-listen/cover/<file_id>` 本地代理，让 Chromium 可以在 kiosk 内播放 NAS 音频和读取封面。
 
 显式切换磁盘数据源：
 

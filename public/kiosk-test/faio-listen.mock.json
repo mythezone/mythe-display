@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-19T08:00:00Z",
+  "source": "faio.musicRoom.mock",
+  "status": "connected",
+  "refreshMs": 10000,
+  "roomUrl": "http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg",
+  "room": {
+    "name": "一起听歌",
+    "ownerDisplayName": "Admin",
+    "onlineCount": 3,
+    "queueCount": 6,
+    "shareUrl": "http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg",
+    "status": "open"
+  },
+  "playback": {
+    "revision": 1,
+    "serverTime": "2026-07-19T08:00:00Z",
+    "status": "playing",
+    "pausedForEmpty": false,
+    "positionSeconds": 42,
+    "fileId": "mock-track",
+    "title": "玫瑰窃贼",
+    "artist": "saxon",
+    "albumTitle": "一起听歌 · saxon 的上传",
+    "durationSeconds": 290,
+    "coverUrl": "",
+    "mediaUrl": "",
+    "contributorName": "saxon",
+    "sourceType": "library",
+    "next": {
+      "fileId": "mock-next",
+      "title": "飛機場的10:30",
+      "artist": "陶喆",
+      "albumTitle": "DAVID TAO",
+      "coverUrl": "",
+      "sourceType": "library"
+    }
+  },
+  "lyrics": [
+    { "time": 0, "text": "播放开始后显示动态歌词" },
+    { "time": 18, "text": "霓虹穿过服务器的夜" },
+    { "time": 42, "text": "副屏跟随房间节拍" },
+    { "time": 66, "text": "NAS 正在安静播放" },
+    { "time": 92, "text": "下一首已经在队列里" }
+  ],
+  "queue": [
+    {
+      "fileId": "mock-1",
+      "queueId": "mock-1",
+      "title": "愛的初體驗",
+      "artist": "张震岳",
+      "albumTitle": "阿嶽正傳",
+      "durationSeconds": 239,
+      "contributorName": "ChaceLyee",
+      "sourceType": "library",
+      "coverUrl": ""
+    },
+    {
+      "fileId": "mock-2",
+      "queueId": "mock-2",
+      "title": "飛機場的10:30",
+      "artist": "陶喆",
+      "albumTitle": "DAVID TAO",
+      "durationSeconds": 281,
+      "contributorName": "ChaceLyee",
+      "sourceType": "library",
+      "coverUrl": ""
+    },
+    {
+      "fileId": "mock-3",
+      "queueId": "mock-3",
+      "title": "小鎮姑娘",
+      "artist": "陶喆",
+      "albumTitle": "I'm OK",
+      "durationSeconds": 296,
+      "contributorName": "ChaceLyee",
+      "sourceType": "library",
+      "coverUrl": ""
+    }
+  ]
+}
