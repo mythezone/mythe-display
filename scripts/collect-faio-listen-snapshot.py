@@ -38,7 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--display-name",
-        default=os.environ.get("MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME", "MytheNAS"),
+        default=os.environ.get("MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME", "MytheNAS Speaker"),
         help="加入房间时使用的显示名。",
     )
     parser.add_argument(
@@ -226,9 +226,17 @@ def collect_lyrics(
     playback: dict[str, Any],
 ) -> list[dict[str, Any]]:
     file_id = str(playback.get("file_id") or "")
-    if not file_id or playback.get("source_type") == "external":
+    source_type = normalize_source_type(playback.get("source_type"), file_id=file_id)
+    if not file_id or source_type == "external":
         return []
-    payload = read_json(opener, api_url(base_url, f"/music/rooms/{urllib.parse.quote(room_id)}/lyrics/{urllib.parse.quote(file_id)}"))
+    quoted_room = urllib.parse.quote(room_id)
+    quoted_file = urllib.parse.quote(file_id)
+    lyrics_path = (
+        f"/music/rooms/{quoted_room}/online/{quoted_file}/lyrics"
+        if source_type == "online"
+        else f"/music/rooms/{quoted_room}/lyrics/{quoted_file}"
+    )
+    payload = read_json(opener, api_url(base_url, lyrics_path))
     rows = payload.get("lyrics") if isinstance(payload, dict) else []
     if not isinstance(rows, list):
         return []
@@ -238,16 +246,44 @@ def collect_lyrics(
     return parse_lyrics(str(preferred.get("content") or ""))
 
 
-def proxy_cover(file_id: str, revision: Any = "") -> str:
+def normalize_source_type(value: Any, *, file_id: str = "") -> str:
+    source_type = str(value or "").strip().lower()
+    if source_type in {"library", "external", "online"}:
+        return source_type
+    # FAIO versions before the online source field was added still used this
+    # stable ID prefix. Keep the kiosk compatible with those snapshots.
+    return "online" if file_id.startswith("online_") else "library"
+
+
+def proxy_media(file_id: str, source_type: str, revision: Any = "") -> str:
     if not file_id:
         return ""
     suffix = f"?v={urllib.parse.quote(str(revision))}" if revision != "" else ""
-    return f"/faio-listen/cover/{urllib.parse.quote(file_id)}{suffix}"
+    quoted_file = urllib.parse.quote(file_id)
+    if source_type == "online":
+        return f"/faio-listen/online/{quoted_file}/media{suffix}"
+    return f"/faio-listen/media/{quoted_file}{suffix}"
+
+
+def proxy_cover(file_id: str, revision: Any = "", *, source_type: str = "library") -> str:
+    if not file_id:
+        return ""
+    suffix = f"?v={urllib.parse.quote(str(revision))}" if revision != "" else ""
+    quoted_file = urllib.parse.quote(file_id)
+    if source_type == "online":
+        return f"/faio-listen/online/{quoted_file}/cover{suffix}"
+    return f"/faio-listen/cover/{quoted_file}{suffix}"
 
 
 def normalize_track(item: dict[str, Any], *, revision: Any = "") -> dict[str, Any]:
     file_id = str(item.get("file_id") or "")
-    source_type = str(item.get("source_type") or "library")
+    source_type = normalize_source_type(item.get("source_type"), file_id=file_id)
+    upstream_cover = str(item.get("external_cover_url") or item.get("cover_url") or "")
+    cover_url = (
+        upstream_cover
+        if source_type == "external"
+        else proxy_cover(file_id, revision, source_type=source_type)
+    )
     return {
         "fileId": file_id,
         "queueId": str(item.get("queue_id") or ""),
@@ -257,7 +293,7 @@ def normalize_track(item: dict[str, Any], *, revision: Any = "") -> dict[str, An
         "durationSeconds": float(item.get("duration_seconds") or 0),
         "contributorName": str(item.get("contributor_name") or ""),
         "sourceType": source_type,
-        "coverUrl": str(item.get("external_cover_url") or item.get("cover_url") or "") if source_type == "external" else proxy_cover(file_id, revision),
+        "coverUrl": cover_url,
     }
 
 
@@ -276,15 +312,20 @@ def normalize_snapshot(
     public_output = raw.get("public_output") if isinstance(raw.get("public_output"), dict) else {}
     revision = playback.get("revision", 0)
     file_id = str(playback.get("file_id") or "")
-    source_type = str(playback.get("source_type") or "library")
+    source_type = normalize_source_type(playback.get("source_type"), file_id=file_id)
     queue_rows = raw.get("queue") if isinstance(raw.get("queue"), list) else []
     participants = raw.get("participants") if isinstance(raw.get("participants"), list) else []
     media_url = str(playback.get("media_url") or "")
     if source_type != "external" and file_id:
-        media_url = f"/faio-listen/media/{urllib.parse.quote(file_id)}?v={urllib.parse.quote(str(revision))}"
+        media_url = proxy_media(file_id, source_type, revision)
     cover_url = str(playback.get("cover_url") or "")
     if source_type != "external" and file_id:
-        cover_url = proxy_cover(file_id, revision)
+        cover_url = proxy_cover(file_id, revision, source_type=source_type)
+    next_file_id = str(playback.get("next_file_id") or "")
+    next_source_type = normalize_source_type(playback.get("next_source_type"), file_id=next_file_id)
+    next_cover_url = str(playback.get("next_cover_url") or "")
+    if next_source_type != "external" and next_file_id:
+        next_cover_url = proxy_cover(next_file_id, revision, source_type=next_source_type)
     return {
         "schemaVersion": 1,
         "generatedAt": utc_now_iso(),
@@ -320,12 +361,12 @@ def normalize_snapshot(
             "contributorName": str(playback.get("contributor_name") or ""),
             "sourceType": source_type,
             "next": {
-                "fileId": str(playback.get("next_file_id") or ""),
+                "fileId": next_file_id,
                 "title": str(playback.get("next_title") or ""),
                 "artist": str(playback.get("next_artist") or ""),
                 "albumTitle": str(playback.get("next_album_title") or ""),
-                "coverUrl": proxy_cover(str(playback.get("next_file_id") or ""), revision),
-                "sourceType": str(playback.get("next_source_type") or "library"),
+                "coverUrl": next_cover_url,
+                "sourceType": next_source_type,
             },
         },
         "publicOutput": {

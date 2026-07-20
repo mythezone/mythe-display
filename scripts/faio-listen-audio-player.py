@@ -109,6 +109,21 @@ def playback_key(playback: dict[str, Any], url: str, volume: int) -> str:
     return f"{file_id}:{revision}:{volume}:{url}"
 
 
+def should_play(
+    snapshot: dict[str, Any] | None,
+    playback: dict[str, Any],
+    public_output: dict[str, Any],
+    source_url: str,
+) -> bool:
+    return bool(
+        snapshot
+        and snapshot.get("status") == "connected"
+        and playback.get("status") == "playing"
+        and public_output.get("playing", True) is not False
+        and source_url
+    )
+
+
 def terminate(process: subprocess.Popen | None, *, timeout: float = 3.0) -> None:
     if not process or process.poll() is not None:
         return
@@ -183,17 +198,9 @@ def main() -> int:
             else {}
         )
         public_output = read_public_output(args.base_url, args.public_output_path) or snapshot_output
-        output_playing = public_output.get("playing", True) is not False
         volume = max(0, min(100, int(public_output.get("volume", 70))))
         source_url = media_url(args.base_url, playback)
-        should_play = (
-            snapshot
-            and snapshot.get("status") == "connected"
-            and playback.get("status") == "playing"
-            and output_playing
-            and source_url
-        )
-        if not should_play:
+        if not should_play(snapshot, playback, public_output, source_url):
             if current_key:
                 print("[faio-audio] 暂停或无可播放媒体，停止当前音频。")
             terminate(process)

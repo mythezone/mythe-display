@@ -18,9 +18,10 @@
 - 左侧显示专辑封面、曲名、歌手、专辑、点播者、进度条和歌词。
 - 右侧显示待播放列表，包含序号、小封面、曲名、歌手/专辑和时长。
 - 不显示点歌入口、上传入口、聊天、播放控制按钮或队列编辑按钮。
-- 音频通过 Mythe Display 本地代理 `/faio-listen/media/<file_id>` 播放，避免浏览器直接跨端口访问 FAIO 并处理房间 cookie。
+- 本地曲库音频通过 `/faio-listen/media/<file_id>` 播放；在线平台点播通过 `/faio-listen/online/<online_id>/media` 访问 FAIO 的动态 stream ticket；两者都由 Mythe Display 本地代理附加私有房间 cookie。
+- 在线封面使用 `/faio-listen/online/<online_id>/cover`，歌词由采集器访问 FAIO `/online/<online_id>/lyrics`；普通 `external` 外链保持直连。
 - 默认房间地址使用同机 FAIO Webapp：`http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`。
-- 默认显示名为 `MytheNAS`。
+- 默认显示名为 `MytheNAS Speaker`。
 - 默认刷新周期为 `10000ms`，页面端每秒根据 `serverTime + positionSeconds` 推进进度和歌词。
 
 数据契约：
@@ -59,14 +60,14 @@ type FaioListenSnapshot = {
     coverUrl?: string;
     mediaUrl?: string;
     contributorName?: string;
-    sourceType?: "library" | "external" | string;
+    sourceType?: "library" | "external" | "online" | string;
     next?: {
       fileId?: string;
       title?: string;
       artist?: string;
       albumTitle?: string;
       coverUrl?: string;
-      sourceType?: "library" | "external" | string;
+      sourceType?: "library" | "external" | "online" | string;
     };
   };
   publicOutput?: {
@@ -87,7 +88,7 @@ type FaioListenSnapshot = {
     albumTitle?: string;
     durationSeconds: number;
     contributorName?: string;
-    sourceType?: "library" | "external" | string;
+    sourceType?: "library" | "external" | "online" | string;
     coverUrl?: string;
   }[];
   error?: string;

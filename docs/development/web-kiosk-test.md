@@ -266,10 +266,15 @@ http://<server-ip>:23456/kiosk-test/?faioListenRefreshMs=10000
 
 ```text
 MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL=http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg
-MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME=MytheNAS
+MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME="MytheNAS Speaker"
 ```
 
-副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供 `/faio-listen/media/<file_id>` 和 `/faio-listen/cover/<file_id>` 本地代理，让 kiosk 能读取音频和封面。
+副屏页面不直接跨端口访问 FAIO。`scripts/collect-faio-listen-snapshot.py` 负责维护私有房间 session，并写入 `/runtime/faio-listen.json`；`scripts/serve-web-test.py` 提供以下本地代理：
+
+- 本地曲库：`/faio-listen/media/<file_id>`、`/faio-listen/cover/<file_id>`。
+- 在线平台点歌：`/faio-listen/online/<online_id>/media`、`/faio-listen/online/<online_id>/cover`。
+
+在线平台端点不会把第三方真实 URL 暴露给副屏。代理会携带房间 Cookie 调用 FAIO，FAIO 再按当前 provider 和清晰度动态生成 stream ticket 并转发音频；在线歌词由采集器调用相应 `/online/<online_id>/lyrics` API。普通 `external` 音频 URL 不需要房间代理，保持直接播放。
 
 当前 NAS 的 ALSA 设备来自同一个 `HDA Intel PCH` 声卡：
 
@@ -295,10 +300,14 @@ MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=hw:0,0      # 主板模拟音频口
 ```bash
 MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER=1  # 禁用独立音频播放器
 MYTHE_DISPLAY_FAIO_BROWSER_AUDIO=1         # 保留浏览器内置 FAIO audio
-MYTHE_DISPLAY_FAIO_AUDIO_POLL_MS=2000      # 独立播放器轮询快照间隔
+MYTHE_DISPLAY_FAIO_AUDIO_POLL_MS=1000      # 独立播放器轮询轻量控制状态
 ```
 
 修改后需要 `sudo mdp restart`，因为这是服务启动行为。
+
+公共用户在 FAIO 房间顶部调整暂停或音量时，播放器读取独立的
+`/faio-listen/public-output` 小型状态。普通成员加入、聊天与房间心跳不会改变
+FFmpeg 播放键，也不会重启或 seek 当前音频。
 
 显式切换磁盘数据源：
 

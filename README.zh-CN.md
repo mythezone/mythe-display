@@ -16,7 +16,7 @@ Mythe Display 是一个面向 Ubuntu 服务器、NAS 和机箱副屏的开源 We
 - 已在 `3840x1100` HDMI 长条屏上验证。
 - 默认静态页面位于 `public/kiosk-test/`。
 - 运行时 JSON 快照支持 FAIO 一起听歌、磁盘、CPU、内存、GPU、网络、系统健康、Docker、深圳天气和本机 Codex 会话元数据。
-- 一起听歌只读组件展示专辑封面、歌词和待播放列表，并通过 NAS 本机音频接口播放。
+- 一起听歌只读组件展示专辑封面、歌词和待播放列表，支持本地曲库、普通外链和在线平台点歌，并通过 NAS 本机音频接口播放。
 - 通过 `mdp` 支持启动、刷新、切换页面、查看日志、导入 pet 资源。
 - 主题资源包支持语义 token、动态背景、Hero 图、看板娘和像素 Agent 精灵。
 - 已包含 NAS 场景常用的紧凑监控组件原型。
@@ -162,11 +162,14 @@ cp .env.example .env
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`：设为 `1` 可禁用运行时采集。
 - `MYTHE_DISPLAY_START_CACHE_BUST`：设为 `0` 可关闭默认本地 kiosk 页面启动时追加的 cache-bust 查询参数。
 - `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`：FAIO 一起听歌房间 URL，默认 `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`。
-- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`：副屏只读听众名称，默认 `MytheNAS`。
+- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`：副屏只读听众名称，默认 `MytheNAS Speaker`。
 - `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`：FAIO 房间快照刷新间隔，默认 `10000`。
+- `MYTHE_DISPLAY_FAIO_PUBLIC_OUTPUT_REFRESH_MS`：公共暂停与音量轻量状态刷新间隔，默认 `1000`；不会重新加载房间播放进度。
 - `MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER`：设为 `1` 可禁用 FFmpeg/ALSA FAIO 独立音频播放器。
 - `MYTHE_DISPLAY_FAIO_BROWSER_AUDIO`：设为 `1` 可在独立播放器运行时仍保留浏览器内置 FAIO 音频。
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`：设为 `1` 才会在副屏显示 Codex 线程标题。
+
+FAIO 音频会按来源类型处理：本地曲库和在线平台曲目都通过带私有房间 session 的 Mythe Display 本地代理读取，其中在线曲目仍由 FAIO 动态生成 stream ticket；普通外链保持直连。房间 Cookie 只保存在被忽略的 `tmp/` 目录，不会写入公开 runtime JSON 或提交到 Git。
 
 ## 运行时数据
 

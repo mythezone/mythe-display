@@ -277,6 +277,7 @@ EOF
 fi
 
 if [[ "$URL" == "$DEFAULT_URL" && "${MYTHE_DISPLAY_START_CACHE_BUST:-1}" != "0" ]]; then
+  KIOSK_URL="$(append_query_param "$KIOSK_URL" faioPublicOutputRefreshMs "${MYTHE_DISPLAY_FAIO_PUBLIC_OUTPUT_REFRESH_MS:-1000}")"
   KIOSK_URL="$(append_query_param "$KIOSK_URL" assetCacheBust "$(date +%s%3N)")"
 fi
 

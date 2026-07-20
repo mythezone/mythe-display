@@ -16,7 +16,7 @@ The current release keeps the implementation intentionally simple: a static Web 
 - Tested on an HDMI long-bar display at `3840x1100`.
 - Static Web UI served from `public/kiosk-test/`.
 - Runtime JSON snapshots for FAIO listening rooms, disks, CPU, memory, GPU, network, health, Docker, Shenzhen weather, and local Codex session metadata.
-- Read-only FAIO listening-room widget with cover art, lyrics, queue, and local NAS audio playback.
+- Read-only FAIO listening-room widget with cover art, lyrics, queue, local library tracks, external URLs, online-platform tracks, and local NAS audio playback.
 - Dynamic URL switching and reload through Chromium DevTools via `mdp`.
 - Theme resource packs with semantic tokens, wallpaper layers, hero artwork, mascot assets, and pixel Agent sprites.
 - Compact standard widgets for NAS-style monitoring.
@@ -162,11 +162,14 @@ Common environment variables:
 - `MYTHE_DISPLAY_DISABLE_RUNTIME_COLLECTOR`: set to `1` to disable runtime JSON collectors.
 - `MYTHE_DISPLAY_START_CACHE_BUST`: set to `0` to disable the startup cache-bust query parameter for the default local kiosk page.
 - `MYTHE_DISPLAY_FAIO_LISTEN_ROOM_URL`: FAIO room URL, default `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`.
-- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`: read-only room participant name, default `MytheNAS`.
+- `MYTHE_DISPLAY_FAIO_LISTEN_DISPLAY_NAME`: read-only room participant name, default `MytheNAS Speaker`.
 - `MYTHE_DISPLAY_FAIO_LISTEN_REFRESH_MS`: FAIO room snapshot refresh interval, default `10000`.
+- `MYTHE_DISPLAY_FAIO_PUBLIC_OUTPUT_REFRESH_MS`: lightweight public pause/volume refresh interval, default `1000`; it does not refresh room playback progress.
 - `MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER`: set to `1` to disable the FFmpeg/ALSA FAIO audio follower.
 - `MYTHE_DISPLAY_FAIO_BROWSER_AUDIO`: set to `1` to keep browser-side FAIO audio enabled while the audio follower is running.
 - `MYTHE_DISPLAY_CODEX_AGENT_SHOW_THREAD_NAMES`: set to `1` only if showing Codex thread titles on the screen is acceptable.
+
+FAIO media is handled according to its source type. Library tracks and online-platform tracks are streamed through the local Mythe Display proxy with the private room session; online tracks remain behind FAIO's dynamic stream-ticket resolver. Plain external URLs remain direct. The private room cookies stay under `tmp/` and are never included in runtime JSON or committed to Git.
 
 ## Runtime Data
 

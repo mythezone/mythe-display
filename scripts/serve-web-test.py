@@ -131,6 +131,17 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
         if path.startswith(prefix):
             file_id = parse.unquote(path[len(prefix) :]).strip("/")
             return f"/music/rooms/{quoted_room}/cover/{parse.quote(file_id)}" if file_id else ""
+        prefix = "/faio-listen/online/"
+        if path.startswith(prefix):
+            parts = [parse.unquote(part) for part in path[len(prefix) :].split("/") if part]
+            if len(parts) != 2 or parts[1] not in {"media", "cover"}:
+                return ""
+            online_id, asset_type = parts
+            return (
+                f"/music/rooms/{quoted_room}/online/{parse.quote(online_id)}/{asset_type}"
+                if online_id
+                else ""
+            )
         return ""
 
     def proxy_faio_request(self, base_url: str, upstream_path: str, cookie_header: str, *, head_only: bool) -> None:
@@ -143,7 +154,7 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
         if range_header:
             headers["Range"] = range_header
         upstream_url = parse.urljoin(f"{base_url}/", upstream_path.lstrip("/"))
-        upstream_request = request.Request(upstream_url, headers=headers, method="GET")
+        upstream_request = request.Request(upstream_url, headers=headers, method="HEAD" if head_only else "GET")
         try:
             upstream = request.urlopen(upstream_request, timeout=30)
         except error.HTTPError as exc:

@@ -3220,7 +3220,7 @@
       loadDocker();
       loadWeather();
       loadFaioListen();
-      loadFaioPublicOutput();
+      if (browserAudioEnabled) loadFaioPublicOutput();
       loadAgents();
       updateMascot();
       initHeroGeometry();

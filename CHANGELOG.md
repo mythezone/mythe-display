@@ -1,5 +1,10 @@
 # 更新记录
 
+## 2026-07-20
+
+- 公共暂停和音量改为通过轻量 `/faio-listen/public-output` 状态同步，成员、聊天和心跳变化不会重启 FFmpeg 或跳转当前播放位置；副屏房间身份默认改为 `MytheNAS Speaker`。
+- 修复 FAIO 在线平台点播兼容：`online` 音源现在通过带房间 session 的 `/faio-listen/online/<online_id>/media` 本地代理访问 FAIO 动态 stream ticket，并同步支持在线封面、歌词、队列封面以及旧版 `online_` ID 快照；避免错误请求本地库 `/media/<file_id>` 导致 404 和 FFmpeg 循环重试。
+
 ## 2026-07-19
 
 - 新增 FAIO 一起听歌只读组件：默认连接本机 `http://127.0.0.1:4173/listen/XatSqhcP6LmROQyKrjCULXyD-zcynwRZO5QaLO5Oeyg`，以 `MytheNAS` 加入房间，展示当前专辑封面、歌词、待播放列表，并通过本地 `/faio-listen/media/<file_id>` 代理在 NAS 音频接口播放；左侧 MytheNAS Hero 被替换为一起听歌，Hero 缩为右下角组件。
