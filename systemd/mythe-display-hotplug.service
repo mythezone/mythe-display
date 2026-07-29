@@ -1,0 +1,17 @@
+[Unit]
+Description=Mythe Display DRM hotplug recovery monitor
+Documentation=https://gitlab.muiao.com/mythe/mythe-display
+After=systemd-udev-settle.service systemd-logind.service
+PartOf=mythe-display-kiosk.service
+
+[Service]
+Type=simple
+WorkingDirectory=__MYTHE_DISPLAY_ROOT__
+Environment=MYTHE_DISPLAY_UNIT_NAME=mythe-display-kiosk.service
+Environment=MYTHE_DISPLAY_DRM_DEVICE=auto
+Environment=MYTHE_DISPLAY_HOTPLUG_POLL_MS=1000
+Environment=MYTHE_DISPLAY_HOTPLUG_STABLE_MS=3500
+EnvironmentFile=-__MYTHE_DISPLAY_ROOT__/.env
+ExecStart=__MYTHE_DISPLAY_ROOT__/scripts/drm-hotplug-monitor.py
+Restart=always
+RestartSec=2

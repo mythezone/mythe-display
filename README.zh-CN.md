@@ -114,6 +114,8 @@ sudo scripts/install-kiosk-service.sh
 
 安装脚本会用当前仓库路径渲染 `systemd/mythe-display-kiosk.service`，因此项目不需要固定放在某个个人目录或 `/opt` 下。
 
+安装器同时会部署 DRM 热插拔监测服务。HDMI/DP 断开再稳定恢复后，它会自动重启 kiosk，让 Cage/wlroots 重新选择当前已连接的 DRM card。这样可以处理 compositor 进程仍然存活、但插拔或显示器断电后 scanout 已失效的情况。
+
 启动并设置开机自启：
 
 ```bash
@@ -129,6 +131,19 @@ mdp logs
 mdp reload
 mdp switch /kiosk-test/
 mdp restart
+```
+
+已有安装升级到热插拔恢复功能时，执行一次安装器并重启 kiosk：
+
+```bash
+sudo scripts/install-kiosk-service.sh
+sudo mdp restart
+```
+
+查看热插拔恢复日志：
+
+```bash
+journalctl -u mythe-display-hotplug.service -f
 ```
 
 注意：

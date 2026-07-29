@@ -85,6 +85,32 @@ WLR_DRM_NO_MODIFIERS=1
 
 `MYTHE_DISPLAY_DRM_DEVICE` 默认是 `auto`。脚本会扫描 `/sys/class/drm/card*-*/status`，选择拥有 `connected` HDMI/DP connector 的 `/dev/dri/cardN`。这可以避免重启后 Linux 把 i915/NVIDIA/AMD card 编号重排，例如实际长条屏从 `/dev/dri/card0` 变成 `/dev/dri/card1` 时，服务仍然能启动。只有需要强制固定设备时才设置 `MYTHE_DISPLAY_DRM_DEVICE=/dev/dri/cardN` 和 `MYTHE_DISPLAY_DRM_DEVICE_STRICT=1`。
 
+### HDMI/DP 热插拔恢复
+
+`mythe-display-hotplug.service` 是由 kiosk unit 自动拉起的独立守护进程。它每秒读取 `/sys/class/drm/card*-*/status`，当已连接输出断开后恢复，或 connector/card 身份变化后稳定 `3500ms`，会主动重启 `mythe-display-kiosk.service`。这是必要的，因为某些 Cage/wlroots 组合在热插拔后不会退出，systemd 的 `Restart=on-failure` 无法识别 scanout 已失效。
+
+默认监测所有 connector。需要锁定某个物理接口时，在 `.env` 中设置：
+
+```bash
+MYTHE_DISPLAY_DRM_CONNECTOR=HDMI-A-2
+MYTHE_DISPLAY_HOTPLUG_POLL_MS=1000
+MYTHE_DISPLAY_HOTPLUG_STABLE_MS=3500
+```
+
+更新已有安装后必须重新渲染 systemd unit；旧 unit 可能还保留过时的固定 `/dev/dri/card0`：
+
+```bash
+sudo scripts/install-kiosk-service.sh
+sudo mdp restart
+journalctl -u mythe-display-hotplug.service -f
+```
+
+查看当前监测到的 connector，无需重启服务：
+
+```bash
+python3 scripts/drm-hotplug-monitor.py --once
+```
+
 `WLR_DRM_NO_ATOMIC=1` 和 `WLR_DRM_NO_MODIFIERS=1` 是默认兼容模式，用于规避部分长条屏/i915 组合在运行数分钟后出现 `Atomic commit failed: Device or resource busy` 并导致画面卡住。可以通过 `.env` 中的 `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC=0` 或 `MYTHE_DISPLAY_DISABLE_DRM_MODIFIERS=0` 关闭。
 
 并且 Chromium 会自动加上 root 运行需要的 `--no-sandbox`。

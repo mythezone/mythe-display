@@ -1,8 +1,8 @@
 [Unit]
 Description=Mythe Display kiosk web runtime
 Documentation=https://gitlab.muiao.com/mythe/mythe-display
-After=network-online.target snapd.service systemd-logind.service
-Wants=network-online.target
+After=network-online.target snapd.service systemd-logind.service mythe-display-hotplug.service
+Wants=network-online.target mythe-display-hotplug.service
 
 [Service]
 Type=simple

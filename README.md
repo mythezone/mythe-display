@@ -114,6 +114,8 @@ sudo scripts/install-kiosk-service.sh
 
 The installer renders `systemd/mythe-display-kiosk.service` with the current checkout path, so the repository can live outside `/opt` or a user-specific home directory.
 
+It also installs a DRM hotplug monitor. After an HDMI/DP disconnect and stable reconnect, the monitor restarts the kiosk so Cage/wlroots selects the current connected DRM card again. This covers displays that leave the compositor process alive but lose scanout after a cable or power cycle.
+
 Start and enable the display:
 
 ```bash
@@ -129,6 +131,19 @@ mdp logs
 mdp reload
 mdp switch /kiosk-test/
 mdp restart
+```
+
+To apply this feature to an existing installation, rerun the installer once and restart the kiosk:
+
+```bash
+sudo scripts/install-kiosk-service.sh
+sudo mdp restart
+```
+
+Inspect hotplug recovery events with:
+
+```bash
+journalctl -u mythe-display-hotplug.service -f
 ```
 
 Important behavior:
