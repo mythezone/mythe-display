@@ -16,6 +16,14 @@ SPEC.loader.exec_module(MONITOR)
 
 
 class DrmHotplugMonitorTest(unittest.TestCase):
+    @staticmethod
+    def write_valid_edid(path: Path, marker: int = 0) -> None:
+        block = bytearray(128)
+        block[:8] = b"\x00\xff\xff\xff\xff\xff\xff\x00"
+        block[8] = marker
+        block[-1] = (-sum(block[:-1])) % 256
+        path.write_bytes(block)
+
     def test_reads_connected_connector_signature(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -28,6 +36,33 @@ class DrmHotplugMonitorTest(unittest.TestCase):
                 (connector / "status").write_text(state, encoding="utf-8")
             statuses = MONITOR.connector_statuses(root)
         self.assertEqual(MONITOR.connected_signature(statuses), ("card1-HDMI-A-2",))
+
+    def test_ready_connector_requires_valid_edid_and_target_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            connector = root / "card1-HDMI-A-2"
+            connector.mkdir()
+            (connector / "status").write_text("connected\n", encoding="utf-8")
+            (connector / "modes").write_text("3840x1100\n1920x1080\n", encoding="utf-8")
+            self.write_valid_edid(connector / "edid")
+            statuses = MONITOR.connector_statuses(root, device="/dev/dri/card1")
+            self.assertEqual(
+                MONITOR.ready_signature(root, statuses, "3840x1100"),
+                ("card1-HDMI-A-2",),
+            )
+            (connector / "edid").write_bytes(b"corrupt")
+            self.assertEqual(MONITOR.ready_signature(root, statuses, "3840x1100"), ())
+
+    def test_edid_change_resets_stability_fingerprint(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            connector = root / "card1-HDMI-A-2"
+            connector.mkdir()
+            self.write_valid_edid(connector / "edid", marker=1)
+            first = MONITOR.edid_fingerprints(root, ("card1-HDMI-A-2",))
+            self.write_valid_edid(connector / "edid", marker=2)
+            second = MONITOR.edid_fingerprints(root, ("card1-HDMI-A-2",))
+        self.assertNotEqual(first, second)
 
     def test_only_restarts_after_a_stable_reconnect(self) -> None:
         tracker = MONITOR.HotplugTracker.create(("card0-HDMI-A-2",))

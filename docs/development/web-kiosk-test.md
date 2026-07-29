@@ -87,15 +87,22 @@ WLR_DRM_NO_MODIFIERS=1
 
 ### HDMI/DP 热插拔恢复
 
-`mythe-display-hotplug.service` 是由 kiosk unit 自动拉起的独立守护进程。它每秒读取 `/sys/class/drm/card*-*/status`，当已连接输出断开后恢复，或 connector/card 身份变化后稳定 `3500ms`，会主动重启 `mythe-display-kiosk.service`。这是必要的，因为某些 Cage/wlroots 组合在热插拔后不会退出，systemd 的 `Restart=on-failure` 无法识别 scanout 已失效。
+`mythe-display-hotplug.service` 是由 kiosk unit 自动拉起的独立守护进程。它每秒读取 `/sys/class/drm/card*-*/status`，当已连接输出断开后恢复，或 connector/card 身份变化后，会等待 EDID 校验通过、内容不再变化且包含目标模式，再主动重启 `mythe-display-kiosk.service`。这是必要的，因为某些 Cage/wlroots 组合在热插拔后不会退出，systemd 的 `Restart=on-failure` 无法识别 scanout 已失效。
 
 默认监测所有 connector。需要锁定某个物理接口时，在 `.env` 中设置：
 
 ```bash
 MYTHE_DISPLAY_DRM_CONNECTOR=HDMI-A-2
+MYTHE_DISPLAY_DRM_MODE=3840x1100
 MYTHE_DISPLAY_HOTPLUG_POLL_MS=1000
-MYTHE_DISPLAY_HOTPLUG_STABLE_MS=3500
+MYTHE_DISPLAY_HOTPLUG_STABLE_MS=8000
+MYTHE_DISPLAY_DRM_READY_STABLE_MS=2000
+MYTHE_DISPLAY_DRM_READY_TIMEOUT_MS=20000
 ```
+
+kiosk 每次启动前也执行较短的同类检查，避免 HDMI 刚插入时内核暂时读到
+损坏 EDID，导致 Cage 使用错误扫描时序。其他尺寸屏幕需要把
+`MYTHE_DISPLAY_DRM_MODE` 改为其原生模式。
 
 更新已有安装后必须重新渲染 systemd unit；旧 unit 可能还保留过时的固定 `/dev/dri/card0`：
 
