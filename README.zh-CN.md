@@ -146,6 +146,16 @@ sudo mdp restart
 journalctl -u mythe-display-hotplug.service -f
 ```
 
+如果当前这块 `3840x1100` 长条屏在开关屏后出现 `i2c NAK`、错误 HDMI
+VIC，或降级为 `1920x1080`，可安装项目保存的固定 EDID 后重启：
+
+```bash
+sudo mdp install-edid
+sudo reboot
+```
+
+该 EDID 只适用于当前验证过的屏幕型号，不能直接用于其他显示器。
+
 注意：
 
 - `mdp reload` 只刷新当前 Chromium 页面。

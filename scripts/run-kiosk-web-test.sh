@@ -192,14 +192,21 @@ if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
   export WLR_DRM_DEVICES="${WLR_DRM_DEVICES:-$RESOLVED_DRM_DEVICE}"
   export WLR_LIBINPUT_NO_DEVICES="${WLR_LIBINPUT_NO_DEVICES:-1}"
   if [[ "${MYTHE_DISPLAY_WAIT_FOR_DRM_READY:-1}" == "1" ]]; then
-    python3 "$ROOT_DIR/scripts/drm-hotplug-monitor.py" \
-      --wait-ready \
-      --device "$RESOLVED_DRM_DEVICE" \
-      --connector "${MYTHE_DISPLAY_DRM_CONNECTOR:-}" \
-      --mode "${MYTHE_DISPLAY_DRM_MODE:-3840x1100}" \
-      --poll-ms "${MYTHE_DISPLAY_HOTPLUG_POLL_MS:-1000}" \
-      --stable-ms "${MYTHE_DISPLAY_DRM_READY_STABLE_MS:-2000}" \
+    DRM_READY_ARGS=(
+      --wait-ready
+      --device "$RESOLVED_DRM_DEVICE"
+      --connector "${MYTHE_DISPLAY_DRM_CONNECTOR:-}"
+      --mode "${MYTHE_DISPLAY_DRM_MODE:-3840x1100}"
+      --poll-ms "${MYTHE_DISPLAY_HOTPLUG_POLL_MS:-1000}"
+      --stable-ms "${MYTHE_DISPLAY_DRM_READY_STABLE_MS:-2000}"
       --timeout-ms "${MYTHE_DISPLAY_DRM_READY_TIMEOUT_MS:-20000}"
+    )
+    if [[ "${MYTHE_DISPLAY_DRM_MODE_STRICT:-0}" == "1" ]]; then
+      DRM_READY_ARGS+=(--strict-mode)
+    fi
+    if ! python3 "$ROOT_DIR/scripts/drm-hotplug-monitor.py" "${DRM_READY_ARGS[@]}"; then
+      echo "警告: DRM 输出未稳定，继续启动 Cage 以避免显示器永久无信号。" >&2
+    fi
   fi
   if [[ "${MYTHE_DISPLAY_DISABLE_DRM_ATOMIC:-1}" == "1" ]]; then
     export WLR_DRM_NO_ATOMIC="${WLR_DRM_NO_ATOMIC:-1}"

@@ -4,6 +4,8 @@
 
 - 新增 `mythe-display-hotplug.service` 和 `scripts/drm-hotplug-monitor.py`：监测 DRM connector 断开/稳定恢复或 card/connector 身份变化后，自动重启 kiosk 以重新建立 wlroots scanout；同时安装器会重新渲染 kiosk unit，避免旧安装继续固定过期的 `/dev/dri/card0`。
 - 修复 HDMI 重插后只显示左侧放大点歌界面的模式协商竞态：热插拔恢复和每次 kiosk 启动现在都会等待 EDID 校验通过、EDID 内容稳定且包含目标 `3840x1100` 模式，避免 Cage 在内核仍报告损坏 EDID 时启动。
+- 修复严格模式门禁导致的永久黑屏和异常 EDID 引发的重启循环：目标模式改为可降级首选项，EDID 只使用包含原生时序的基础块判断就绪，connector 未真正断开时不再因扩展块抖动重启。
+- 新增 `mdp install-edid`：安装当前长条屏已验证的固定 EDID、initramfs hook 和 `HDMI-A-2:3840x1100@60` 内核模式，用于绕过屏幕控制板热插拔后的 I²C NAK、错误 HDMI VIC 和分辨率丢失。
 
 ## 2026-07-20
 

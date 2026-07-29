@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+PREREQ=""
+
+prereqs() {
+  echo "$PREREQ"
+}
+
+case "${1:-}" in
+  prereqs)
+    prereqs
+    exit 0
+    ;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+copy_file firmware \
+  /lib/firmware/edid/mythe-display-3840x1100.bin \
+  /lib/firmware/edid/mythe-display-3840x1100.bin

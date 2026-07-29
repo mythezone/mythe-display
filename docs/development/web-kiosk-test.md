@@ -104,6 +104,34 @@ kiosk 每次启动前也执行较短的同类检查，避免 HDMI 刚插入时�
 损坏 EDID，导致 Cage 使用错误扫描时序。其他尺寸屏幕需要把
 `MYTHE_DISPLAY_DRM_MODE` 改为其原生模式。
 
+目标模式默认是首选项而不是硬门禁。即使异常 EDID 暂时只提供 `1920x1080`，
+kiosk 也会降级启动，避免显示器因无信号自动关机。只有明确需要阻止降级启动时
+才设置 `MYTHE_DISPLAY_DRM_MODE_STRICT=1`。
+
+### 固定 EDID
+
+当前验证过的长条屏控制板在热插拔或开关屏幕后可能出现 `i2c NAK`、
+`Unknown HDMI VIC`、CTA 扩展块 checksum 错误，甚至暂时丢失
+`3840x1100` 模式。项目从该屏幕正常工作时读取的 EDID 中提取了包含原生
+时序的 128 字节基础块，并移除了不可靠的 CTA/HDMI 扩展块，可用以下命令
+把它安装为 i915 的固件覆盖：
+
+```bash
+sudo mdp install-edid
+sudo reboot
+```
+
+安装器会：
+
+1. 安装 `/lib/firmware/edid/mythe-display-3840x1100.bin`。
+2. 添加 initramfs hook，确保 i915 早期 modeset 可以读取固定 EDID。
+3. 在 GRUB 中添加 `drm.edid_firmware` 和
+   `video=HDMI-A-2:3840x1100@60e`。
+4. 备份原始 `/etc/default/grub`，然后更新 initramfs 和 GRUB。
+
+该命令只适用于当前 `HDMI-A-2`、`3840x1100@60` 屏幕。其他型号应采集
+自己的正常 EDID，不应直接复用这个文件。
+
 更新已有安装后必须重新渲染 systemd unit；旧 unit 可能还保留过时的固定 `/dev/dri/card0`：
 
 ```bash

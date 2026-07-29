@@ -10,7 +10,6 @@ sysfs and restarts the kiosk only after an output reconnects and stays stable.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import os
 import re
 import signal
@@ -66,11 +65,14 @@ def connected_signature(statuses: dict[str, str]) -> tuple[str, ...]:
 
 
 def valid_edid(edid: bytes) -> bool:
-    if len(edid) < 128 or len(edid) % 128 != 0:
+    if len(edid) < 128:
         return False
     if edid[:8] != b"\x00\xff\xff\xff\xff\xff\xff\x00":
         return False
-    return all(sum(edid[offset : offset + 128]) % 256 == 0 for offset in range(0, len(edid), 128))
+    # Some HDMI controller boards intermittently return a corrupt CTA
+    # extension while their base EDID block and native timing remain valid.
+    # Requiring every extension checksum creates a restart loop.
+    return sum(edid[:128]) % 256 == 0
 
 
 def connector_ready(connector_path: Path, required_mode: str = "") -> bool:
@@ -103,17 +105,6 @@ def ready_signature(
             if status == "connected" and connector_ready(sysfs_root / name, required_mode)
         )
     )
-
-
-def edid_fingerprints(sysfs_root: Path, signature: tuple[str, ...]) -> tuple[str, ...]:
-    fingerprints: list[str] = []
-    for name in signature:
-        try:
-            digest = hashlib.sha256((sysfs_root / name / "edid").read_bytes()).hexdigest()
-        except OSError:
-            return ()
-        fingerprints.append(f"{name}:{digest}")
-    return tuple(fingerprints)
 
 
 @dataclass
@@ -176,7 +167,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--mode",
         default=os.environ.get("MYTHE_DISPLAY_DRM_MODE", "3840x1100"),
-        help="要求 connector 提供的显示模式；传空字符串可禁用模式检查。",
+        help="首选显示模式；默认只记录，不作为阻止视频输出的硬门禁。",
+    )
+    parser.add_argument(
+        "--strict-mode",
+        action="store_true",
+        default=os.environ.get("MYTHE_DISPLAY_DRM_MODE_STRICT", "0") == "1",
+        help="要求 EDID 必须包含 --mode；默认关闭，避免异常 EDID 导致永久黑屏。",
     )
     parser.add_argument(
         "--poll-ms",
@@ -226,12 +223,13 @@ def main() -> int:
         print(f"[drm-hotplug] DRM sysfs 不存在: {args.sysfs_root}", file=sys.stderr)
         return 1
 
+    required_mode = args.mode if args.strict_mode else ""
     initial_statuses = connector_statuses(args.sysfs_root, args.connector, args.device)
     initial_connected = connected_signature(initial_statuses)
-    initial_ready = ready_signature(args.sysfs_root, initial_statuses, args.mode)
+    initial_ready = ready_signature(args.sysfs_root, initial_statuses, required_mode)
     print(
         f"[drm-hotplug] 监测 device={args.device or 'auto'}，connector={args.connector or 'auto'}，"
-        f"目标模式={args.mode or 'any'}，"
+        f"首选模式={args.mode or 'any'}，模式门禁={'strict' if args.strict_mode else 'fallback'}，"
         f"初始已连接={','.join(initial_connected) or 'none'}，"
         f"初始已就绪={','.join(initial_ready) or 'none'}，"
         f"轮询={max(100, args.poll_ms)}ms，稳定等待={max(0, args.stable_ms)}ms",
@@ -247,20 +245,20 @@ def main() -> int:
         deadline = time.monotonic() + max(0.0, args.timeout_ms / 1000)
         while time.monotonic() <= deadline:
             statuses = connector_statuses(args.sysfs_root, args.connector, args.device)
-            ready = ready_signature(args.sysfs_root, statuses, args.mode)
-            fingerprint = edid_fingerprints(args.sysfs_root, ready)
-            if tracker.update(fingerprint, time.monotonic(), stable_seconds):
+            ready = ready_signature(args.sysfs_root, statuses, required_mode)
+            if tracker.update(ready, time.monotonic(), stable_seconds):
                 print(f"[drm-hotplug] DRM 输出已稳定: {','.join(ready)}", flush=True)
                 return 0
             time.sleep(poll_seconds)
         print(
-            f"[drm-hotplug] 等待 DRM 输出超时：需要有效 EDID 和模式 {args.mode or 'any'}",
+            f"[drm-hotplug] 等待 DRM 输出超时：没有获得有效 EDID"
+            f"{f' 和模式 {args.mode}' if args.strict_mode and args.mode else ''}",
             file=sys.stderr,
             flush=True,
         )
         return 1
 
-    tracker = HotplugTracker.create(edid_fingerprints(args.sysfs_root, initial_ready))
+    tracker = HotplugTracker.create(initial_ready)
     stopping = False
 
     def stop(_signum: int, _frame: object) -> None:
@@ -276,8 +274,7 @@ def main() -> int:
         time.sleep(poll_seconds)
         statuses = connector_statuses(args.sysfs_root, args.connector, args.device)
         connected = connected_signature(statuses)
-        ready = ready_signature(args.sysfs_root, statuses, args.mode)
-        fingerprint = edid_fingerprints(args.sysfs_root, ready)
+        ready = ready_signature(args.sysfs_root, statuses, required_mode)
         if connected != previous_connected:
             print(
                 f"[drm-hotplug] connector 变化: "
@@ -292,7 +289,7 @@ def main() -> int:
                 flush=True,
             )
             previous_ready = ready
-        if tracker.update(fingerprint, time.monotonic(), stable_seconds):
+        if tracker.update(ready, time.monotonic(), stable_seconds):
             try:
                 restart_unit(args.unit, dry_run=args.dry_run)
             except (OSError, subprocess.SubprocessError, ValueError) as exc:

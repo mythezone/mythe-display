@@ -49,6 +49,7 @@ INSTALL_SERVICE="$ROOT_DIR/scripts/install-kiosk-service.sh"
 INSTALL_COMMAND="$ROOT_DIR/scripts/install-mdp-command.sh"
 PET_IMPORT="$ROOT_DIR/scripts/import-codex-pet.py"
 AUDIO_TEST="$ROOT_DIR/scripts/audio-output-test.sh"
+INSTALL_EDID="$ROOT_DIR/scripts/install-edid-override.sh"
 
 usage() {
   cat <<EOF
@@ -77,6 +78,7 @@ Service:
 Setup:
   mdp install-service              安装/更新 systemd 服务
   mdp install-command              安装/更新 /usr/bin/mdp
+  mdp install-edid                 安装当前长条屏的固定 3840x1100 EDID
   mdp run [url]                    直接运行 kiosk 测试脚本
 
 Examples:
@@ -289,6 +291,13 @@ case "${1:-help}" in
       exec "$INSTALL_COMMAND" "$@"
     fi
     exec sudo "$INSTALL_COMMAND" "$@"
+    ;;
+  install-edid)
+    shift
+    if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
+      exec "$INSTALL_EDID" "$@"
+    fi
+    exec sudo "$INSTALL_EDID" "$@"
     ;;
   *)
     echo "未知命令: $1" >&2

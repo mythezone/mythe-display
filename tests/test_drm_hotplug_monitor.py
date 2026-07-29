@@ -53,16 +53,13 @@ class DrmHotplugMonitorTest(unittest.TestCase):
             (connector / "edid").write_bytes(b"corrupt")
             self.assertEqual(MONITOR.ready_signature(root, statuses, "3840x1100"), ())
 
-    def test_edid_change_resets_stability_fingerprint(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            connector = root / "card1-HDMI-A-2"
-            connector.mkdir()
-            self.write_valid_edid(connector / "edid", marker=1)
-            first = MONITOR.edid_fingerprints(root, ("card1-HDMI-A-2",))
-            self.write_valid_edid(connector / "edid", marker=2)
-            second = MONITOR.edid_fingerprints(root, ("card1-HDMI-A-2",))
-        self.assertNotEqual(first, second)
+    def test_invalid_extension_does_not_hide_valid_native_mode(self) -> None:
+        base = bytearray(128)
+        base[:8] = b"\x00\xff\xff\xff\xff\xff\xff\x00"
+        base[126] = 1
+        base[-1] = (-sum(base[:-1])) % 256
+        corrupt_extension = bytes([1] * 128)
+        self.assertTrue(MONITOR.valid_edid(bytes(base) + corrupt_extension))
 
     def test_only_restarts_after_a_stable_reconnect(self) -> None:
         tracker = MONITOR.HotplugTracker.create(("card0-HDMI-A-2",))

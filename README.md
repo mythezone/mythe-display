@@ -146,6 +146,17 @@ Inspect hotplug recovery events with:
 journalctl -u mythe-display-hotplug.service -f
 ```
 
+If this specific `3840x1100` panel reports `i2c NAK`, invalid HDMI VIC values,
+or falls back to `1920x1080` after a power cycle, install the captured fixed
+EDID and reboot:
+
+```bash
+sudo mdp install-edid
+sudo reboot
+```
+
+This EDID is hardware-specific. Do not install it for another display model.
+
 Important behavior:
 
 - `mdp reload` refreshes the current Chromium page only.
