@@ -180,6 +180,7 @@ cp .env.example .env
 - `MYTHE_DISPLAY_REMOTE_DEBUG_PORT`：Chromium DevTools 控制端口，默认 `23458`。
 - `MYTHE_DISPLAY_BROWSER`：浏览器命令，例如 `chromium-browser`。
 - `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE`：FAIO 音频使用的 ALSA 输出设备，当前 NAS 默认 `plughw:0,3` 走在线 HDMI 副屏音频端点；如需主板模拟音频口可改为 `hw:0,0`。
+- `MYTHE_DISPLAY_FAIO_RESUME_PUBLIC_OUTPUT`：无人值守音频进程启动时恢复 FAIO 独立的公共扬声器状态，默认 `1`；启动后仍响应远程暂停和音量调整。
 - `MYTHE_DISPLAY_DRM_DEVICE`：Cage/wlroots 使用的 DRM 设备，默认 `auto`，会选择带 connected 显示连接器的 card。
 - `MYTHE_DISPLAY_DRM_DEVICE_STRICT`：设为 `1` 时强制使用配置的 DRM card，即使另一个 card 才连接了显示器。
 - `MYTHE_DISPLAY_DISABLE_DRM_ATOMIC`：设为 `1` 使用 wlroots legacy DRM commit，默认 `1`，提高长条屏稳定性。

@@ -40,6 +40,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=os.environ.get("MYTHE_DISPLAY_FAIO_PUBLIC_OUTPUT_PATH", "/faio-listen/public-output"),
         help="公共播放器暂停与音量控制端点。",
     )
+    parser.add_argument(
+        "--resume-public-output",
+        action=argparse.BooleanOptionalAction,
+        default=os.environ.get("MYTHE_DISPLAY_FAIO_RESUME_PUBLIC_OUTPUT", "1") != "0",
+        help="启动时恢复 FAIO 公共扬声器播放；默认启用。",
+    )
+    parser.add_argument("--resume-only", action="store_true", help="恢复公共扬声器后退出。")
     parser.add_argument("--ffmpeg", default=os.environ.get("MYTHE_DISPLAY_FFMPEG", "ffmpeg"), help="ffmpeg 命令路径。")
     parser.add_argument("--log-level", default=os.environ.get("MYTHE_DISPLAY_FAIO_AUDIO_LOG_LEVEL", "warning"))
     parser.add_argument("--once", action="store_true", help="启动一次当前曲目后退出，主要用于调试。")
@@ -81,6 +88,24 @@ def read_public_output(base_url: str, path: str) -> dict[str, Any] | None:
             payload = json.load(response)
     except (error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
         print(f"[faio-audio] 公共播放控制读取失败: {exc}", file=sys.stderr)
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
+def resume_public_output(base_url: str, path: str) -> dict[str, Any] | None:
+    endpoint = urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
+    body = json.dumps({"playing": True}).encode("utf-8")
+    update = request.Request(
+        endpoint,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="PUT",
+    )
+    try:
+        with request.urlopen(update, timeout=5) as response:
+            payload = json.load(response)
+    except (error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+        print(f"[faio-audio] 恢复公共扬声器失败: {exc}", file=sys.stderr)
         return None
     return payload if isinstance(payload, dict) else None
 
@@ -189,6 +214,12 @@ def main() -> int:
     signal.signal(signal.SIGINT, handle_signal)
 
     print(f"[faio-audio] ALSA 输出设备: {args.alsa_device}")
+    if args.resume_public_output or args.resume_only:
+        resumed = resume_public_output(args.base_url, args.public_output_path)
+        if resumed:
+            print(f"[faio-audio] 公共扬声器已恢复，音量 {int(resumed.get('volume', 70))}%")
+        if args.resume_only:
+            return 0 if resumed else 1
     while not stopping:
         snapshot = read_snapshot(args.snapshot)
         playback = snapshot.get("playback") if isinstance(snapshot, dict) and isinstance(snapshot.get("playback"), dict) else {}

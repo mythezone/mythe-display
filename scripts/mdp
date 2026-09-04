@@ -49,6 +49,7 @@ INSTALL_SERVICE="$ROOT_DIR/scripts/install-kiosk-service.sh"
 INSTALL_COMMAND="$ROOT_DIR/scripts/install-mdp-command.sh"
 PET_IMPORT="$ROOT_DIR/scripts/import-codex-pet.py"
 AUDIO_TEST="$ROOT_DIR/scripts/audio-output-test.sh"
+FAIO_AUDIO_PLAYER="$ROOT_DIR/scripts/faio-listen-audio-player.py"
 INSTALL_EDID="$ROOT_DIR/scripts/install-edid-override.sh"
 
 usage() {
@@ -65,6 +66,7 @@ Display:
   mdp theme <theme-json-url>       切换到指定主题资源包
   mdp pet <package|id|zip>         导入 Codex/Petdex pet 包并刷新
   mdp audio-test [device] [secs]   输出一段 ALSA 测试音
+  mdp audio-resume                 恢复 FAIO 公共扬声器播放
 
 Service:
   mdp start                        启动 systemd kiosk 服务
@@ -250,6 +252,14 @@ case "${1:-help}" in
       exec "$AUDIO_TEST" "$@"
     fi
     exec sudo "$AUDIO_TEST" "$@"
+    ;;
+  audio-resume)
+    shift
+    ensure_service_started
+    exec "$FAIO_AUDIO_PLAYER" \
+      --resume-only \
+      --base-url "http://${MYTHE_DISPLAY_HOST:-127.0.0.1}:${MYTHE_DISPLAY_PORT:-23456}" \
+      "$@"
     ;;
   control)
     shift

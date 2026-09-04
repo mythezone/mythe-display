@@ -349,6 +349,12 @@ hw:0,8  HDMI 2
 
 `/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3`，由 `scripts/faio-listen-audio-player.py` 使用 FFmpeg 直接输出到 HDMI ALSA 端点。这样可以绕过无桌面 snap Chromium 中 HTML audio 显示播放但不打开 ALSA PCM 的问题。
 
+FAIO 的 `public_output.playing` 是独立于房间播放状态的公共扬声器开关。其他
+终端可以继续播放，而该值为 `false` 时 NAS 会静音。无人值守 kiosk 默认在
+音频进程启动时通过认证代理恢复一次公共扬声器，之后仍尊重远程暂停和音量
+调整。可用 `mdp audio-resume` 手动恢复，或设置
+`MYTHE_DISPLAY_FAIO_RESUME_PUBLIC_OUTPUT=0` 禁用启动恢复。
+
 需要切换输出时可在 `.env` 中设置：
 
 ```bash

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from urllib import request
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "faio-listen-audio-player.py"
@@ -52,6 +54,19 @@ class FaioListenAudioPlayerTest(unittest.TestCase):
         command = popen.call_args.args[0]
         self.assertEqual(command[command.index("-af") + 1], "volume=0.33")
         self.assertEqual(command[command.index("-ss") + 1], "12.500")
+
+    def test_resume_public_output_sends_playing_true(self) -> None:
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value = response
+        response.__exit__.return_value = False
+        with patch.object(PLAYER.request, "urlopen", return_value=response) as urlopen, patch.object(
+            PLAYER.json, "load", return_value={"playing": True, "volume": 65}
+        ):
+            result = PLAYER.resume_public_output("http://127.0.0.1:23456", "/faio-listen/public-output")
+        sent: request.Request = urlopen.call_args.args[0]
+        self.assertEqual(sent.method, "PUT")
+        self.assertEqual(json.loads(sent.data), {"playing": True})
+        self.assertTrue(result["playing"])
 
 
 class FaioOnlineMediaCompatibilityTest(unittest.TestCase):

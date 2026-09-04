@@ -1,5 +1,9 @@
 # 更新记录
 
+## 2026-09-04
+
+- 修复 FAIO 房间正在播放但副屏无声：确认 HDMI ELD 与 `plughw:0,3` 正常，根因是 FAIO 独立公共扬声器状态遗留为暂停；本地代理新增认证 PUT 透传，音频进程启动时恢复一次公共输出，并新增 `mdp audio-resume` 手动恢复命令。
+
 ## 2026-07-29
 
 - 新增 `mythe-display-hotplug.service` 和 `scripts/drm-hotplug-monitor.py`：监测 DRM connector 断开/稳定恢复或 card/connector 身份变化后，自动重启 kiosk 以重新建立 wlroots scanout；同时安装器会重新渲染 kiosk unit，避免旧安装继续固定过期的 `/dev/dri/card0`。

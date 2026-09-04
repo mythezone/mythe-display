@@ -52,6 +52,13 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
             return
         super().do_HEAD()
 
+    def do_PUT(self) -> None:
+        parsed = parse.urlparse(self.path)
+        if parsed.path == "/faio-listen/public-output":
+            self.handle_faio_public_output_update(parsed)
+            return
+        self.send_error(405, "Method not allowed")
+
     def handle_faio_snapshot_override(self, *, head_only: bool) -> bool:
         override = os.environ.get("MYTHE_DISPLAY_FAIO_SNAPSHOT_FILE")
         if not override:
@@ -113,6 +120,35 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
         if not head_only:
             self.wfile.write(body)
 
+    def handle_faio_public_output_update(self, parsed: parse.ParseResult) -> None:
+        try:
+            snapshot = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SNAPSHOT_FILE", DEFAULT_SNAPSHOT_FILE)))
+            session = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SESSION_FILE", DEFAULT_SESSION_FILE)))
+            base_url = str(session.get("baseUrl") or snapshot.get("baseUrl") or "").rstrip("/")
+            room_id = str(session.get("roomId") or snapshot.get("roomId") or "")
+            cookie_header = self.faio_cookie_header(session)
+            content_length = min(4096, max(0, int(self.headers.get("Content-Length", "0"))))
+            body = self.rfile.read(content_length)
+            payload = json.loads(body or b"{}")
+            if not isinstance(payload, dict) or not set(payload).issubset({"playing", "volume"}):
+                self.send_error(400, "Invalid public output payload")
+                return
+            if not base_url or not room_id or not cookie_header:
+                self.send_error(503, "FAIO listen session is not ready")
+                return
+            upstream_path = self.resolve_faio_upstream_path(parsed.path, snapshot, room_id)
+            self.proxy_faio_request(
+                base_url,
+                upstream_path,
+                cookie_header,
+                head_only=False,
+                method="PUT",
+                body=json.dumps(payload).encode("utf-8"),
+                content_type="application/json",
+            )
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
+            self.send_error(503, "FAIO listen session is not ready")
+
     def resolve_faio_upstream_path(self, path: str, snapshot: dict, room_id: str) -> str:
         quoted_room = parse.quote(room_id)
         if path == "/faio-listen/public-output":
@@ -144,7 +180,17 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
             )
         return ""
 
-    def proxy_faio_request(self, base_url: str, upstream_path: str, cookie_header: str, *, head_only: bool) -> None:
+    def proxy_faio_request(
+        self,
+        base_url: str,
+        upstream_path: str,
+        cookie_header: str,
+        *,
+        head_only: bool,
+        method: str = "GET",
+        body: bytes | None = None,
+        content_type: str = "",
+    ) -> None:
         headers = {
             "Cookie": cookie_header,
             "User-Agent": "MytheDisplay/0.1 faio-listen-proxy",
@@ -153,8 +199,15 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
         range_header = self.headers.get("Range")
         if range_header:
             headers["Range"] = range_header
+        if content_type:
+            headers["Content-Type"] = content_type
         upstream_url = parse.urljoin(f"{base_url}/", upstream_path.lstrip("/"))
-        upstream_request = request.Request(upstream_url, headers=headers, method="HEAD" if head_only else "GET")
+        upstream_request = request.Request(
+            upstream_url,
+            data=body,
+            headers=headers,
+            method="HEAD" if head_only else method,
+        )
         try:
             upstream = request.urlopen(upstream_request, timeout=30)
         except error.HTTPError as exc:
