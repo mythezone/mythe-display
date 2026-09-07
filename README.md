@@ -159,6 +159,8 @@ sudo reboot
 
 This EDID is hardware-specific. Do not install it for another display model.
 
+If an older override falls back to `1680x1050` and the dashboard scrolls, rerun the two commands above. The corrected EDID retains HDMI identification and sufficient bandwidth for `3840x1100`; a page or kiosk restart alone does not replace the kernel's cached EDID. Schedule the NAS reboot appropriately.
+
 Important behavior:
 
 - `mdp reload` refreshes the current Chromium page only.

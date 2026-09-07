@@ -121,8 +121,9 @@ kiosk 也会降级启动，避免显示器因无信号自动关机。只有明�
 当前验证过的长条屏控制板在热插拔或开关屏幕后可能出现 `i2c NAK`、
 `Unknown HDMI VIC`、CTA 扩展块 checksum 错误，甚至暂时丢失
 `3840x1100` 模式。项目从该屏幕正常工作时读取的 EDID 中提取了包含原生
-时序的 128 字节基础块，并移除了不可靠的 CTA/HDMI 扩展块，可用以下命令
-把它安装为 i915 的固件覆盖：
+时序的 128 字节基础块，并重建最小 CTA 扩展：HDMI 标识、300 MHz TMDS 上限、
+基础双声道 LPCM 音频，不带原先损坏的 VIC 列表。可用以下命令把它安装为
+i915 的固件覆盖：
 
 ```bash
 sudo mdp install-edid
@@ -139,6 +140,22 @@ sudo reboot
 
 该命令只适用于当前 `HDMI-A-2`、`3840x1100@60` 屏幕。其他型号应采集
 自己的正常 EDID，不应直接复用这个文件。
+
+**旧版覆盖文件需重新安装。** 只保留基础块会丢失 HDMI 身份，i915 按 DVI
+限制到 165 MHz；原生时序需要 282.89 MHz，因此会被过滤掉，即使内核命令行
+写了 `3840x1100`。表现是 Chromium 变为 `1680x1050`，页面进入双列滚动布局。
+`fb0/virtual_size` 仍可能保留 `3840,1100`，不能据此断言当前输出正常。
+依据：[Linux 6.8 i915 带宽限制](https://github.com/torvalds/linux/blob/v6.8/drivers/gpu/drm/i915/display/intel_hdmi.c#L1680)。
+
+更新文件或 `mdp restart` 不能替换内核已经缓存的 EDID，需执行上面的安装命令，
+并安排 NAS 重启。重启后检查连接器 `modes` 包含 `3840x1100`，浏览器实际视口为
+`3840x1100`，8 个 panel 均位于视口内且没有整页滚动。可运行
+`python3 -m unittest discover -s tests` 检查 EDID 的校验和、原生尺寸、HDMI
+带宽和基础音频声明；硬件模式切换仍需实际重启验收。
+
+2026-09-07 验证：`edid-decode --check` 返回 `EDID conformity: PASS`；
+Playwright 在 `3840x1100` 下确认 8 个 panel 全部位于视口内，页面滚动尺寸
+也是 `3840x1100`。测试未改变运行中的物理输出。
 
 更新已有安装后必须重新渲染 systemd unit；旧 unit 可能还保留过时的固定 `/dev/dri/card0`：
 

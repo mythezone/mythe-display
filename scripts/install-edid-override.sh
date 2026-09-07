@@ -38,9 +38,11 @@ edid_path = Path(sys.argv[1])
 grub_path = Path(sys.argv[2])
 required_args = sys.argv[3].split()
 edid = edid_path.read_bytes()
-if len(edid) != 128 or edid[:8] != b"\x00\xff\xff\xff\xff\xff\xff\x00":
+if len(edid) < 128 or len(edid) % 128 or edid[:8] != b"\x00\xff\xff\xff\xff\xff\xff\x00":
     raise SystemExit("EDID 文件格式无效")
-if sum(edid) % 256:
+if len(edid) != (edid[126] + 1) * 128:
+    raise SystemExit("EDID 扩展块数量无效")
+if any(sum(edid[offset:offset + 128]) % 256 for offset in range(0, len(edid), 128)):
     raise SystemExit("EDID checksum 无效")
 
 lines = grub_path.read_text(encoding="utf-8").splitlines()

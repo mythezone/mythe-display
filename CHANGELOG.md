@@ -2,6 +2,7 @@
 
 ## 2026-09-07
 
+- 修复旧固定 EDID 去除全部 CTA 导致 HDMI 被当作 DVI、原生 282.89 MHz 模式被 165 MHz 带宽限制过滤的问题：重建最小 HDMI/基础音频扩展，安装器检查各块校验和及扩展数量，新增 EDID 回归测试。旧安装需重新 `sudo mdp install-edid` 并安排 NAS 重启；硬件切换未在无 sudo 权限会话中执行。
 - Chromium 启动固定禁用首次运行引导和默认浏览器检查，避免临时 profile 在重启后丢失首次运行标记时，Linux 条款弹窗（`This Space Intentionally Blank`、Cancel/Accept）阻塞无人值守屏幕及 DevTools。已有进程需要 `sudo mdp restart` 才能应用启动参数。
 
 ## 2026-09-04
