@@ -1,5 +1,9 @@
 # 更新记录
 
+## 2026-09-07
+
+- Chromium 启动固定禁用首次运行引导和默认浏览器检查，避免临时 profile 在重启后丢失首次运行标记时，Linux 条款弹窗（`This Space Intentionally Blank`、Cancel/Accept）阻塞无人值守屏幕及 DevTools。已有进程需要 `sudo mdp restart` 才能应用启动参数。
+
 ## 2026-09-04
 
 - 修复 FAIO 房间正在播放但副屏无声：确认 HDMI ELD 与 `plughw:0,3` 正常，根因是 FAIO 独立公共扬声器状态遗留为暂停；本地代理新增认证 PUT 透传，音频进程启动时恢复一次公共输出，并新增 `mdp audio-resume` 手动恢复命令。

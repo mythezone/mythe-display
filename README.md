@@ -106,6 +106,8 @@ sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 
 ## Install as a Service
 
+Chromium first-run and default-browser prompts are disabled for unattended operation, including fresh profiles after reboot. To apply launcher updates or recover an older installation blocked by a Cancel/Accept startup dialog, run `sudo mdp restart`; page reload cannot dismiss this pre-browser dialog.
+
 Install the systemd service and `mdp` command:
 
 ```bash

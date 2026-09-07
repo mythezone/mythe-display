@@ -106,6 +106,8 @@ sudo MYTHE_DISPLAY_PORT=23456 scripts/run-kiosk-web-test.sh
 
 ## 安装为服务
 
+Chromium 默认禁用首次运行和默认浏览器提示，重启后新建 profile 也无需人工操作。更新启动脚本后，或旧版本被 Cancel/Accept 启动弹窗阻塞时，执行 `sudo mdp restart`；刷新页面无法关闭浏览器初始化阶段的弹窗。
+
 安装 systemd 服务和 `mdp` 命令：
 
 ```bash

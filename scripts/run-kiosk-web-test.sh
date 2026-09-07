@@ -346,6 +346,9 @@ mkdir -p "$USER_DATA_DIR"
 CHROMIUM_ARGS=(
   --kiosk "$KIOSK_URL"
   --user-data-dir="$USER_DATA_DIR"
+  # The temporary profile may be new after boot; first-run dialogs block CDP too.
+  --no-first-run
+  --no-default-browser-check
   --noerrdialogs
   --disable-infobars
   --disable-session-crashed-bubble

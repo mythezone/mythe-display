@@ -6,6 +6,14 @@
 
 验证 Mythe Display 的主界面可以作为网页内容运行，并在生产模式中以无浏览器控制条方式显示到唯一 HDMI 屏。
 
+## 无人值守启动弹窗
+
+Chromium 统一使用 `--no-first-run --no-default-browser-check`，不依赖临时 profile 中的首次运行标记。否则重启后新建 profile 时，Linux 条款弹窗可能显示 `This Space Intentionally Blank` 和 Cancel/Accept，并在 DevTools 开启之前阻塞启动。此时 `mdp reload` 无法关闭弹窗，需要更新启动脚本后执行 `sudo mdp restart`，不需要连接鼠标，也不需要删除现有 profile。
+
+上游依据：[Linux EULA 调用条件](https://github.com/chromium/chromium/blob/152.0.7977.64/chrome/browser/chrome_browser_main.cc)及[首次运行判断](https://github.com/chromium/chromium/blob/152.0.7977.64/chrome/browser/first_run/first_run.cc)。物理 kiosk 不能使用浏览器 `--headless`，否则不会上屏。
+
+2026-09-07 回归验证：本机 Chromium 152.0.7977.64，在 Cage 虚拟输出中分别使用全新 profile。旧参数无法开启 DevTools；加入上述参数后，DevTools 可用，页面标题为 `Mythe Display Kiosk Test`，8 个 panel 均加载。该测试验证浏览器初始化，不代替系统服务重启后的物理屏验收。
+
 ## 当前状态
 
 仓库已提供一个静态测试页：
