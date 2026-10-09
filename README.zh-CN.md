@@ -201,6 +201,8 @@ cp .env.example .env
 
 FAIO 音频会按来源类型处理：本地曲库和在线平台曲目都通过带私有房间 session 的 Mythe Display 本地代理读取，其中在线曲目仍由 FAIO 动态生成 stream ticket；普通外链保持直连。房间 Cookie 只保存在被忽略的 `tmp/` 目录，不会写入公开 runtime JSON 或提交到 Git。
 
+启用浏览器 K歌输出（`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`）时，snap Chromium 需要可用的宿主音频服务。先执行 `sudo apt-get install --no-install-recommends pulseaudio`，再执行 `sudo mdp restart`。未配置或运行音频服务时，kiosk 会在 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 上启动本机 PulseAudio 输出，并在退出时停止它。排查步骤见[浏览器 K歌音频](docs/development/web-kiosk-test.md#浏览器-k歌音频)。
+
 ## 运行时数据
 
 默认页面读取 `public/runtime/` 中的本地 JSON 快照。该目录已被 Git 忽略。

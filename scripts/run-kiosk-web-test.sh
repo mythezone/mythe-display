@@ -19,6 +19,7 @@ SERVER_PID=""
 KIOSK_PID=""
 RUNTIME_COLLECTOR_PID=""
 FAIO_AUDIO_PLAYER_PID=""
+BROWSER_AUDIO_PID=""
 IS_ROOT=0
 
 export no_proxy="${no_proxy:-localhost,127.0.0.1,::1}"
@@ -68,6 +69,10 @@ EOF
 fi
 
 cleanup() {
+  if [[ -n "$BROWSER_AUDIO_PID" ]]; then
+    kill "$BROWSER_AUDIO_PID" >/dev/null 2>&1 || true
+    wait "$BROWSER_AUDIO_PID" >/dev/null 2>&1 || true
+  fi
   if [[ -n "$FAIO_AUDIO_PLAYER_PID" ]]; then
     kill "$FAIO_AUDIO_PLAYER_PID" >/dev/null 2>&1 || true
     wait "$FAIO_AUDIO_PLAYER_PID" >/dev/null 2>&1 || true
@@ -289,6 +294,41 @@ EOF
     FAIO_AUDIO_PLAYER_PID="$!"
     if [[ "${MYTHE_DISPLAY_FAIO_BROWSER_AUDIO:-0}" != "1" ]]; then
       KIOSK_URL="$(append_query_param "$KIOSK_URL" browserAudio 0)"
+    fi
+  fi
+fi
+
+if [[ "$URL" == "$DEFAULT_URL" && "${MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT:-0}" == "1" && "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" != "1" ]]; then
+  # Snap Chromium needs a host audio server; its ALSA fallback cannot reach HDMI.
+  if [[ -z "${PULSE_SERVER:-}" ]]; then
+    BROWSER_PULSE_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/pulse"
+    export PULSE_SERVER="unix:$BROWSER_PULSE_DIR/native"
+    if [[ ! -S "$BROWSER_PULSE_DIR/native" ]]; then
+      if ! has_command pulseaudio; then
+        echo "K歌浏览器音频需要 PulseAudio。请先安装：sudo apt-get install --no-install-recommends pulseaudio" >&2
+        exit 1
+      fi
+      install -d -m 700 "$BROWSER_PULSE_DIR"
+      pulseaudio --daemonize=no --exit-idle-time=-1 --use-pid-file=no \
+        --disable-shm=yes --disallow-exit=yes --disallow-module-loading=yes \
+        --fail=yes --log-target=stderr -n \
+        -L "module-alsa-sink device=$ALSA_OUTPUT_DEVICE sink_name=mythe_display rate=48000 channels=2 format=s16le" \
+        -L "module-native-protocol-unix socket=$BROWSER_PULSE_DIR/native auth-anonymous=1" &
+      BROWSER_AUDIO_PID="$!"
+      for audio_attempt in {1..50}; do
+        if ! kill -0 "$BROWSER_AUDIO_PID" >/dev/null 2>&1; then
+          wait "$BROWSER_AUDIO_PID" || true
+          echo "浏览器 HDMI 音频服务启动失败，请检查 ALSA 输出设备 $ALSA_OUTPUT_DEVICE。" >&2
+          exit 1
+        fi
+        [[ -S "$BROWSER_PULSE_DIR/native" ]] && break
+        sleep 0.1
+      done
+      if [[ ! -S "$BROWSER_PULSE_DIR/native" ]]; then
+        echo "浏览器音频服务启动超时。" >&2
+        exit 1
+      fi
+      export PULSE_SINK=mythe_display
     fi
   fi
 fi

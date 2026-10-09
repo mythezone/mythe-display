@@ -374,6 +374,23 @@ hw:0,8  HDMI 2
 
 `/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3`，由 `scripts/faio-listen-audio-player.py` 使用 FFmpeg 直接输出到 HDMI ALSA 端点。这样可以绕过无桌面 snap Chromium 中 HTML audio 显示播放但不打开 ALSA PCM 的问题。
 
+### 浏览器 K歌音频
+
+启用 `MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1` 后，单轨 FFmpeg 停用，普通原唱与 K歌双轨都由浏览器输出。无桌面的 snap Chromium 不能直接依赖 `--alsa-output-device`：它的 ALSA 回退可能报 `Cannot access file /usr/share/alsa/alsa.conf` / `Unknown PCM plughw:0,3`，此时即使 AudioContext 为 running、租约有效，HDMI PCM 仍是 closed。
+
+安装宿主音频服务并重启：
+
+```bash
+sudo apt-get install --no-install-recommends pulseaudio
+sudo mdp restart
+```
+
+未设置 `PULSE_SERVER` 且当前用户没有现有 `pulse/native` socket 时，启动脚本运行前台 PulseAudio，显式加载 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 的立体声 48 kHz / S16 输出和本机 Unix socket。socket 位于权限为 0700 的用户 runtime/pulse 目录，不监听 TCP，不启用默认自动设备选择或空输出；声卡初始化失败时直接报告错误。kiosk 等待 socket 就绪才启动浏览器，并在退出时清理自己启动的音频进程。现有或显式配置的音频服务由用户管理。
+
+播放时检查 `/proc/asound/card0/pcm3p/sub0/status` 应为 RUNNING，`hw_params` 应有采样格式和速率。页面“已同步”和 AudioContext running 只能证明浏览器状态，不能证明物理出声。
+
+### 公共扬声器与输出设备
+
 FAIO 的 `public_output.playing` 是独立于房间播放状态的公共扬声器开关。其他
 终端可以继续播放，而该值为 `false` 时 NAS 会静音。无人值守 kiosk 默认在
 音频进程启动时通过认证代理恢复一次公共扬声器，之后仍尊重远程暂停和音量
