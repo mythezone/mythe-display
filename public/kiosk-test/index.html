@@ -542,17 +542,25 @@
       }
 
       .listen-lyrics {
+        position: relative;
         min-height: 0;
         align-self: stretch;
         overflow: hidden;
-        display: grid;
-        align-content: center;
+        display: flex;
+        flex-direction: column;
         gap: 10px;
         padding: 12px 0;
         mask-image: linear-gradient(180deg, transparent, #000 14%, #000 86%, transparent);
       }
 
+      .listen-lyrics::before,
+      .listen-lyrics::after {
+        content: "";
+        flex: 0 0 50%;
+      }
+
       .listen-lyric {
+        flex: 0 0 auto;
         margin: 0;
         color: rgba(244, 247, 251, 0.46);
         font-size: 18px;
@@ -2760,28 +2768,22 @@
 
       function renderFaioLyrics(lines, position) {
         faioLyrics.replaceChildren();
-        const rows = Array.isArray(lines) ? lines : [];
-        if (!rows.length) {
-          const empty = document.createElement("p");
-          empty.className = "listen-lyric is-active";
-          empty.textContent = faioListen?.playback?.fileId ? "暂无歌词" : "播放开始后显示歌词";
-          faioLyrics.appendChild(empty);
-          return;
-        }
+        const rows = Array.isArray(lines) && lines.length ? lines : [
+          { time: 0, text: faioListen?.playback?.fileId ? "暂无歌词" : "播放开始后显示歌词" }
+        ];
         let active = -1;
         rows.forEach((line, index) => {
           if (Number(line.time) <= position) active = index;
         });
         if (active < 0) active = 0;
-        const start = Math.max(0, active - 2);
-        const windowRows = rows.slice(start, start + 6);
-        for (let index = 0; index < windowRows.length; index += 1) {
-          const absoluteIndex = start + index;
+        for (let index = 0; index < rows.length; index += 1) {
           const line = document.createElement("p");
-          line.className = `listen-lyric${absoluteIndex === active ? " is-active" : ""}`;
-          line.textContent = windowRows[index].text || "·";
+          line.className = `listen-lyric${index === active ? " is-active" : ""}`;
+          line.textContent = rows[index].text || "·";
           faioLyrics.appendChild(line);
         }
+        const current = faioLyrics.children[active];
+        faioLyrics.scrollTop = current.offsetTop - (faioLyrics.clientHeight - current.offsetHeight) / 2;
       }
 
       function renderFaioQueue(rows = []) {

@@ -374,6 +374,10 @@ hw:0,8  HDMI 2
 
 `/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3`，由 `scripts/faio-listen-audio-player.py` 使用 FFmpeg 直接输出到 HDMI ALSA 端点。这样可以绕过无桌面 snap Chromium 中 HTML audio 显示播放但不打开 ALSA PCM 的问题。
 
+### 歌词展示
+
+歌词区域渲染完整歌词，显示高度内的前后句并随播放自动滚动；正在唱的句子始终居中高亮。上下边缘保留渐隐，首尾留出居中所需空间，不再固定只显示三行。普通播放、K歌和窄屏布局使用同一展示方式。
+
 ### 浏览器 K歌音频
 
 启用 `MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1` 后，单轨 FFmpeg 停用，普通原唱与 K歌双轨都由浏览器输出。无桌面的 snap Chromium 不能直接依赖 `--alsa-output-device`：它的 ALSA 回退可能报 `Cannot access file /usr/share/alsa/alsa.conf` / `Unknown PCM plughw:0,3`，此时即使 AudioContext 为 running、租约有效，HDMI PCM 仍是 closed。

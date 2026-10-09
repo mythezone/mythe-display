@@ -203,6 +203,8 @@ FAIO 音频会按来源类型处理：本地曲库和在线平台曲目都通过
 
 启用浏览器 K歌输出（`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`）时，snap Chromium 需要可用的宿主音频服务。先执行 `sudo apt-get install --no-install-recommends pulseaudio`，再执行 `sudo mdp restart`。未配置或运行音频服务时，kiosk 会在 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 上启动本机 PulseAudio 输出，并在退出时停止它。排查步骤见[浏览器 K歌音频](docs/development/web-kiosk-test.md#浏览器-k歌音频)。
 
+歌词区域按可用高度展示前后歌词，自动滚动并将当前句居中高亮；歌曲开头和结尾的当前句也保持居中。
+
 ## 运行时数据
 
 默认页面读取 `public/runtime/` 中的本地 JSON 快照。该目录已被 Git 忽略。
