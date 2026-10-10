@@ -206,6 +206,8 @@ Browser karaoke output (`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`) needs a working
 
 Lyrics fill the available panel height with surrounding lines and automatically scroll to keep the current line centered and highlighted, including at the beginning and end of a song.
 
+Room metadata and lyrics continue refreshing during local playback. Lightweight playback-state checks preserve the current song's lyrics; changing songs clears them until the full snapshot arrives. Karaoke lyrics follow the local audio clock, and genuinely stale room snapshots still show a connection warning.
+
 ## Runtime Data
 
 The default page reads local JSON snapshots from `public/runtime/`. That directory is ignored by Git.

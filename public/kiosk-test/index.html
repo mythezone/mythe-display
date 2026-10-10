@@ -2091,6 +2091,11 @@
       let agents = [];
       let telemetry = null;
       let faioListen = null;
+      let karaokeOutputClient = null;
+      let faioLoadTimer = null;
+      let faioLoadSequence = 0;
+      let faioLoadAbort = null;
+      let faioLoadFailures = 0;
       let faioPublicOutput = { revision: 0, playing: true, volume: 70, updatedAt: "" };
       let faioAudioFileId = "";
       let faioPendingSeek = null;
@@ -2756,6 +2761,9 @@
       }
 
       function desiredFaioPosition(playback) {
+        if (karaokeOutputClient?.isPlayingLocally && String(karaokeOutputClient.latest.file_id) === String(playback?.fileId)) {
+          return karaokeOutputClient.localProgress().position_seconds;
+        }
         const position = Math.max(0, Number(playback?.positionSeconds) || 0);
         const duration = Math.max(0, Number(playback?.durationSeconds) || 0);
         let target = position;
@@ -2883,6 +2891,13 @@
       }
 
       function renderFaioPlaybackFrame() {
+        const generatedAt = Date.parse(faioListen?.generatedAt || "");
+        if (faioListen?.status === "connected" && faioListen?.source !== "faio.musicRoom.mock" && Number.isFinite(generatedAt) && Date.now() - generatedAt > Math.max(45000, Number(faioListen.refreshMs || 10000) * 3)) {
+          faioListen.status = "error";
+          faioRoomPill.textContent = "房间状态过期";
+          faioRoomPill.dataset.connected = "false";
+          syncFaioAudio(faioListen.playback || {}, { playing: false, volume: 0 });
+        }
         const playback = faioListen?.playback || {};
         const position = desiredFaioPosition(playback);
         const duration = Math.max(0, Number(playback.durationSeconds) || 0);
@@ -2893,15 +2908,20 @@
         renderFaioLyrics(faioListen?.lyrics || [], position);
       }
 
-      function renderFaioListen(payload) {
+      function renderFaioListen(payload, lyricsDeferred = false) {
+        const previous = faioListen;
         faioListen = payload || {};
+        if (lyricsDeferred && previous?.playback?.fileId && previous.roomId === faioListen.roomId && String(previous.playback.fileId) === String(faioListen.playback?.fileId)) {
+          faioListen = { ...faioListen, lyrics: previous.lyrics || [] };
+        }
         if (faioListen.publicOutput && typeof faioListen.publicOutput === "object") {
           faioPublicOutput = { ...faioPublicOutput, ...faioListen.publicOutput };
         }
         const room = faioListen.room || {};
         const playback = faioListen.playback || {};
-        const connected = faioListen.status !== "error" && room.status !== "closed";
-        faioRoomPill.textContent = connected ? room.name || "一起听歌" : "offline";
+        const connected = faioListen.status === "connected" && room.status !== "closed";
+        faioRoomPill.textContent = connected ? `${room.name || "一起听歌"} · 已连接` : "连接中断";
+        faioRoomPill.dataset.connected = String(connected);
         faioOnline.textContent = `${room.onlineCount ?? "--"} online`;
         faioTitle.textContent = playback.title || "等待点歌";
         faioArtist.textContent = [playback.artist, playback.albumTitle].filter(Boolean).join(" · ") || "一起听歌";
@@ -2920,14 +2940,29 @@
         syncFaioAudio(playback, faioPublicOutput);
       }
 
-      async function loadFaioListen() {
+      async function loadFaioListen(immediate = false) {
+        clearTimeout(faioLoadTimer);
+        faioLoadAbort?.abort();
+        const sequence = ++faioLoadSequence;
+        const abort = faioLoadAbort = new AbortController();
+        const timeout = setTimeout(()=>abort.abort(), 8000);
         try {
-          renderFaioListen(await fetchJsonWithFallback(faioSourceUrl, faioFallbackUrl));
+          const source = immediate && browserAudioEnabled ? "/faio-listen/state" : faioSourceUrl;
+          const response = await fetch(source, { cache: "no-store", signal:abort.signal });
+          if (!response.ok) throw new Error(`Room snapshot unavailable: ${response.status}`);
+          const payload = await response.json();
+          if (sequence !== faioLoadSequence) return;
+          const old = Date.parse(faioListen?.generatedAt || ""), next = Date.parse(payload.generatedAt || "");
+          if (!Number.isFinite(old) || !Number.isFinite(next) || next >= old) renderFaioListen(payload, source === "/faio-listen/state");
+          faioLoadFailures = 0;
         } catch (error) {
-          console.warn("FAIO listen source load failed", error);
-          renderFaioListen({ status: "error", room: { name: "一起听歌", onlineCount: 0 }, playback: { title: "FAIO 房间不可用", artist: "等待本地采集器", durationSeconds: 0 }, lyrics: [], queue: [] });
+          if (sequence !== faioLoadSequence) return;
+          faioLoadFailures++;
+          renderFaioListen({ ...faioListen, status: "error", publicOutput: { playing: false, volume: 0 } });
+        } finally {
+          clearTimeout(timeout);
+          if (sequence === faioLoadSequence) faioLoadTimer = setTimeout(()=>loadFaioListen(), Math.min(60000, Math.max(10000, faioRefreshMs) * 2 ** Math.min(faioLoadFailures, 3)));
         }
-        window.setTimeout(loadFaioListen, Math.max(5000, faioRefreshMs));
       }
 
       async function loadFaioPublicOutput() {

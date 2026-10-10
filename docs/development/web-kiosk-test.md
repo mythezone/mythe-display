@@ -378,6 +378,8 @@ hw:0,8  HDMI 2
 
 歌词区域渲染完整歌词，显示高度内的前后句并随播放自动滚动；正在唱的句子始终居中高亮。上下边缘保留渐隐，首尾留出居中所需空间，不再固定只显示三行。普通播放、K歌和窄屏布局使用同一展示方式。
 
+播放期间页面仍按刷新间隔读取完整 `faio-listen.json`，以接收稍后准备好的歌词与房间信息；完整快照刷新不会替代本机音频时钟。轻量 `/faio-listen/state` 检查没有采集歌词，同一房间、同一歌曲时保留已有歌词，房间或歌曲变化时清空旧歌词并等待完整快照。真实过期与连接失败仍显示警告，恢复新快照后自动解除。
+
 ### 浏览器 K歌音频
 
 启用 `MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1` 后，单轨 FFmpeg 停用，普通原唱与 K歌双轨都由浏览器输出。无桌面的 snap Chromium 不能直接依赖 `--alsa-output-device`：它的 ALSA 回退可能报 `Cannot access file /usr/share/alsa/alsa.conf` / `Unknown PCM plughw:0,3`，此时即使 AudioContext 为 running、租约有效，HDMI PCM 仍是 closed。
