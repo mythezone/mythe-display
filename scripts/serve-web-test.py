@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import functools
 import json
+import re
+import math
+import importlib.util
 import os
 import shutil
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -34,6 +37,15 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = parse.urlparse(self.path)
+        if parsed.path == "/faio-listen/karaoke/capabilities":
+            self.send_json({"enabled": os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") == "1", "continuous": True})
+            return
+        if parsed.path == "/faio-listen/karaoke/ws":
+            self.handle_karaoke_websocket(parsed)
+            return
+        if parsed.path == "/faio-listen/karaoke/snapshot":
+            self.handle_karaoke_clock(parsed)
+            return
         if parsed.path == "/runtime/faio-listen.json":
             if self.handle_faio_snapshot_override(head_only=False):
                 return
@@ -41,6 +53,110 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
             self.handle_faio_proxy(parsed, head_only=False)
             return
         super().do_GET()
+
+    def send_json(self, payload: dict) -> None:
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def handle_karaoke_websocket(self, parsed: parse.ParseResult) -> None:
+        if os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") != "1":
+            self.send_error(403, "Karaoke output is disabled")
+            return
+        # Output is a separately opted-in loopback kiosk facility. Do not expose
+        # the privileged service room session as a LAN audio relay.
+        origin = parse.urlsplit(self.headers.get("Origin", ""))
+        if self.client_address[0] not in {"127.0.0.1", "::1"} or origin.scheme not in {"http", "https"} or origin.netloc != self.headers.get("Host", ""):
+            self.send_error(403, "Same-origin local kiosk required")
+            return
+        client = parse.parse_qs(parsed.query).get("client_id", [""])[0]
+        mode = parse.parse_qs(parsed.query).get("mode", [""])[0]
+        if mode not in {"", "events"}:
+            self.send_error(400, "Invalid WebSocket mode")
+            return
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", client) or self.headers.get("Upgrade", "").lower() != "websocket" or self.headers.get("Sec-WebSocket-Version") != "13":
+            self.send_error(400, "Invalid WebSocket request")
+            return
+        spec = importlib.util.spec_from_file_location("karaoke_ws_bridge", ROOT_DIR / "scripts/karaoke-ws-bridge.py")
+        bridge = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bridge)
+        upstream = None
+        upgraded = False
+        try:
+            accept = bridge.accept_key(self.headers.get("Sec-WebSocket-Key", ""))
+            session = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SESSION_FILE", DEFAULT_SESSION_FILE)))
+            base = str(session.get("baseUrl") or "").rstrip("/")
+            room = str(session.get("roomId") or "")
+            cookie = self.faio_cookie_header(session)
+            if not base or not room or not cookie:
+                raise PermissionError("Existing session unavailable")
+            upstream = bridge.connect_upstream(base, f"/music/rooms/{parse.quote(room, safe='')}/karaoke/ws?client_id={parse.quote(client)}" + ("&mode=events" if mode else ""), cookie)
+            self.send_response(101)
+            self.send_header("Upgrade", "websocket")
+            self.send_header("Connection", "Upgrade")
+            self.send_header("Sec-WebSocket-Accept", accept)
+            self.end_headers()
+            self.wfile.flush()
+            upgraded = True
+            bridge.relay(self.connection, upstream, lifetime=None if mode == "events" else 1800)
+        except (PermissionError, FileNotFoundError):
+            if not upgraded:
+                self.send_error(403, "Karaoke session unavailable")
+        except (OSError, ValueError):
+            if not upgraded:
+                self.send_error(502, "Karaoke connection unavailable")
+        finally:
+            self.close_connection = True
+            if upstream:
+                upstream.close()
+
+    def local_karaoke_session(self):
+        origin_header = self.headers.get("Origin", "")
+        origin = parse.urlsplit(origin_header)
+        if (os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") != "1"
+                or self.client_address[0] not in {"127.0.0.1", "::1"}
+                or (origin_header and (origin.scheme not in {"http", "https"} or origin.netloc != self.headers.get("Host", "")))):
+            raise PermissionError("Same-origin local output required")
+        session = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SESSION_FILE", DEFAULT_SESSION_FILE)))
+        base, room, cookie = str(session.get("baseUrl") or "").rstrip("/"), str(session.get("roomId") or ""), self.faio_cookie_header(session)
+        if not base or not room or not cookie:
+            raise PermissionError("Existing session unavailable")
+        return base, room, cookie
+
+    def handle_karaoke_clock(self, parsed):
+        try:
+            base, room, cookie = self.local_karaoke_session()
+            ping = float(parse.parse_qs(parsed.query).get("ping", [""])[0])
+            if not math.isfinite(ping):
+                raise ValueError("Invalid ping")
+            self.proxy_faio_request(base, f"/music/rooms/{parse.quote(room, safe='')}/karaoke/snapshot?continuous=true&ping={ping}", cookie, head_only=False)
+        except PermissionError:
+            self.send_error(403, "Local output session required")
+        except (OSError, ValueError):
+            self.send_error(400, "Invalid clock request")
+
+    def do_POST(self):
+        if parse.urlsplit(self.path).path != "/faio-listen/playback-progress":
+            self.send_error(405, "Method not allowed")
+            return
+        try:
+            base, room, cookie = self.local_karaoke_session()
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 4096:
+                raise ValueError("Invalid report size")
+            payload = json.loads(self.rfile.read(length))
+            fields = {"protocol", "client_id", "report_seq", "instance", "transport_token", "position_seconds", "playback_status"}
+            if not isinstance(payload, dict) or set(payload) != fields or payload["protocol"] != 2:
+                raise ValueError("Invalid progress report")
+            self.proxy_faio_request(base, f"/music/rooms/{parse.quote(room, safe='')}/playback-progress", cookie,
+                head_only=False, method="POST", body=json.dumps(payload).encode("utf-8"), content_type="application/json")
+        except PermissionError:
+            self.send_error(403, "Local output session required")
+        except (OSError, ValueError):
+            self.send_error(400, "Invalid progress report")
 
     def do_HEAD(self) -> None:
         parsed = parse.urlparse(self.path)
@@ -159,6 +275,20 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
             if not file_id:
                 return ""
             return f"/music/rooms/{quoted_room}/media/{parse.quote(file_id)}"
+        prefix = "/faio-listen/karaoke/assets/"
+        if path.startswith(prefix):
+            suffix = path[len(prefix):]
+            if os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") == "1" and self.client_address[0] in {"127.0.0.1", "::1"} and re.fullmatch(r"[A-Za-z0-9_-]{1,100}/[A-Za-z0-9_-]{1,100}\.wav", suffix):
+                return f"/music/rooms/{quoted_room}/karaoke/assets/" + suffix
+            karaoke = snapshot.get("karaoke") if isinstance(snapshot.get("karaoke"), dict) else {}
+            if karaoke.get("connectionStatus") != "connected":
+                return ""
+            for version in karaoke.get("versions", []):
+                for role in ("original", "accompaniment"):
+                    for chunk in version.get("tracks", {}).get(role, []):
+                        if chunk.get("url") == path:
+                            return f"/music/rooms/{quoted_room}/karaoke/assets/" + path[len(prefix):]
+            return ""
         prefix = "/faio-listen/media/"
         if path.startswith(prefix):
             file_id = parse.unquote(path[len(prefix) :]).strip("/")

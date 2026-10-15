@@ -285,7 +285,12 @@ EOF
     exit 1
   fi
 
-  if [[ "${MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER:-0}" != "1" && "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" != "1" ]]; then
+  if [[ "${MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT:-0}" == "1" && "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" != "1" ]]; then
+    # One local output owner: do not run ALSA/raw audio alongside the shared
+    # two-track browser client. The client still requires a real user gesture.
+    KIOSK_URL="$(append_query_param "$KIOSK_URL" karaokeAudio 1)"
+    KIOSK_URL="$(append_query_param "$KIOSK_URL" browserAudio 0)"
+  elif [[ "${MYTHE_DISPLAY_DISABLE_FAIO_AUDIO_PLAYER:-0}" != "1" && "${MYTHE_DISPLAY_DISABLE_FAIO_LISTEN:-0}" != "1" ]]; then
     python3 "$ROOT_DIR/scripts/faio-listen-audio-player.py" \
       --snapshot "$ROOT_DIR/public/runtime/faio-listen.json" \
       --base-url "${MYTHE_DISPLAY_FAIO_AUDIO_BASE_URL:-http://127.0.0.1:${PORT}}" \

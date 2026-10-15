@@ -380,6 +380,14 @@ hw:0,8  HDMI 2
 
 播放期间页面仍按刷新间隔读取完整 `faio-listen.json`，以接收稍后准备好的歌词与房间信息；完整快照刷新不会替代本机音频时钟。轻量 `/faio-listen/state` 检查没有采集歌词，同一房间、同一歌曲时保留已有歌词，房间或歌曲变化时清空旧歌词并等待完整快照。真实过期与连接失败仍显示警告，恢复新快照后自动解除。
 
+### 连续播放与卡顿排查
+
+本机输出优先连接上游既有的 `ws?mode=events`，从认证事件读取播放期限，每 10 秒发送心跳；兼容服务授予的 30 秒期限由音频时钟执行，客户端不自行延长期限。普通听歌直接使用原曲媒体，活动 K歌才播放校验后的双轨分块。忽略 `mode=events` 的旧服务仍走原有报告协议。
+
+播放进度每 2 秒经本机 `/faio-listen/playback-progress` 独立回传，单个请求在途、8 秒超时，结束时立即补报实际 ended；回传等待不会挡住续播或重置音频时钟。该端点与启动校时接口仅在输出开关启用时对本机开放，复用既有房间会话，不接受播放命令。连续事件连接不再被代理的 30 分钟固定时限切断；关闭连接仍清理两端，权限失效或播放期限过期仍停声。
+
+排查断声时同时观察缓冲余量和确认延迟。如果仍有数秒缓冲而旧协议超过 2 秒未收到确认，增加音频缓存不能解决此类静音。更新代理后执行一次 `sudo mdp restart`，仅刷新页面无法更新已运行的代理进程。回归检查：`node tests/test_karaoke_continuous.cjs`、`python3 -m unittest discover -s tests -p 'test_karaoke_continuous_proxy.py'`。
+
 ### 浏览器 K歌音频
 
 启用 `MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1` 后，单轨 FFmpeg 停用，普通原唱与 K歌双轨都由浏览器输出。无桌面的 snap Chromium 不能直接依赖 `--alsa-output-device`：它的 ALSA 回退可能报 `Cannot access file /usr/share/alsa/alsa.conf` / `Unknown PCM plughw:0,3`，此时即使 AudioContext 为 running、租约有效，HDMI PCM 仍是 closed。

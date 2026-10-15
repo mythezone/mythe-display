@@ -1784,6 +1784,8 @@
         <header>
           <h2>FAIO Listen</h2>
           <span class="pill" id="faio-room-pill">connecting</span>
+          <button id="karaoke-audio-toggle" hidden type="button">开启本机音频</button>
+          <span id="karaoke-output-status" class="pill" hidden></span>
         </header>
         <div class="listen-body">
           <div class="listen-player">
@@ -2012,6 +2014,8 @@
       </section>
     </main>
 
+    <script src="./karaoke-audio.js"></script>
+    <script src="./karaoke-output.js"></script>
     <script>
       const params = new URLSearchParams(location.search);
       const themeUrl = params.get("theme") || "../themes/neon-dark/theme.json";
@@ -2038,7 +2042,8 @@
       const themeRefreshMs = Number(params.get("themeRefreshMs") || 0);
       const pageRefreshMs = Number(params.get("pageRefreshMs") || 0);
       const initialAssetCacheBust = params.get("assetCacheBust") || "";
-      const browserAudioEnabled = params.get("browserAudio") !== "0";
+      const karaokeOutputRequested = params.get("karaokeAudio") === "1";
+      const browserAudioEnabled = !karaokeOutputRequested && params.get("browserAudio") !== "0";
 
       const wallpaper = document.getElementById("wallpaper");
       const heroLogo = document.getElementById("hero-logo");
@@ -2115,6 +2120,7 @@
         }
       });
       faioAudio.addEventListener("ended", () => {
+        if (karaokeOutputRequested) return;
         loadFaioListen();
       });
       faioCover.addEventListener("error", () => {
@@ -2937,7 +2943,8 @@
         }
         renderFaioQueue(faioListen.queue);
         renderFaioPlaybackFrame();
-        syncFaioAudio(playback, faioPublicOutput);
+        if (!karaokeOutputRequested) syncFaioAudio(playback, faioPublicOutput);
+        karaokeOutputClient?.roomChanged();
       }
 
       async function loadFaioListen(immediate = false) {
@@ -3257,6 +3264,33 @@
       loadDocker();
       loadWeather();
       loadFaioListen();
+      if (karaokeOutputRequested) {
+        const toggle = document.getElementById("karaoke-audio-toggle");
+        fetch("/faio-listen/karaoke/capabilities", {cache:"no-store"}).then(r=>r.ok?r.json():null).then(cap=>{
+          if (!cap?.enabled) return;
+          toggle.hidden=false;
+          karaokeOutputClient=new KaraokeOutput({engine:new KaraokeAudio(),audio:faioAudio,getRoom:()=>faioListen,continuous:cap.continuous===true,
+            onRoom:payload=>renderFaioListen(payload, true),
+            onStatus:message=>{const status=document.getElementById("karaoke-output-status");status.hidden=false;status.textContent=message;toggle.title=message;toggle.textContent=karaokeOutputClient.listening?"关闭本机音频":"开启本机音频";},
+            onState:state=>{
+              if (!faioListen || String(faioListen.playback?.fileId)!==String(state.file_id)) return;
+              faioListen.karaoke={...faioListen.karaoke,connectionStatus:"connected",mode:state.active_version?"karaoke":"normal",ratio:state.ratio,positionSeconds:state.position,anchorSeconds:state.anchor,serverTimeSeconds:state.server_time,durationSeconds:state.duration,fileId:state.file_id};
+            }});
+          toggle.addEventListener("click",async()=>{
+            if(karaokeOutputClient.listening)karaokeOutputClient.stop();
+            else try{await karaokeOutputClient.start();}catch{toggle.title="浏览器音频无法开启";}
+          });
+          // Dedicated NAS kiosk already opts into output and launches Chromium
+          // with no-user-gesture autoplay. Verify a real running AudioContext.
+          if (params.get("karaokeAutostart") !== "0") {
+            karaokeOutputClient.start().catch(()=>{
+              const status=document.getElementById("karaoke-output-status");
+              status.hidden=false;status.textContent="自动音频未能启动 · 检查浏览器音频策略";
+            });
+          }
+          window.addEventListener("pagehide",()=>karaokeOutputClient.stop());
+        }).catch(()=>{});
+      }
       if (browserAudioEnabled) loadFaioPublicOutput();
       loadAgents();
       updateMascot();
