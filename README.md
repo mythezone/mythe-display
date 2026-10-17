@@ -210,6 +210,8 @@ Room metadata and lyrics continue refreshing during local playback. Lightweight 
 
 Compatible room servers use the continuous event stream for local audio: authorization heartbeats renew the server's playback lease, while progress uploads run separately and cannot mute buffered audio when slow. Ordinary listening uses the original media; active karaoke retains verified dual-track buffering. After updating the local proxy, run `sudo mdp restart` once. See [continuous playback](docs/development/web-kiosk-test.md#连续播放与卡顿排查).
 
+Unrelated events and access-limited snapshots do not switch playback to the legacy report protocol. Reconnects retry the configured continuous stream; revoked or expired playback leases still mute output.
+
 ## Runtime Data
 
 The default page reads local JSON snapshots from `public/runtime/`. That directory is ignored by Git.

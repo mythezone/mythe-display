@@ -41,6 +41,16 @@ const flush=()=>new Promise(setImmediate);
   await output.start();const socket=sockets[0];socket.onopen();assert.match(socket.url,/mode=events/);
   socket.onmessage({data:JSON.stringify(state)});await flush();await output.process();
   const graph=engine.graph,origin=graph.origin,nodes=[...graph.nodes];assert.ok(graph);
+  const lease=output.leaseUntil;
+  socket.onmessage({data:JSON.stringify({type:'notice',message:'fixture'})});
+  assert.equal(output.continuous,true,'unrelated events cannot select the legacy report protocol');
+  assert.equal(output.leaseUntil,lease,'an unrelated event cannot extend a lease');
+  const denied={...state,versions:[],preview_version:'',lease_until:100};delete denied.continuous;
+  socket.onmessage({data:JSON.stringify(denied)});await flush();
+  assert.equal(output.continuous,true,'an access-limited state without a continuous flag is still an event');
+  assert.equal(output.stateIsFresh(),false);assert.equal(engine.gate.gain.value,0,'access-limited state must mute');
+  socket.onmessage({data:JSON.stringify(state)});await flush();
+  assert.equal(output.stateIsFresh(),true);assert.equal(engine.graph,graph,'valid state resumes without rebuilding the source clock');
   // Reproduce a slow database/progress path. Its latency cannot revoke a 30s event lease.
   for(let second=1;second<=8;second++){
     context.currentTime=second;output.localTick();await flush();
@@ -90,5 +100,16 @@ const flush=()=>new Promise(setImmediate);
       return {...state,server_time:ping,server_received_at:ping,server_sent_at:ping};},
     socketFactory:()=>({readyState:1,close(){}})});
   await retry.start();assert.equal(calibrations,2,'a delayed startup sample is retried before playback');assert.equal(retryEngine.uncertainty,0);retry.stop();
+  const fallbackEngine=new KaraokeAudio({createContext:()=>new Context(),now:()=>100});await fallbackEngine.unlock();fallbackEngine.observeClock(100,100,100);
+  const fallbackSockets=[];
+  const fallback=new KaraokeOutput({engine:fallbackEngine,audio,getRoom:()=>room,continuous:true,now:()=>100,
+    socketFactory:url=>{const ws={url,readyState:1,send(){},close(){}};fallbackSockets.push(ws);return ws;}});
+  fallback.listening=true;fallback.connect();fallbackSockets[0].onopen();
+  const legacy={...state,ping:100};delete legacy.type;delete legacy.continuous;
+  fallbackSockets[0].onmessage({data:JSON.stringify(legacy)});
+  assert.equal(fallback.continuous,false,'a real untyped legacy snapshot retains old-server compatibility');
+  fallbackSockets[0].onclose({code:1006});fallback.connect();
+  assert.equal(fallback.continuous,true,'reconnect retries the configured continuous channel');
+  assert.match(fallbackSockets.at(-1).url,/mode=events/);fallback.stop();
   console.log('PASS: continuous lease, slow isolated progress, single upload, heartbeats, stable clock/mix, natural end, expiry and disconnect');
 })().catch(error=>{console.error(error);process.exitCode=1;});

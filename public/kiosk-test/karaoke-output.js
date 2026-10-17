@@ -18,7 +18,7 @@ class KaraokeOutput {
     this.protocol=1;this.reportSeq=0;this.expectedReportSeq=0;this.controlAck=-1;this.initializedV2=false;
     this.ackReceived=0;this.ackAuthorized=false;this.leaseUntil=0;this.tickTimer=null;this.endedPosition=0;
     this.publicOutput=null;this.uiLastAt=-Infinity;this.trace={v1Reports:0,v2Reports:0,acks:0,controls:0,initials:0,authorityGets:0};
-    this.continuous=continuous;this.fetchSnapshot=fetchSnapshot;this.sendProgress=sendProgress;
+    this.preferContinuous=continuous;this.continuous=continuous;this.fetchSnapshot=fetchSnapshot;this.sendProgress=sendProgress;
     this.progressAbort=null;this.progressAgain=false;this.progressSeq=0;this.progressLastAt=-Infinity;this.startAbort=null;
     this.engine.onBuffered=()=>{if(this.listening)void this.process();};
     this.engine.onEnded=key=>this.finished(key);
@@ -85,6 +85,7 @@ class KaraokeOutput {
   }
   connect(){
     if(!this.listening)return;
+    this.continuous=this.preferContinuous;
     this.authorityAbort?.abort();this.authorityAbort=null;
     if(this.protocol===2 || this.continuous){this.engine.muteLease();this.audio.pause();}
     else{this.engine.resetConnection();this.stopRaw();this.latest=null;}
@@ -103,8 +104,9 @@ class KaraokeOutput {
           socket.close();return;
         }
         if(this.continuous){
-          if(state.type==='state' && state.continuous===true || state.type==='heartbeat'){this.receiveContinuous(state);return;}
-          // Older room servers can ignore mode=events and retain their report contract.
+          if(state.type==='state' || state.type==='heartbeat'){this.receiveContinuous(state);return;}
+          if(state.type!==undefined || !this.engine.validate(state))return;
+          // Only an untyped legacy snapshot proves mode=events was ignored.
           this.continuous=false;clearInterval(this.timer);this.timer=setInterval(()=>this.report(),500);
         }
         if(this.protocol===2){this.receiveV2(state,expectedPing);return;}
