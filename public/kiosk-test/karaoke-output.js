@@ -20,9 +20,12 @@ class KaraokeOutput {
     this.publicOutput=null;this.uiLastAt=-Infinity;this.trace={v1Reports:0,v2Reports:0,acks:0,controls:0,initials:0,authorityGets:0};
     this.preferContinuous=continuous;this.continuous=continuous;this.fetchSnapshot=fetchSnapshot;this.sendProgress=sendProgress;
     this.progressAbort=null;this.progressAgain=false;this.progressSeq=0;this.progressLastAt=-Infinity;this.startAbort=null;
+    this.startRequested=false;
+    this.rawSeek=null;
     this.engine.onBuffered=()=>{if(this.listening)void this.process();};
     this.engine.onEnded=key=>this.finished(key);
     this.audio.addEventListener?.('ended',()=>{if(this.audio.ended)this.finished(this.rawKey);});
+    this.audio.addEventListener?.('loadedmetadata',()=>{this.seekRaw();if(this.listening)void this.process();});
   }
   playbackKey(state){return `${state.instance}:${state.transport_token||state.transport_revision}:${state.file_id}`;}
   get isPlayingLocally(){return this.protocol===2 && !!this.latest && this.latest.status==='playing' && this.playbackKey(this.latest)!==this.endedKey && (!!this.engine.graph || this.audio.paused===false);}
@@ -64,12 +67,20 @@ class KaraokeOutput {
     const cacheTime=Date.parse(room?.generatedAt||''),authorityTime=Date.parse(this.authorityRoom?.generatedAt||'');
     return fresh && (!Number.isFinite(cacheTime) || authorityTime>=cacheTime)?this.authorityRoom:room;
   }
-  stopRaw(){if(this.audio.paused && !this.audio.src)return;this.audio.pause();this.audio.removeAttribute('src');this.audio.load();}
+  stopRaw(){this.rawSeek=null;if(this.audio.paused && !this.audio.src)return;this.audio.pause();this.audio.removeAttribute('src');this.audio.load();}
+  seekRaw(){
+    const state=this.rawSeek;
+    if(!state || !this.listening || this.audio.readyState<1)return;
+    if(!this.latest || this.rawKey!==this.playbackKey(state) || this.rawKey!==this.playbackKey(this.latest)){this.rawSeek=null;return;}
+    try{this.audio.currentTime=root.positionAt(state,this.engine.serverNow());this.rawSeek=null;}catch{/* Retry when the new source becomes seekable. */}
+  }
   async start(){
     if(this.listening || this.startAbort)return;
+    clearTimeout(this.retry);this.retry=null;this.startRequested=true;
     const abort=this.startAbort=new AbortController(),timeout=setTimeout(()=>abort.abort(),8000);
+    let unlocked=false;
     try{
-      await this.engine.unlock();
+      await this.engine.unlock();unlocked=true;
       if(this.continuous){
         for(let attempt=0;attempt<3;attempt++){
           const ping=this.now(),snapshot=await this.fetchSnapshot(ping,abort.signal);
@@ -81,6 +92,17 @@ class KaraokeOutput {
       }
       if(abort.signal.aborted)return;
       this.listening=true;this.connect();
+    }catch(error){
+      this.listening=false;
+      if(this.startRequested){
+        if(unlocked){
+          this.retry=setTimeout(()=>{this.retry=null;void this.start().catch(()=>{});},5000);
+          this.onStatus('房间连接暂不可用 · 正在重试');
+        }else{
+          this.startRequested=false;this.onStatus('浏览器音频未能开启 · 点击重试');
+        }
+      }
+      throw error;
     }finally{clearTimeout(timeout);if(this.startAbort===abort)this.startAbort=null;}
   }
   connect(){
@@ -154,7 +176,7 @@ class KaraokeOutput {
       const state=this.mapState(message),previous=this.latest;
       if(previous && state.instance===previous.instance && (state.transport_revision<previous.transport_revision || state.revision<previous.revision))return;
       const same=previous && this.playbackKey(state)===this.playbackKey(previous);
-      if(same && (this.engine.graph || this.audio.src)){
+      if(same && (this.engine.graph || (this.audio.src && !this.rawSeek))){
         state.position=this.localProgress().position_seconds;state.anchor=this.engine.serverNow();
       }
       if(!same){this.engine.silence();this.stopRaw();}
@@ -168,7 +190,7 @@ class KaraokeOutput {
     void this.process();
   }
   async reportProgress(immediate=false){
-    if(!this.listening || !this.latest?.can_report_progress)return;
+    if(!this.listening || !this.latest?.can_report_progress || this.rawSeek)return;
     if(this.progressAbort){this.progressAgain=this.progressAgain||immediate;return;}
     const abort=this.progressAbort=new AbortController(),sequence=this.sequence;
     const timeout=setTimeout(()=>abort.abort(),8000);
@@ -274,13 +296,18 @@ class KaraokeOutput {
           this.engine.silence();
           // Ordinary source is allowed only after an authenticated normal WS state.
           const url=new URL(playback.mediaUrl||'',location.href);
+          url.searchParams.delete('v');
           if(!playback.mediaUrl||url.origin!==location.origin||!url.pathname.startsWith('/faio-listen/')){this.stopRaw();this.onStatus('已连接 · 等待可播放曲目');break;}
           const key=this.playbackKey(state);
           if(key===this.endedKey){this.audio.pause();break;}
           const changed=key!==this.rawKey||this.audio.src!==url.href;
-          if(changed){this.rawKey=key;this.endedKey='';this.audio.src=url.href;this.audio.load();}
-          const position=root.positionAt(state,this.engine.serverNow());
-          if(changed&&this.audio.readyState>0)this.audio.currentTime=position;
+          if(changed){
+            const position=key===this.rawKey && this.audio.readyState>0?this.audio.currentTime:root.positionAt(state,this.engine.serverNow());
+            this.rawSeek={...state,position,anchor:this.engine.serverNow()};
+            this.rawKey=key;this.endedKey='';this.audio.src=url.href;this.audio.load();
+          }
+          this.seekRaw();
+          if(this.rawSeek){this.onStatus('本机音频 · 正在缓冲');break;}
           this.audio.volume=Math.max(0,Math.min(1,(currentOutput.volume??70)/100));
           if(state.status==='playing'){if(this.audio.paused!==false)await this.audio.play();}else this.audio.pause();
           this.onStatus(state.status==='playing'?'本机音频 · 原唱':'已连接 · 播放暂停');
@@ -296,7 +323,7 @@ class KaraokeOutput {
     if(this.protocol===2){const output=this.getRoom()?.publicOutput;if(output && Number(output.revision)>Number(this.publicOutput?.revision??-1))this.publicOutput={...output};}
     if(this.latest)void this.process();
   }
-  stop(){this.listening=false;this.sequence++;this.startAbort?.abort();this.progressAbort?.abort();this.progressAgain=false;clearInterval(this.timer);clearInterval(this.tickTimer);this.tickTimer=null;clearTimeout(this.retry);clearTimeout(this.idleTimer);this.idleTimer=null;this.authorityAbort?.abort();this.socket?.close();this.socket=null;this.fail('本机音频已关闭');this.engine.resetConnection();this.stopRaw();}
+  stop(){this.startRequested=false;this.listening=false;this.sequence++;this.startAbort?.abort();this.progressAbort?.abort();this.progressAgain=false;clearInterval(this.timer);clearInterval(this.tickTimer);this.tickTimer=null;clearTimeout(this.retry);this.retry=null;clearTimeout(this.idleTimer);this.idleTimer=null;this.authorityAbort?.abort();this.socket?.close();this.socket=null;this.fail('本机音频已关闭');this.engine.resetConnection();this.stopRaw();}
 }
 if(typeof module!=='undefined'&&module.exports)module.exports={KaraokeOutput};else root.KaraokeOutput=KaraokeOutput;
 })(typeof globalThis!=='undefined'?globalThis:window);

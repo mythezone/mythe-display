@@ -212,6 +212,8 @@ Compatible room servers use the continuous event stream for local audio: authori
 
 Unrelated events and access-limited snapshots do not switch playback to the legacy report protocol. Reconnects retry the configured continuous stream; revoked or expired playback leases still mute output.
 
+Once browser audio is unlocked, a failed startup connection or clock request retries every five seconds until the room is available; turning local audio off cancels retries. Original media waits for metadata before seeking to the current room position. Passive cache-busting revisions keep the buffered source, preventing refreshes from restarting the song.
+
 ## Runtime Data
 
 The default page reads local JSON snapshots from `public/runtime/`. That directory is ignored by Git.
