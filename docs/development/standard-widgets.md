@@ -447,7 +447,7 @@ public/themes/neon-dark/hero/mythenas-core.png
 - 如果主题资源包提供 `mascot.rive.enabled=true` 和本地 `.riv` 文件，运行时优先使用 Rive canvas 骨架动画。
 - 如果主题资源包提供 `mascot.codexPet.enabled=true` 和 `pet.json`，运行时使用 Codex/Petdex sprite atlas。
 - Rive 加载失败时必须回退到 PNG/CSS，不能让整个页面空白。
-- 默认每 `300000ms`，也就是 5 分钟，随机切换一次动作和格言。
+- 默认每 `300000ms`，也就是 5 分钟，切换一次动作和台词；ChatGPT Pet 依据本机 Codex 的 `workState` 在工作、闲置与未知台词中选择，收到新状态时更新。
 - 格言在角色头部气泡中显示，长度应短，避免遮挡主体。
 
 当前动作：

@@ -55,11 +55,12 @@
   },
   "mascot": {
     "actions": [
-      {"action": "idle"},
-      {"action": "wave"},
-      {"action": "jump"},
-      {"action": "running"},
-      {"action": "review"}
+      {"action": "idle", "when": "idle", "quote": "暂时没有任务，休息一会儿。"},
+      {"action": "wave", "when": "idle", "quote": "你好呀，有事叫我就好。"},
+      {"action": "waiting", "when": "idle", "quote": "我会在这里等你。"},
+      {"action": "review", "when": "working", "quote": "我在认真检查，稍等一下。"},
+      {"action": "running", "when": "working", "quote": "正在赶往下一项任务。"},
+      {"action": "waiting", "when": "unknown", "quote": "正在确认工作状态。"}
     ],
     "codexPet": {
       "enabled": true,
@@ -70,14 +71,13 @@
       "frameWidth": 192,
       "frameHeight": 208,
       "frames": 8,
-      "fps": 9,
+      "fps": 3,
       "scale": 1.3,
       "actionRows": {
         "idle": 0,
         "wave": 3,
         "jump": 4,
         "celebrate": 4,
-        "think": 7,
         "review": 8,
         "running": 7,
         "waiting": 6

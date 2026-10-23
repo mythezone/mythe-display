@@ -15,9 +15,11 @@ import os
 import pwd
 import selectors
 import shutil
+import sqlite3
 import subprocess
 import sys
 import time
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -242,6 +244,21 @@ def read_sessions(index_path: Path) -> list[dict[str, Any]]:
     return sessions
 
 
+def collect_work_state(codex_home: Path, now: datetime) -> str:
+    try:
+        state_uri = (codex_home / "state_5.sqlite").resolve().as_uri() + "?mode=ro"
+        history_uri = (codex_home / "thread_history_1.sqlite").resolve().as_uri() + "?mode=ro"
+        with closing(sqlite3.connect(state_uri, uri=True, timeout=1)) as threads, closing(sqlite3.connect(history_uri, uri=True, timeout=1)) as history:
+            cutoff = now.timestamp() - 900
+            for (thread_id,) in history.execute("SELECT thread_id FROM thread_turns WHERE status = 'inProgress'"):
+                active = threads.execute("SELECT 1 FROM threads WHERE id = ? AND updated_at >= ?", (thread_id, cutoff)).fetchone()
+                if active and history.execute("SELECT status FROM thread_turns WHERE thread_id = ? ORDER BY started_at DESC LIMIT 1", (thread_id,)).fetchone() == ("inProgress",):
+                    return "working"
+            return "idle"
+    except (OSError, sqlite3.Error):
+        return "unknown"
+
+
 def age_label(updated_at: datetime | None, now: datetime) -> str:
     if not updated_at:
         return "unknown"
@@ -344,6 +361,7 @@ def collect(codex_home: Path, refresh_ms: int, limit: int, show_thread_names: bo
         "refreshMs": refresh_ms,
         "source": "codex.local",
         "available": True,
+        "workState": collect_work_state(codex_home, now),
         "usage": collect_usage(codex_home),
         "summary": {
             "codexHome": str(codex_home),

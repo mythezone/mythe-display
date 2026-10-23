@@ -855,9 +855,24 @@
         display: block;
       }
 
-      .mascot-panel[data-pet-source="chatgpt"] .mascot-quote,
       .mascot-panel[data-pet-source="chatgpt"] .mascot-img { display: none; }
-      .mascot-panel[data-pet-source="chatgpt"] .mascot-stage { grid-template-rows: minmax(0, 1fr); align-items: center; }
+      .mascot-panel[data-pet-source="chatgpt"]:not([data-runtime="codex-pet"]) .mascot-quote { display: none; }
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-stage { grid-template-rows: auto minmax(0, 1fr); }
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-quote {
+        z-index: 1;
+        max-width: min(82%, 340px);
+        margin-bottom: 8px;
+        padding: 11px 16px;
+        border-radius: 16px;
+        font-size: 16px;
+        line-height: 1.35;
+      }
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-quote::after {
+        bottom: -6px;
+        left: 50%;
+        margin-top: 0;
+        transform: translateX(-50%) rotate(45deg);
+      }
       .codex-usage { display: grid; gap: 9px; }
       .codex-usage-title, .codex-usage-meta { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
       .codex-usage-title { color: var(--md-text-secondary); font-size: 16px; }
@@ -2145,6 +2160,7 @@
       let agentSprites = {};
       let agents = [];
       let codexUsage = null;
+      let codexWorkState = "unknown";
       let telemetry = null;
       let faioListen = null;
       let karaokeOutputClient = null;
@@ -2390,7 +2406,8 @@
             if (!entry || typeof entry !== "object") return null;
             return {
               action: String(entry.action || entry.name || "idle"),
-              quote: String(entry.quote || entry.text || entry.action || "idle")
+              quote: String(entry.quote || entry.text || entry.action || "idle"),
+              when: String(entry.when || "")
             };
           })
           .filter(Boolean);
@@ -2529,7 +2546,7 @@
           mascotSprite.style.setProperty("--pet-display-height", `${Math.round(frameHeight * scale)}px`);
           mascotSprite.setAttribute("aria-label", manifest.displayName || manifest.name || "Codex pet");
           mascotPanel.dataset.runtime = "codex-pet";
-          setMascotSpriteAction(mascotPanel.dataset.action || "idle");
+          updateMascot();
           return true;
         } catch (error) {
           console.warn("Codex pet mascot unavailable, using fallback", error);
@@ -2554,11 +2571,13 @@
         void mascotSprite.offsetWidth;
         mascotSprite.style.animation = "";
         if (mascotPanel.dataset.petSource === "chatgpt") {
-          const labels = { 0: "待机", 1: "向右走", 2: "向左走", 3: "挥手", 4: "跳跃", 5: "失落", 6: "等待", 7: "思考", 8: "查看" };
-          mascotAction.textContent = labels[row] || "待机";
+          const labels = { working: "工作中", idle: "休息中", unknown: "状态待确认" };
+          mascotAction.textContent = labels[codexWorkState] || labels.unknown;
           if ([3, 4, 5].includes(row)) mascotReturnTimer = setTimeout(() => {
             mascotPanel.dataset.action = "idle";
             setMascotSpriteAction("idle");
+            const idle = mascotStates.find(state => state.when === codexWorkState && state.action === "idle");
+            if (idle) mascotQuote.textContent = idle.quote;
           }, duration * 2);
         }
       }
@@ -2708,11 +2727,14 @@
       }
 
       function updateMascot() {
-        if (mascotPanel.dataset.petSource === "chatgpt" && mascotPanel.dataset.runtime !== "codex-pet") {
+        const chatgptPet = mascotPanel.dataset.petSource === "chatgpt";
+        if (chatgptPet && mascotPanel.dataset.runtime !== "codex-pet") {
           mascotAction.textContent = "宠物暂不可用";
           return;
         }
-        const state = mascotStates[Math.floor(Math.random() * mascotStates.length)];
+        const matching = chatgptPet ? mascotStates.filter(state => state.when === codexWorkState) : mascotStates;
+        const choices = matching.length ? matching : mascotStates;
+        const state = choices[Math.floor(Math.random() * choices.length)];
         mascotPanel.dataset.action = state.action;
         mascotAction.textContent = state.action;
         mascotQuote.textContent = state.quote;
@@ -3177,17 +3199,25 @@
       }
 
       async function loadAgents() {
+        let nextWorkState = "unknown";
         try {
           const payload = await fetchJsonWithFallback(agentSourceUrl, agentFallbackUrl);
           agents = normalizeAgents(payload);
           codexUsage = payload?.usage || null;
+          const updated = Date.parse(payload?.updatedAt || "");
+          if (payload?.source === "codex.local" && payload.available === true && Number.isFinite(updated)
+              && Date.now() - updated <= Math.max(900000, agentRefreshMs * 3)
+              && (payload.workState === "working" || payload.workState === "idle")) nextWorkState = payload.workState;
         } catch (error) {
           console.warn("Agent source load failed, using fallback", error);
           agents = fallbackAgents;
           codexUsage = null;
         }
+        const changed = codexWorkState !== nextWorkState;
+        codexWorkState = nextWorkState;
         renderAgents();
         renderCodexUsage();
+        if (changed && mascotPanel.dataset.runtime === "codex-pet") updateMascot();
       }
 
       function renderCodexUsage() {

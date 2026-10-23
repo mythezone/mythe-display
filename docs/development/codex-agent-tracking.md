@@ -4,7 +4,7 @@
 
 状态：原型
 
-更新：2026-10-23，接入自定义 Frieren Pet 与官方账号周额度接口。
+更新：2026-10-23，接入自定义 Frieren Pet、工作状态对话与官方账号周额度接口。
 
 ## 结论
 
@@ -25,7 +25,9 @@ Agent 活动继续使用本机只读元信息适配器。账号周额度独立�
 
 ## ChatGPT Pet 与周用量
 
-Assistant 默认使用账号已有的自定义 Frieren Pet（稳定 ID `pet_6abb52ac5c5081918d069d899349ebdc`），原图保存在主题资源内，不保存下载链接。使用原生九行动作及每行的实际帧数（6/8/8/4/5/8/6/6/6），避免播到透明占位帧；行位置按显示帧高计算，挥手、跳跃与失败短动作播放后回到待机。减少动态效果设置会暂停精灵动画。宠物展示动作与 Agent 元信息状态独立。
+Assistant 默认使用账号已有的自定义 Frieren Pet（稳定 ID `pet_6abb52ac5c5081918d069d899349ebdc`），原图保存在主题资源内，不保存下载链接。使用原生九行动作及每行的实际帧数（6/8/8/4/5/8/6/6/6），避免播到透明占位帧；主题将播放速度降至每秒 3 帧，行位置按显示帧高计算，挥手、跳跃与失败短动作播放后回到待机。角色上方的气泡与动作配套，减少动态效果设置会暂停精灵动画。
+
+采集器只读本机 Codex `state_5.sqlite` 与 `thread_history_1.sqlite` 的任务状态、时间戳和内部 ID，最近 15 分钟有更新且最新回合为 `inProgress` 时输出 `workState=working`；没有活动回合时为 `idle`，数据库不可用或结构变化时为 `unknown`。快照只包含状态，不输出任务 ID、标题、提示词或对话内容。页面仅信任来源为 `codex.local` 的新鲜快照；新快照报告状态变化时切换对应的动作、气泡和标签，采集频率仍为五分钟。此本机数据库结构属于 Codex 内部实现，发生变化时退回状态待确认。
 
 现有采集器每五分钟启动一次有 12 秒总期限的 `codex app-server --listen stdio://`，完成初始化后只调用 `account/read`（`refreshToken=false`）和 `account/rateLimits/read`。依据[官方契约](https://learn.chatgpt.com/docs/app-server)，优先取 `rateLimitsByLimitId.codex`，在 primary 或 secondary 中识别 `windowDurationMins=10080` 的七天窗口；`resetsAt` 为服务端 Unix 秒时间戳。没有模型请求、会话创建、额度重置或登录操作。
 

@@ -2,6 +2,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import sqlite3
 import tempfile
 import textwrap
 import time
@@ -17,6 +18,29 @@ WEEK = {"usedPercent": 42, "windowDurationMins": 10080, "resetsAt": 1900000000}
 
 
 class WeeklyUsageTests(unittest.TestCase):
+    def test_work_state_uses_recent_active_turn_metadata(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            now = collector.utc_now()
+            self.assertEqual(collector.collect_work_state(root, now), "unknown")
+            with sqlite3.connect(root / "state_5.sqlite") as threads, sqlite3.connect(root / "thread_history_1.sqlite") as history:
+                threads.execute("CREATE TABLE threads (id TEXT, updated_at REAL, title TEXT)")
+                history.execute("CREATE TABLE thread_turns (thread_id TEXT, status TEXT, started_at REAL)")
+                threads.execute("INSERT INTO threads VALUES (?, ?, ?)", ("private-id", now.timestamp(), "DO_NOT_EXPORT"))
+                threads.commit()
+                self.assertEqual(collector.collect_work_state(root, now), "idle")
+                history.execute("INSERT INTO thread_turns VALUES (?, ?, ?)", ("private-id", "inProgress", now.timestamp()))
+                history.commit()
+                self.assertEqual(collector.collect_work_state(root, now), "working")
+                threads.execute("UPDATE threads SET updated_at = ?", (now.timestamp() - 901,))
+                threads.commit()
+                self.assertEqual(collector.collect_work_state(root, now), "idle")
+                threads.execute("UPDATE threads SET updated_at = ?", (now.timestamp(),))
+                history.execute("INSERT INTO thread_turns VALUES (?, ?, ?)", ("private-id", "completed", now.timestamp() + 1))
+                threads.commit()
+                history.commit()
+                self.assertEqual(collector.collect_work_state(root, now), "idle")
+
     def test_week_can_be_either_window(self):
         for name in ("primary", "secondary"):
             result = collector.normalize_usage(ACCOUNT, {"rateLimits": {name: WEEK}})
