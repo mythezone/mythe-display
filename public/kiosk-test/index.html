@@ -54,8 +54,8 @@
         min-height: 0;
         padding: 30px;
         display: grid;
-        grid-template-columns: 1.34fr 1fr 1fr 0.84fr 0.84fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.56fr) 1fr 0.84fr 0.84fr;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
         gap: 16px;
         isolation: isolate;
         background: linear-gradient(135deg, var(--md-surface-canvas), #0b1017 58%, #07090f);
@@ -1774,6 +1774,61 @@
           width: 100%;
         }
       }
+
+      /* Music stage: preserve the original five-column dashboard. */
+      .listen-panel { grid-column: 1; grid-row: 1 / 3; }
+      .karaoke-panel { grid-column: 2; grid-row: 1 / 3; padding: 28px; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 22px; background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--md-accent-secondary), transparent 88%), transparent 65%), var(--md-surface-panel); }
+      .karaoke-panel header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .karaoke-panel h2 { margin: 0; font-size: 24px; }
+      .karaoke-panel footer { color: var(--md-text-secondary); text-align: center; font-size: 20px; overflow-wrap: anywhere; }
+      .karaoke-preparation { color: var(--md-text-secondary); font-size: 18px; display: grid; gap: 12px; }
+      .karaoke-preparation progress { width: 100%; height: 8px; accent-color: var(--md-accent-primary); }
+      .karaoke-lyrics { gap: 28px; }
+      .karaoke-lyrics .listen-lyric { font-size: clamp(22px, 1vw, 38px); line-height: 1.5; overflow-wrap: anywhere; }
+      .karaoke-lyrics .listen-lyric.is-active { font-size: clamp(32px, 1.3vw, 50px); color: var(--md-text-primary); }
+      .karaoke-panel[data-mode="karaoke"] .listen-lyric.is-active { font-size: clamp(40px, 1.8vw, 72px); color: var(--md-accent-primary); }
+      .mascot-panel { grid-column: 3; grid-row: 1; }
+      .health-panel { grid-column: 3; grid-row: 2; }
+      .docker-panel { grid-column: 4; grid-row: 1; }
+      .disk-panel { grid-column: 4; grid-row: 2; }
+      .time-panel { grid-column: 5; grid-row: 1; }
+      .hero-compact { grid-column: 5; grid-row: 2; }
+      .listen-body { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 26px; }
+      .listen-player { grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; }
+      .listen-cover-wrap { grid-row: 1; width: 100%; max-width: 230px; border-radius: 18px; }
+      .listen-track h3 { font-size: clamp(28px, 1.25vw, 48px); line-height: 1.2; }
+      .listen-track p { font-size: 20px; }
+      .listen-progress { grid-column: 1 / -1; }
+      .listen-queue-scroll { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+      .listen-queue-list { display: flex; flex-direction: column; gap: 8px; border: 0; overflow: visible; }
+      .listen-room-join { display: grid; justify-items: center; gap: 12px; padding: 24px 0 12px; color: var(--md-text-secondary); text-decoration: none; font-size: 18px; }
+      .listen-room-join[hidden] { display: none; }
+      .listen-room-join canvas { display: block; width: min(100%, 224px); height: auto; aspect-ratio: 1; background: #fff; image-rendering: pixelated; }
+      .listen-queue-row { flex: 0 0 auto; min-height: 76px; padding: 10px; border: 1px solid transparent; border-radius: 12px; background: rgba(255,255,255,0.025); grid-template-columns: 24px 48px minmax(0,1fr) auto; }
+      .listen-queue-row.is-next { border-color: color-mix(in srgb, var(--md-accent-primary), transparent 65%); background: color-mix(in srgb, var(--md-accent-primary), transparent 94%); }
+      .listen-queue-main strong { font-size: 21px; }
+      .listen-queue-main span { font-size: 16px; }
+      .queue-badge { color: var(--md-accent-primary); font-size: 12px; }
+      #karaoke-lyrics-status { color: var(--md-text-muted); font-size: 14px; }
+      .listen-queue-cover { width: 48px; height: 48px; }
+      .listen-queue-index, .listen-queue-row time, .listen-queue-title { font-size: 16px; }
+      #faio-room-pill[data-connected="true"] { color: var(--md-metric-good); }
+      #faio-room-pill[data-connected="false"] { color: var(--md-metric-warn); }
+      @media (max-width: 1800px) {
+        .screen > .panel { grid-column: auto; grid-row: auto; }
+        .screen > .listen-panel, .screen > .karaoke-panel { grid-column: 1 / -1; min-height: 640px; height: 740px; }
+        .karaoke-lyrics .listen-lyric.is-active { font-size: 36px; }
+        .karaoke-panel[data-mode="karaoke"] .listen-lyric.is-active { font-size: 52px; }
+      }
+      @media (max-width: 700px) {
+        .screen > .listen-panel, .screen > .karaoke-panel { grid-column: 1; min-height: 560px; height: 620px; }
+        .listen-panel header { flex-wrap: wrap; }
+        .listen-track p { font-size: 16px; }
+        .listen-queue-main strong { font-size: 17px; }
+        .listen-queue-main span { font-size: 13px; }
+        .karaoke-panel { padding: 22px; }
+        .karaoke-panel[data-mode="karaoke"] .listen-lyric.is-active { font-size: 40px; }
+      }
     </style>
   </head>
   <body translate="no" class="notranslate">
@@ -1782,10 +1837,8 @@
 
       <section class="panel listen-panel">
         <header>
-          <h2>FAIO Listen</h2>
+          <h2>一起听歌</h2>
           <span class="pill" id="faio-room-pill">connecting</span>
-          <button id="karaoke-audio-toggle" hidden type="button">开启本机音频</button>
-          <span id="karaoke-output-status" class="pill" hidden></span>
         </header>
         <div class="listen-body">
           <div class="listen-player">
@@ -1808,16 +1861,19 @@
                 <span id="faio-duration">0:00</span>
               </div>
             </div>
-            <div class="listen-lyrics" id="faio-lyrics">
-              <p class="listen-lyric is-active">播放开始后显示歌词</p>
-            </div>
           </div>
           <aside class="listen-queue">
             <div class="listen-queue-title">
-              <strong>UP NEXT</strong>
+              <strong>待播放</strong>
               <span id="faio-queue-count">-- tracks</span>
             </div>
-            <div class="listen-queue-list" id="faio-queue"></div>
+            <div class="listen-queue-scroll">
+              <div class="listen-queue-list" id="faio-queue"></div>
+              <a class="listen-room-join" id="faio-room-join" target="_blank" rel="noopener noreferrer" hidden>
+                <canvas id="faio-room-qr" role="img" aria-label="当前房间点歌二维码"></canvas>
+                <strong>扫码进房点歌</strong>
+              </a>
+            </div>
           </aside>
         </div>
         <div class="chart-legend">
@@ -1827,38 +1883,14 @@
         <audio class="listen-audio" id="faio-audio" preload="auto"></audio>
       </section>
 
-      <section class="panel metric telemetry">
-        <header>
-          <h2>Telemetry</h2>
-          <span class="pill">10 min</span>
-        </header>
-        <div class="chart-wrap">
-          <canvas id="telemetry-chart"></canvas>
+      <section class="panel karaoke-panel" id="karaoke-panel" data-mode="normal">
+        <header><button id="karaoke-audio-toggle" hidden type="button">开启本机音频</button><span id="karaoke-output-status" class="pill" hidden></span><h2 id="karaoke-heading">歌词舞台</h2><span class="pill" id="karaoke-mode">一起听歌</span></header>
+        <div class="karaoke-preparation" role="status">
+          <span id="karaoke-status">原唱播放</span>
+          <progress id="karaoke-progress" max="100" hidden aria-label="伴奏准备进度"></progress>
         </div>
-        <div class="chart-legend telemetry-legend">
-          <span><i class="legend-dot" style="--dot: var(--md-accent-primary)"></i>CPU</span>
-          <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>Memory</span>
-          <span><i class="legend-dot" style="--dot: var(--md-metric-warn)"></i>GPU</span>
-          <span><i class="legend-dot" style="--dot: var(--md-metric-good)"></i>Network</span>
-        </div>
-        <div class="telemetry-readouts">
-          <div class="readout">
-            <small>CPU</small>
-            <strong id="cpu-value">--%</strong>
-          </div>
-          <div class="readout">
-            <small>Memory</small>
-            <strong id="memory-value">--%</strong>
-          </div>
-          <div class="readout">
-            <small>GPU</small>
-            <strong id="gpu-value">--%</strong>
-          </div>
-          <div class="readout">
-            <small>Network</small>
-            <strong id="network-value">--</strong>
-          </div>
-        </div>
+        <div class="listen-lyrics karaoke-lyrics" id="faio-lyrics"><p class="listen-lyric is-active">播放开始后显示歌词</p></div>
+        <footer><div id="karaoke-track">等待点歌</div><small id="karaoke-lyrics-status"></small></footer>
       </section>
 
       <section class="panel mascot-panel" id="mascot-panel" data-action="idle">
@@ -2014,6 +2046,7 @@
       </section>
     </main>
 
+    <script src="../vendor/qrcode-1.5.4.min.js"></script>
     <script src="./karaoke-audio.js"></script>
     <script src="./karaoke-output.js"></script>
     <script>
@@ -2487,7 +2520,7 @@
       }
 
       function drawTelemetryChart() {
-        if (!telemetry) return;
+        if (!telemetry || !telemetryChart) return;
         const dpr = Math.max(1, window.devicePixelRatio || 1);
         const bounds = telemetryChart.getBoundingClientRect();
         telemetryChart.width = Math.max(1, Math.floor(bounds.width * dpr));
@@ -2626,10 +2659,6 @@
         telemetry.series.gpu = Array.isArray(telemetry.series.gpu) ? telemetry.series.gpu : [Number(telemetry.metrics?.gpuPercent) || 0];
         telemetry.series.network = Array.isArray(telemetry.series.network) ? telemetry.series.network : [Number(telemetry.metrics?.networkPercent) || 0];
         telemetry.metrics = telemetry.metrics || {};
-        document.getElementById("cpu-value").textContent = `${telemetry.metrics.cpuPercent ?? "--"}%`;
-        document.getElementById("memory-value").textContent = `${telemetry.metrics.memoryPercent ?? "--"}%`;
-        document.getElementById("gpu-value").textContent = telemetry.metrics.gpuAvailable ? `${telemetry.metrics.gpuPercent ?? "--"}%` : "--";
-        document.getElementById("network-value").textContent = telemetry.metrics.networkRx || "--";
         renderHealth(telemetry);
         drawTelemetryChart();
       }
@@ -2800,10 +2829,34 @@
         faioLyrics.scrollTop = current.offsetTop - (faioLyrics.clientHeight - current.offsetHeight) / 2;
       }
 
+      function renderFaioRoomJoin() {
+        const join = document.getElementById("faio-room-join");
+        join.hidden = true;
+        if (faioListen?.room?.status === "closed") return;
+        try {
+          let url = new URL(faioListen?.room?.shareUrl || faioListen?.roomUrl || "");
+          const match = url.pathname.match(/^\/listen\/([A-Za-z0-9_-]{1,256})\/?$/);
+          if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || !match) return;
+          if (faioListen.roomId && String(faioListen.roomId) !== match[1]) return;
+          // The collector's loopback transport is not reachable from a phone.
+          if (["localhost", "0.0.0.0", "[::]", "[::1]"].includes(url.hostname) || url.hostname.startsWith("127.") || url.hostname.endsWith(".localhost")) {
+            url = new URL(url.pathname, "https://faio.muiao.cloud");
+          }
+          url.search = "";
+          url.hash = "";
+          if (join.href === url.href) { join.hidden = false; return; }
+          QRCode.toCanvas(document.getElementById("faio-room-qr"), url.href, { width: 224, margin: 4, errorCorrectionLevel: "M" }, error => {
+            if (error) return;
+            join.href = url.href;
+            join.hidden = false;
+          });
+        } catch { /* Keep an unavailable or invalid invitation hidden. */ }
+      }
+
       function renderFaioQueue(rows = []) {
         faioQueue.replaceChildren();
-        const items = Array.isArray(rows) ? rows.slice(0, 8) : [];
-        faioQueueCount.textContent = `${items.length} tracks`;
+        const items = Array.isArray(rows) ? rows : [];
+        faioQueueCount.textContent = `${faioListen?.room?.queueCount ?? items.length} 首`;
         if (!items.length) {
           const row = document.createElement("div");
           row.className = "listen-queue-row";
@@ -2814,7 +2867,7 @@
         }
         items.forEach((item, index) => {
           const row = document.createElement("article");
-          row.className = "listen-queue-row";
+          row.className = `listen-queue-row${index === 0 ? " is-next" : ""}`;
 
           const order = document.createElement("div");
           order.className = "listen-queue-index";
@@ -2827,6 +2880,7 @@
             img.src = item.coverUrl;
             img.alt = "";
             img.loading = "lazy";
+            img.addEventListener("error", () => img.remove(), { once: true });
             cover.appendChild(img);
           }
 
@@ -2837,6 +2891,13 @@
           const artist = document.createElement("span");
           artist.textContent = [item.artist, item.albumTitle].filter(Boolean).join(" · ") || "--";
           main.append(title, artist);
+          const readiness = (faioListen?.karaoke?.queue || []).find(state => state.queueId === item.queueId && state.fileId === item.fileId);
+          if (readiness?.ready === true) {
+            const badge = document.createElement("small");
+            badge.className = "queue-badge";
+            badge.textContent = readiness.lyricsKind === "lrc" ? "♫ · 麦克风就绪" : "伴奏就绪";
+            main.appendChild(badge);
+          }
 
           const duration = document.createElement("time");
           duration.textContent = formatTrackTime(item.durationSeconds);
@@ -2902,6 +2963,7 @@
           faioListen.status = "error";
           faioRoomPill.textContent = "房间状态过期";
           faioRoomPill.dataset.connected = "false";
+          renderKaraokeState(false);
           syncFaioAudio(faioListen.playback || {}, { playing: false, volume: 0 });
         }
         const playback = faioListen?.playback || {};
@@ -2912,6 +2974,33 @@
         faioElapsed.textContent = formatTrackTime(position);
         faioDuration.textContent = formatTrackTime(duration);
         renderFaioLyrics(faioListen?.lyrics || [], position);
+      }
+
+      function renderKaraokeState(connected) {
+        const panel = document.getElementById("karaoke-panel");
+        const karaoke = faioListen?.karaoke || {};
+        const mode = karaoke.mode === "karaoke" ? "karaoke" : "normal";
+        panel.dataset.mode = mode;
+        document.getElementById("karaoke-heading").textContent = mode === "karaoke" ? "K歌" : "歌词舞台";
+        document.getElementById("karaoke-mode").textContent = mode === "karaoke" ? `K歌 · 原唱 ${Math.round((Number(karaoke.ratio) || 0) * 100)}%` : "一起听歌";
+        const accompaniment = karaoke.accompaniment || {};
+        const states = { unavailable: "暂无伴奏", queued: "伴奏排队中", running: "伴奏生成中", ready: "伴奏已就绪", failed: "伴奏准备失败", cancelled: "伴奏已取消", idle: "暂无伴奏" };
+        const progress = document.getElementById("karaoke-progress");
+        const preparing = ["queued", "running"].includes(accompaniment.status);
+        progress.hidden = !connected || !preparing;
+        const percent = Number(accompaniment.progress);
+        if (preparing && Number.isFinite(percent)) progress.value = Math.max(0, Math.min(100, percent));
+        else progress.removeAttribute("value");
+        let status = !connected ? "房间连接中断 · 等待重连" : karaoke.connectionStatus === "unauthorized" ? "K歌无访问权限 · 输出已静音" : karaoke.connectionStatus === "error" ? "K歌连接中断 · 等待重连" : karaoke.connectionStatus === "unsupported" ? "当前服务不支持 K歌" : states[accompaniment.status] || (mode === "normal" ? "原唱播放" : "暂无伴奏");
+        const generationErrors = { sourceAccessDenied: "原曲访问受限", computeBusy: "计算节点繁忙", computeUnavailable: "计算节点不可用", upstreamUnavailable: "上游暂不可用", generationFailed: "生成失败" };
+        if (connected && accompaniment.status === "failed" && generationErrors[accompaniment.errorCategory]) status += ` · ${generationErrors[accompaniment.errorCategory]}`;
+        if (connected && accompaniment.status === "queued" && accompaniment.errorCode === "compute_busy") status = "等待计算节点空闲";
+        if (connected && preparing && Number.isFinite(percent)) status += ` · ${Math.round(Math.max(0, Math.min(100, percent)))}%`;
+        if (connected && mode === "karaoke" && karaoke.outputAllowed === false && karaoke.connectionStatus === "connected") status += " · 展示端静音";
+        document.getElementById("karaoke-status").textContent = status;
+        const lyricStates = { searching: "歌词查找中", plain: "纯文本歌词", missing: "暂无歌词", failed: "歌词获取失败" };
+        document.getElementById("karaoke-lyrics-status").textContent = lyricStates[karaoke.lyricsStatus?.status] || "";
+        document.getElementById("karaoke-track").textContent = [faioListen?.playback?.title, faioListen?.playback?.artist].filter(Boolean).join(" · ") || "等待点歌";
       }
 
       function renderFaioListen(payload, lyricsDeferred = false) {
@@ -2928,7 +3017,8 @@
         const connected = faioListen.status === "connected" && room.status !== "closed";
         faioRoomPill.textContent = connected ? `${room.name || "一起听歌"} · 已连接` : "连接中断";
         faioRoomPill.dataset.connected = String(connected);
-        faioOnline.textContent = `${room.onlineCount ?? "--"} online`;
+        renderKaraokeState(connected);
+        faioOnline.textContent = `${room.onlineCount ?? "--"} 人在线`;
         faioTitle.textContent = playback.title || "等待点歌";
         faioArtist.textContent = [playback.artist, playback.albumTitle].filter(Boolean).join(" · ") || "一起听歌";
         faioContributor.textContent = playback.contributorName ? `由 ${playback.contributorName} 点播` : "MytheNAS read-only listener";
@@ -2941,6 +3031,7 @@
           faioCover.style.display = "none";
           faioCoverEmpty.style.display = "grid";
         }
+        renderFaioRoomJoin();
         renderFaioQueue(faioListen.queue);
         renderFaioPlaybackFrame();
         if (!karaokeOutputRequested) syncFaioAudio(playback, faioPublicOutput);
@@ -3275,6 +3366,7 @@
             onState:state=>{
               if (!faioListen || String(faioListen.playback?.fileId)!==String(state.file_id)) return;
               faioListen.karaoke={...faioListen.karaoke,connectionStatus:"connected",mode:state.active_version?"karaoke":"normal",ratio:state.ratio,positionSeconds:state.position,anchorSeconds:state.anchor,serverTimeSeconds:state.server_time,durationSeconds:state.duration,fileId:state.file_id};
+              renderKaraokeState(faioListen.status==="connected");
             }});
           toggle.addEventListener("click",async()=>{
             if(karaokeOutputClient.startRequested)karaokeOutputClient.stop();

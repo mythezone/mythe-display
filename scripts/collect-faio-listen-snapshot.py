@@ -376,7 +376,7 @@ def normalize_snapshot(
             "updatedAt": str(public_output.get("updated_at") or ""),
         },
         "lyrics": lyrics[:120],
-        "queue": [normalize_track(item, revision=revision) for item in queue_rows[:12] if isinstance(item, dict)],
+        "queue": [normalize_track(item, revision=revision) for item in queue_rows if isinstance(item, dict)],
         "_upstream": {
             "playbackMediaPath": str(playback.get("media_url") or ""),
             "playbackCoverPath": str(playback.get("cover_url") or ""),

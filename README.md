@@ -206,6 +206,8 @@ Browser karaoke output (`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`) needs a working
 
 Lyrics fill the available panel height with surrounding lines and automatically scroll to keep the current line centered and highlighted, including at the beginning and end of a song.
 
+On the wide dashboard, the music and lyrics columns use a 1:2 width ratio while keeping their combined width and the remaining columns unchanged. A locally generated room QR code follows the last queued song: short queues reveal it, and long queues push it below the visible scroll area. It uses the current room's `shareUrl` or `roomUrl`; loopback addresses use MusicMate's public entry at `https://faio.muiao.cloud` so a phone can open the room. Other network origins are preserved, and closed rooms hide the invitation.
+
 Room metadata and lyrics continue refreshing during local playback. Lightweight playback-state checks preserve the current song's lyrics; changing songs clears them until the full snapshot arrives. Karaoke lyrics follow the local audio clock, and genuinely stale room snapshots still show a connection warning.
 
 Compatible room servers use the continuous event stream for local audio: authorization heartbeats renew the server's playback lease, while progress uploads run separately and cannot mute buffered audio when slow. Ordinary listening uses the original media; active karaoke retains verified dual-track buffering. After updating the local proxy, run `sudo mdp restart` once. See [continuous playback](docs/development/web-kiosk-test.md#连续播放与卡顿排查).

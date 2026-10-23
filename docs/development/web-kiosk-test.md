@@ -348,6 +348,12 @@ FAIO 一起听歌默认 10 秒刷新一次：
 http://<server-ip>:23456/kiosk-test/?faioListenRefreshMs=10000
 ```
 
+宽屏中听歌与歌词两列按 1:2 分配（前两列为 0.78fr / 1.56fr），合计宽度保持原来的 2.34fr，右侧栏目位置不变。窄屏仍使用原有纵向布局。
+
+待播放列表与末尾的「扫码进房点歌」共用一个滚动区域。二维码不固定到底部、不占用歌词区域；短队列自然露出，长队列将它推到可视区域下方。二维码读取 `room.shareUrl`，缺失时使用 `roomUrl`，只接受当前房间的 HTTP(S) `/listen/<room-id>`，不携带用户名、密码、查询参数或 fragment；房间关闭或链接无效时隐藏。本机回环地址（包括 localhost/IPv6）改用 MusicMate 公网入口 `https://faio.muiao.cloud`，其他部署的可访问分享地址保持原样。
+
+二维码复用本地随附的 `node-qrcode` 1.5.4 浏览器包与 MIT 许可，每个房间链接只生成一次，不访问外部制码服务。无需安装 npm 或 Python 图像依赖。切换房间会更新二维码，普通快照刷新复用已有图像。链接回归检查：`node tests/test_faio_room_join.cjs`。
+
 默认房间通过本机 FAIO Webapp 代理访问：
 
 ```text

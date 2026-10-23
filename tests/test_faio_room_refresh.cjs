@@ -43,7 +43,7 @@ const context = { ...nodes, console, Math, Number, String, AbortController,
   faioLoadTimer: null, faioLoadSequence: 0, faioLoadAbort: null, faioLoadFailures: 0,
   karaokeOutputClient: { isPlayingLocally: true, latest: { file_id: 'song-a' },
     localProgress: () => ({ position_seconds: 25, playback_status: 'playing' }), roomChanged() {} },
-  renderKaraokeState() {}, renderFaioQueue() {}, syncFaioAudio() {}, formatTrackTime: String,
+  renderKaraokeState() {}, renderFaioRoomJoin() {}, renderFaioQueue() {}, syncFaioAudio() {}, formatTrackTime: String,
   setTimeout(fn, delay) { const id = ++nextTimer; timers.set(id, { fn, delay }); return id; },
   clearTimeout(id) { timers.delete(id); },
   async fetch(url) {
