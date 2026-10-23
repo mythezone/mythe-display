@@ -380,6 +380,10 @@ hw:0,8  HDMI 2
 
 `/proc/asound/card0/eld#2.3` 显示当前 HDMI 副屏上报了 2 声道 LPCM 音频能力。当前 NAS 默认设置为 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE=plughw:0,3`，由 `scripts/faio-listen-audio-player.py` 使用 FFmpeg 直接输出到 HDMI ALSA 端点。这样可以绕过无桌面 snap Chromium 中 HTML audio 显示播放但不打开 ALSA PCM 的问题。
 
+### ChatGPT Pet 与周用量
+
+Assistant 使用主题内的原版 ChatGPT Codex Pet 资源与原生动作，底部读取 `/runtime/codex-agents.json` 的 `usage`，显示 Codex 登录账号的七天已用比例及重置倒计时。沿用五分钟采集，每秒更新倒计时；不显示凭据或账号标识，数据缺失、过期或重置后等待更新时显示 `--`。系统服务读取实际用户账号，无需新增服务。协议、用户目录推断与验证见[Codex 账号接入](codex-agent-tracking.md#chatgpt-pet-与周用量)。
+
 ### 歌词展示
 
 歌词区域渲染完整歌词，显示高度内的前后句并随播放自动滚动；正在唱的句子始终居中高亮。上下边缘保留渐隐，首尾留出居中所需空间，不再固定只显示三行。普通播放、K歌和窄屏布局使用同一展示方式。

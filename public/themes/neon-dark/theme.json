@@ -54,46 +54,33 @@
     }
   },
   "mascot": {
-    "assistant": "mascot/assistant.png",
     "actions": [
-      { "action": "idle", "quote": "稳定先于华丽。" },
-      { "action": "wave", "quote": "先备份，再冒险。" },
-      { "action": "think", "quote": "慢查询不会自己消失。" },
-      { "action": "scan", "quote": "每一次告警都值得被解释。" },
-      { "action": "celebrate", "quote": "自动化省下的时间，应该还给思考。" },
-      { "action": "patrol", "quote": "巡检不是仪式，是发现变化。" },
-      { "action": "focus", "quote": "先看趋势，再判断噪声。" },
-      { "action": "sleep", "quote": "低负载时也要保持清醒的日志。" },
-      { "action": "type", "quote": "配置写清楚，服务少猜测。" },
-      { "action": "guard", "quote": "守住边界，比补救更可靠。" },
-      { "action": "alert", "quote": "异常出现时，先保留证据。" },
-      { "action": "boot", "quote": "启动链路越短，恢复越快。" },
-      { "action": "nod", "quote": "确认之后再切换。" }
+      {"action": "idle"},
+      {"action": "wave"},
+      {"action": "jump"},
+      {"action": "running"},
+      {"action": "review"}
     ],
     "codexPet": {
-      "enabled": false,
-      "manifest": "mascot/pets/<pet-id>/pet.json",
+      "enabled": true,
+      "source": "chatgpt",
+      "manifest": "mascot/pets/chatgpt-codex/pet.json",
       "columns": 8,
       "rows": 9,
       "frameWidth": 192,
       "frameHeight": 208,
       "frames": 8,
       "fps": 9,
-      "scale": 1.05,
+      "scale": 1.3,
       "actionRows": {
         "idle": 0,
-        "patrol": 7,
         "wave": 3,
+        "jump": 4,
         "celebrate": 4,
-        "think": 6,
-        "scan": 8,
-        "focus": 8,
-        "sleep": 6,
-        "type": 8,
-        "guard": 5,
-        "alert": 5,
-        "boot": 4,
-        "nod": 0
+        "think": 7,
+        "review": 8,
+        "running": 7,
+        "waiting": 6
       }
     },
     "rive": {

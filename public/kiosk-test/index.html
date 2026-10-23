@@ -831,7 +831,7 @@
         background-image: var(--pet-spritesheet);
         background-repeat: no-repeat;
         background-size: calc(var(--pet-columns, 8) * 100%) calc(var(--pet-rows, 9) * 100%);
-        background-position: 0 calc(var(--pet-row, 0) * -100%);
+        background-position: 0 calc(var(--pet-row, 0) * var(--pet-display-height, 238px) * -1);
         image-rendering: pixelated;
         filter: drop-shadow(0 0 24px rgba(10, 132, 255, 0.26));
         transform-origin: 50% 92%;
@@ -853,6 +853,21 @@
 
       .mascot-panel[data-runtime="codex-pet"] .mascot-sprite {
         display: block;
+      }
+
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-quote,
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-img { display: none; }
+      .mascot-panel[data-pet-source="chatgpt"] .mascot-stage { grid-template-rows: minmax(0, 1fr); align-items: center; }
+      .codex-usage { display: grid; gap: 9px; }
+      .codex-usage-title, .codex-usage-meta { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+      .codex-usage-title { color: var(--md-text-secondary); font-size: 16px; }
+      .codex-usage-title strong { color: var(--md-text-primary); font-size: 21px; font-variant-numeric: tabular-nums; }
+      .codex-usage-track { height: 7px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,0.1); }
+      .codex-usage-bar { width: 0; height: 100%; border-radius: inherit; background: var(--usage-color, var(--md-accent-primary)); transition: width 0.4s ease; }
+      .codex-usage-meta { color: var(--md-text-muted); font-size: 13px; flex-wrap: wrap; }
+      .codex-usage[data-state="unavailable"] .codex-usage-bar { visibility: hidden; }
+      @media (prefers-reduced-motion: reduce) {
+        .mascot-panel[data-pet-source="chatgpt"] .mascot-sprite { animation-play-state: paused; }
       }
 
       .mascot-panel[data-action="idle"] .mascot-img {
@@ -917,10 +932,10 @@
 
       @keyframes mascot-sprite-frames {
         from {
-          background-position: 0 calc(var(--pet-row, 0) * -100%);
+          background-position: 0 calc(var(--pet-row, 0) * var(--pet-display-height, 238px) * -1);
         }
         to {
-          background-position: calc(var(--pet-frames, 8) * -100%) calc(var(--pet-row, 0) * -100%);
+          background-position: calc(var(--pet-frames, 8) * var(--pet-display-width, 220px) * -1) calc(var(--pet-row, 0) * var(--pet-display-height, 238px) * -1);
         }
       }
 
@@ -1895,7 +1910,7 @@
 
       <section class="panel mascot-panel" id="mascot-panel" data-action="idle">
         <header>
-          <h2>Assistant</h2>
+          <h2>ChatGPT Pet</h2>
           <span class="pill" id="mascot-action">idle</span>
         </header>
         <div class="mascot-stage">
@@ -1904,8 +1919,10 @@
           <div class="mascot-sprite" id="mascot-sprite" role="img" aria-label="MytheNAS pet"></div>
           <img class="mascot-img" id="mascot-img" alt="MytheNAS assistant" />
         </div>
-        <div class="chart-legend">
-          <span><i class="legend-dot" style="--dot: var(--md-accent-secondary)"></i>5 min action cycle</span>
+        <div class="codex-usage" id="codex-usage" data-state="unavailable">
+          <div class="codex-usage-title"><span>Codex 周用量</span><strong id="codex-usage-percent">--</strong></div>
+          <div class="codex-usage-track" id="codex-usage-track" role="progressbar" aria-label="Codex 本周已用额度" aria-valuemin="0" aria-valuemax="100"><div class="codex-usage-bar" id="codex-usage-bar"></div></div>
+          <div class="codex-usage-meta"><span id="codex-plan">ChatGPT</span><span id="codex-reset">正在读取用量</span></div>
         </div>
       </section>
 
@@ -2127,6 +2144,7 @@
       let themeBaseUrl = new URL("../themes/neon-dark/", location.href);
       let agentSprites = {};
       let agents = [];
+      let codexUsage = null;
       let telemetry = null;
       let faioListen = null;
       let karaokeOutputClient = null;
@@ -2142,6 +2160,7 @@
       let themeAssetVersion = initialAssetCacheBust;
       let mascotActionRows = {};
       let mascotSpriteConfig = null;
+      let mascotReturnTimer = null;
 
       faioAudio.addEventListener("loadedmetadata", () => {
         if (faioPendingSeek === null) return;
@@ -2468,6 +2487,7 @@
       }
 
       async function initCodexPetRuntime(config = {}) {
+        mascotPanel.dataset.petSource = config.source || "";
         try {
           const manifestUrl = resolveThemeAsset(config.manifest);
           const manifest = await fetchJson(manifestUrl);
@@ -2485,14 +2505,21 @@
           const frameHeight = Number(config.frameHeight || manifest.frameHeight || 208);
           const scale = Number(config.scale || 1.05);
           const fps = Number(config.fps || manifest.fps || 9);
+          if (![columns, rows, frames, frameWidth, frameHeight].every(value => Number.isInteger(value) && value > 0) || frames > columns || !Number.isFinite(fps) || fps <= 0 || !Number.isFinite(scale) || scale <= 0) throw new Error("Invalid pet geometry");
           const duration = Math.max(300, Math.round((frames / Math.max(1, fps)) * 1000));
+          const frameCounts = manifest.frameCounts;
+          if (frameCounts && (!Array.isArray(frameCounts) || frameCounts.length !== rows || frameCounts.some(count => !Number.isInteger(count) || count < 1 || count > columns))) throw new Error("Invalid pet frame counts");
+          const image = new Image();
+          image.src = spritesheetUrl.toString();
+          await image.decode();
+          if (image.naturalWidth !== columns * frameWidth || image.naturalHeight !== rows * frameHeight) throw new Error("Invalid pet grid");
 
           mascotActionRows = {
             ...codexPetDefaultRows,
             ...rowsFromManifest(manifest),
             ...normalizeRowMap(config.actionRows || config.rowsByAction || {})
           };
-          mascotSpriteConfig = { columns, rows, frames, duration };
+          mascotSpriteConfig = { columns, rows, frames, duration, frameCounts, fps };
           mascotSprite.style.setProperty("--pet-spritesheet", `url("${spritesheetUrl.toString()}")`);
           mascotSprite.style.setProperty("--pet-columns", String(columns));
           mascotSprite.style.setProperty("--pet-rows", String(rows));
@@ -2507,6 +2534,7 @@
         } catch (error) {
           console.warn("Codex pet mascot unavailable, using fallback", error);
           mascotPanel.dataset.runtime = "png";
+          if (config.source === "chatgpt") mascotAction.textContent = "宠物暂不可用";
           mascotSpriteConfig = null;
           mascotActionRows = {};
           return false;
@@ -2515,8 +2543,24 @@
 
       function setMascotSpriteAction(action) {
         if (mascotPanel.dataset.runtime !== "codex-pet" || !mascotSpriteConfig) return;
-        const row = mascotActionRows[action] ?? mascotActionRows.idle ?? 0;
-        mascotSprite.style.setProperty("--pet-row", String(Math.max(0, Math.min(row, mascotSpriteConfig.rows - 1))));
+        clearTimeout(mascotReturnTimer);
+        const row = Math.max(0, Math.min(mascotActionRows[action] ?? mascotActionRows.idle ?? 0, mascotSpriteConfig.rows - 1));
+        const frames = mascotSpriteConfig.frameCounts?.[row] || mascotSpriteConfig.frames;
+        const duration = Math.max(300, Math.round(frames / Math.max(1, mascotSpriteConfig.fps) * 1000));
+        mascotSprite.style.setProperty("--pet-row", String(row));
+        mascotSprite.style.setProperty("--pet-frames", String(frames));
+        mascotSprite.style.setProperty("--pet-duration", `${duration}ms`);
+        mascotSprite.style.animation = "none";
+        void mascotSprite.offsetWidth;
+        mascotSprite.style.animation = "";
+        if (mascotPanel.dataset.petSource === "chatgpt") {
+          const labels = { 0: "待机", 1: "向右走", 2: "向左走", 3: "挥手", 4: "跳跃", 5: "失落", 6: "等待", 7: "思考", 8: "查看" };
+          mascotAction.textContent = labels[row] || "待机";
+          if ([3, 4, 5].includes(row)) mascotReturnTimer = setTimeout(() => {
+            mascotPanel.dataset.action = "idle";
+            setMascotSpriteAction("idle");
+          }, duration * 2);
+        }
       }
 
       function drawTelemetryChart() {
@@ -2664,6 +2708,10 @@
       }
 
       function updateMascot() {
+        if (mascotPanel.dataset.petSource === "chatgpt" && mascotPanel.dataset.runtime !== "codex-pet") {
+          mascotAction.textContent = "宠物暂不可用";
+          return;
+        }
         const state = mascotStates[Math.floor(Math.random() * mascotStates.length)];
         mascotPanel.dataset.action = state.action;
         mascotAction.textContent = state.action;
@@ -3129,14 +3177,50 @@
       }
 
       async function loadAgents() {
-        if (!agentBoard) return;
         try {
-          agents = normalizeAgents(await fetchJsonWithFallback(agentSourceUrl, agentFallbackUrl));
+          const payload = await fetchJsonWithFallback(agentSourceUrl, agentFallbackUrl);
+          agents = normalizeAgents(payload);
+          codexUsage = payload?.usage || null;
         } catch (error) {
           console.warn("Agent source load failed, using fallback", error);
           agents = fallbackAgents;
+          codexUsage = null;
         }
         renderAgents();
+        renderCodexUsage();
+      }
+
+      function renderCodexUsage() {
+        const panel = document.getElementById("codex-usage");
+        const percent = document.getElementById("codex-usage-percent");
+        const track = document.getElementById("codex-usage-track");
+        const bar = document.getElementById("codex-usage-bar");
+        const reset = document.getElementById("codex-reset");
+        const plan = document.getElementById("codex-plan");
+        const usage = codexUsage || {};
+        const updated = Date.parse(usage.updatedAt || "");
+        const fresh = Number.isFinite(updated) && Date.now() - updated <= Math.max(900000, agentRefreshMs * 3);
+        const available = usage.available === true && usage.windowMinutes === 10080 && typeof usage.usedPercent === "number" && Number.isFinite(usage.usedPercent) && usage.usedPercent >= 0 && usage.usedPercent <= 100 && typeof usage.resetsAt === "number" && Number.isFinite(usage.resetsAt);
+        const remaining = Math.ceil(usage.resetsAt - Date.now() / 1000);
+        panel.dataset.state = available && fresh && remaining > 0 ? "ready" : "unavailable";
+        if (panel.dataset.state !== "ready") {
+          percent.textContent = "--";
+          track.removeAttribute("aria-valuenow");
+          track.setAttribute("aria-valuetext", "周用量暂不可用");
+          plan.textContent = "ChatGPT";
+          reset.textContent = available && !fresh ? "用量数据已过期" : available && remaining <= 0 ? "等待重置后用量更新" : usage.status === "not-signed-in" ? "请登录 ChatGPT 账号" : usage.status === "no-weekly-window" ? "账号未提供周额度" : "周用量暂不可用";
+          return;
+        }
+        percent.textContent = `已用 ${Math.round(usage.usedPercent * 10) / 10}%`;
+        track.setAttribute("aria-valuenow", String(usage.usedPercent));
+        track.removeAttribute("aria-valuetext");
+        bar.style.width = `${usage.usedPercent}%`;
+        bar.style.setProperty("--usage-color", usageColor(usage.usedPercent));
+        const plans = { pro: "ChatGPT Pro", plus: "ChatGPT Plus", business: "ChatGPT Business", enterprise: "ChatGPT Enterprise", edu: "ChatGPT Edu", free: "ChatGPT Free" };
+        plan.textContent = plans[usage.planType] || "ChatGPT";
+        const days = Math.floor(remaining / 86400), hours = Math.floor(remaining % 86400 / 3600), minutes = Math.floor(remaining % 3600 / 60), seconds = remaining % 60;
+        reset.textContent = `距重置 ${days ? days + "天 " : ""}${days || hours ? hours + "小时 " : ""}${minutes}分${days || hours ? "" : seconds + "秒"}`;
+        reset.title = new Date(usage.resetsAt * 1000).toLocaleString("zh-CN");
       }
 
       async function loadTheme(options = {}) {
@@ -3170,6 +3254,7 @@
 
       function tick() {
         const now = new Date();
+        renderCodexUsage();
         clock.textContent = new Intl.DateTimeFormat("zh-CN", {
           timeZone: clockTimeZone,
           hour: "2-digit",

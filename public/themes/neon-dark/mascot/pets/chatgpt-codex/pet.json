@@ -1,0 +1,35 @@
+{
+  "id": "chatgpt-codex",
+  "petId": "codex",
+  "name": "Codex",
+  "displayName": "ChatGPT Codex Pet",
+  "source": "chatgpt",
+  "spritesheetPath": "spritesheet.webp",
+  "columns": 8,
+  "rows": 9,
+  "frameWidth": 192,
+  "frameHeight": 208,
+  "fps": 9,
+  "frameCounts": [
+    6,
+    8,
+    8,
+    4,
+    5,
+    8,
+    6,
+    6,
+    6
+  ],
+  "states": {
+    "idle": 0,
+    "running-right": 1,
+    "running-left": 2,
+    "wave": 3,
+    "jump": 4,
+    "failed": 5,
+    "waiting": 6,
+    "running": 7,
+    "review": 8
+  }
+}

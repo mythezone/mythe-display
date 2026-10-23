@@ -2,18 +2,22 @@
 """
 Collect local Codex session/process metadata as a PixelAgentSnapshot.
 
-This intentionally reads only session index metadata, not conversation bodies,
-auth files, prompts, tool payloads, or message history.
+Session tracking reads only index metadata. Account usage comes from Codex's
+read-only app-server API; no auth files, prompts or conversations are parsed.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import pwd
+import selectors
+import shutil
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -50,7 +54,122 @@ def default_codex_home() -> Path:
         except KeyError:
             pass
 
+    if os.geteuid() == 0:
+        owner = Path(__file__).resolve().stat().st_uid
+        if owner:
+            return Path(pwd.getpwuid(owner).pw_dir) / ".codex"
     return Path.home() / ".codex"
+
+
+def normalize_usage(account: dict, limits: dict) -> dict[str, Any]:
+    usage = {"available": False, "status": "unavailable", "updatedAt": utc_now().isoformat()}
+    if not isinstance(account, dict) or not isinstance(limits, dict):
+        return usage
+    if account.get("type") not in ("chatgpt", "chatgptAuthTokens"):
+        return {**usage, "status": "not-signed-in"}
+    buckets = limits.get("rateLimitsByLimitId") or {}
+    bucket = (buckets.get("codex") if isinstance(buckets, dict) else None) or limits.get("rateLimits") or {}
+    if not isinstance(bucket, dict):
+        return usage
+    if bucket.get("limitId") not in (None, "codex"):
+        return usage
+    weekly_found = False
+    for name in ("primary", "secondary"):
+        window = bucket.get(name) or {}
+        if not isinstance(window, dict):
+            continue
+        if window.get("windowDurationMins") != 10080:
+            continue
+        weekly_found = True
+        percent, reset = window.get("usedPercent"), window.get("resetsAt")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in (percent, reset)):
+            continue
+        if not 0 <= percent <= 100 or not 0 < reset < 253402300800:
+            continue
+        plan = account.get("planType") or bucket.get("planType")
+        if plan not in ("free", "go", "plus", "pro", "team", "business", "enterprise", "edu"):
+            plan = ""
+        return {**usage, "available": True, "status": "ready", "usedPercent": percent,
+                "resetsAt": int(reset), "windowMinutes": 10080,
+                "planType": plan}
+    return usage if weekly_found else {**usage, "status": "no-weekly-window"}
+
+
+def collect_usage(codex_home: Path, timeout: float = 12) -> dict[str, Any]:
+    unavailable = {"available": False, "status": "unavailable", "updatedAt": utc_now().isoformat()}
+    process = None
+    try:
+        owner = pwd.getpwuid(codex_home.stat().st_uid)
+        executable = Path(owner.pw_dir) / ".local/bin/codex"
+        command = str(executable) if executable.is_file() else shutil.which("codex")
+        if not command:
+            return unavailable
+        env = {**os.environ, "CODEX_HOME": str(codex_home), "HOME": owner.pw_dir,
+               "PATH": str(Path(owner.pw_dir) / ".local/bin") + os.pathsep + os.environ.get("PATH", "")}
+        identity = {"user": owner.pw_uid, "group": owner.pw_gid, "extra_groups": []} if os.geteuid() == 0 else {}
+        # A root kiosk must not refresh the desktop user's login as root.
+        process = subprocess.Popen([command, "app-server", "--listen", "stdio://"], env=env,
+            cwd=owner.pw_dir, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, **identity)
+        deadline = time.monotonic() + timeout
+        pending = b""
+        with selectors.DefaultSelector() as selector:
+            selector.register(process.stdout, selectors.EVENT_READ)
+
+            def send(message: dict) -> None:
+                process.stdin.write(json.dumps(message).encode() + b"\n")
+                process.stdin.flush()
+
+            def call(request_id: int, method: str, params: dict | None = None) -> dict:
+                nonlocal pending
+                send({"id": request_id, "method": method, "params": params or {}})
+                while time.monotonic() < deadline:
+                    while b"\n" in pending:
+                        line, pending = pending.split(b"\n", 1)
+                        message = json.loads(line)
+                        if not isinstance(message, dict):
+                            raise ValueError("Invalid Codex response")
+                        if message.get("id") != request_id or not ("result" in message or "error" in message):
+                            continue
+                        if "error" in message:
+                            raise ValueError("Codex account request failed")
+                        result = message.get("result") or {}
+                        if not isinstance(result, dict):
+                            raise ValueError("Invalid Codex result")
+                        return result
+                    if not selector.select(max(0, deadline - time.monotonic())):
+                        break
+                    chunk = os.read(process.stdout.fileno(), 65536)
+                    if not chunk:
+                        break
+                    pending += chunk
+                    if len(pending) > 1048576:
+                        raise ValueError("Codex response too large")
+                raise TimeoutError("Codex account request timed out")
+
+            call(1, "initialize", {"clientInfo": {"name": "mythe_display", "title": "Mythe Display", "version": "0.1.0"}, "capabilities": {}})
+            send({"method": "initialized"})
+            account = call(2, "account/read", {"refreshToken": False}).get("account") or {}
+            if not isinstance(account, dict):
+                return unavailable
+            if account.get("type") not in ("chatgpt", "chatgptAuthTokens"):
+                return normalize_usage(account, {})
+            return normalize_usage(account, call(3, "account/rateLimits/read"))
+    except (OSError, ValueError, TimeoutError, KeyError):
+        return unavailable
+    finally:
+        if process is not None:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+            try:
+                process.stdin.close()
+            except OSError:
+                pass
+            process.stdout.close()
 
 
 def run_text(command: list[str]) -> str:
@@ -225,6 +344,7 @@ def collect(codex_home: Path, refresh_ms: int, limit: int, show_thread_names: bo
         "refreshMs": refresh_ms,
         "source": "codex.local",
         "available": True,
+        "usage": collect_usage(codex_home),
         "summary": {
             "codexHome": str(codex_home),
             "sessionCount": len(sessions),

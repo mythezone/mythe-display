@@ -4,9 +4,11 @@
 
 状态：原型
 
+更新：2026-10-23，接入原版 ChatGPT Pet 与官方账号周额度接口。
+
 ## 结论
 
-可以追踪，但目前应按“本机只读状态适配器”处理，而不是假设 Codex 提供了稳定的 Agent 状态 API。
+Agent 活动继续使用本机只读元信息适配器。账号周额度独立通过官方 Codex app-server 读取，不从进程数量或会话活跃度推断。
 
 当前本机可用信号：
 
@@ -20,6 +22,27 @@
 - `~/.codex/history.jsonl`：用户输入历史。
 - archived session JSONL：可能包含完整会话正文和工具调用内容。
 - app-server websocket/control 协议内部内容：当前没有在项目内确认稳定公开契约。
+
+## ChatGPT Pet 与周用量
+
+Assistant 使用 ChatGPT Pets 中稳定 ID 为 `codex` 的原版素材，原图保存在主题资源内，不保存下载链接。使用原生九行动作及每行的实际帧数（6/8/8/4/5/8/6/6/6），避免播到透明占位帧；行位置按显示帧高计算，挥手、跳跃与失败短动作播放后回到待机。减少动态效果设置会暂停精灵动画。宠物展示动作与 Agent 元信息状态独立。
+
+现有采集器每五分钟启动一次有 12 秒总期限的 `codex app-server --listen stdio://`，完成初始化后只调用 `account/read`（`refreshToken=false`）和 `account/rateLimits/read`。依据[官方契约](https://learn.chatgpt.com/docs/app-server)，优先取 `rateLimitsByLimitId.codex`，在 primary 或 secondary 中识别 `windowDurationMins=10080` 的七天窗口；`resetsAt` 为服务端 Unix 秒时间戳。没有模型请求、会话创建、额度重置或登录操作。
+
+`CODEX_HOME` 与 `--codex-home` 保留现有覆盖能力。sudo 启动优先使用 `SUDO_USER`；systemd 以 root 启动且没有覆盖时，使用仓库文件所有者的 Codex 目录。账号查询子进程使用该目录所有者的 UID/GID 与用户环境，避免 root 刷新登录后改变凭据文件归属。采集器不解析认证文件，Codex 自行管理登录凭据。
+
+`codex-agents.json` 新增可选 `usage`，只输出这些字段：
+
+| 字段 | 含义 |
+| --- | --- |
+| available / status | 是否可用；ready、unavailable、not-signed-in 或 no-weekly-window |
+| usedPercent / windowMinutes | 服务端七天窗口的已用百分比与 10080 分钟 |
+| resetsAt | 服务端给出的下次重置时刻，Unix 秒 |
+| updatedAt / planType | 查询时间与套餐类型 |
+
+账号标识、邮箱、token、Cookie、余额和重置券信息不进入快照。未登录、短窗口、无周额度或请求失败时不伪造零用量。页面每秒重算倒计时；默认超过 15 分钟的数据视为过期，达到重置时刻后等待下一次真实数据更新，不在浏览器自行清零。
+
+即使页面不显示 Agent 列表，也会读取快照供周用量展示。采集仍沿用已有进程与刷新周期，更新脚本后在下一周期生效，页面资源更新需刷新。检查：`python3 -m unittest discover -s tests -p test_codex_usage.py`、`node tests/test_chatgpt_pet.cjs`。
 
 ## 当前实现
 
@@ -44,7 +67,7 @@ public/runtime/codex-agents.json
 该脚本会：
 
 - 自动推断 Codex 主目录。
-- 如果 kiosk 通过 `sudo` 运行，优先从 `SUDO_USER` 推断 `/home/<user>/.codex`，避免误读 `/root/.codex`。
+- 如果 kiosk 通过 `sudo` 运行，优先从 `SUDO_USER` 推断用户目录；root systemd 启动时回退到仓库所有者，避免误读 root 的 Codex 目录。
 - 读取 `session_index.jsonl` 的会话元数据。
 - 读取本机 Codex 进程数量和类型。
 - 输出符合 `PixelAgentSnapshot` 的 JSON。
