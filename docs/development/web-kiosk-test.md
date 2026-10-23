@@ -382,7 +382,7 @@ hw:0,8  HDMI 2
 
 ### ChatGPT Pet 与周用量
 
-Assistant 使用主题内的原版 ChatGPT Codex Pet 资源与原生动作，底部读取 `/runtime/codex-agents.json` 的 `usage`，显示 Codex 登录账号的七天已用比例及重置倒计时。沿用五分钟采集，每秒更新倒计时；不显示凭据或账号标识，数据缺失、过期或重置后等待更新时显示 `--`。系统服务读取实际用户账号，无需新增服务。协议、用户目录推断与验证见[Codex 账号接入](codex-agent-tracking.md#chatgpt-pet-与周用量)。
+Assistant 使用主题内的自定义 Frieren Pet 资源与原生动作，底部读取 `/runtime/codex-agents.json` 的 `usage`，显示 Codex 登录账号的七天已用比例及重置倒计时。沿用五分钟采集，每秒更新倒计时；不显示凭据或账号标识，数据缺失、过期或重置后等待更新时显示 `--`。系统服务读取实际用户账号，无需新增服务。协议、用户目录推断与验证见[Codex 账号接入](codex-agent-tracking.md#chatgpt-pet-与周用量)。
 
 ### 歌词展示
 

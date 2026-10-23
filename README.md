@@ -220,7 +220,7 @@ Once browser audio is unlocked, a failed startup connection or clock request ret
 
 The default page reads local JSON snapshots from `public/runtime/`. That directory is ignored by Git.
 
-The Assistant panel displays the original ChatGPT Codex Pet with its native animations, followed by the signed-in Codex account's weekly usage and a live reset countdown. Usage refreshes with the existing five-minute collector through the [official account API](https://learn.chatgpt.com/docs/app-server); missing, expired, or unavailable data displays `--`. Credentials stay with Codex, and the snapshot excludes account identifiers and email. See [account usage and pet integration](docs/development/codex-agent-tracking.md#chatgpt-pet-与周用量).
+The Assistant panel displays the account's existing custom ChatGPT Frieren Pet with its native animations, followed by the signed-in Codex account's weekly usage and a live reset countdown. Usage refreshes with the existing five-minute collector through the [official account API](https://learn.chatgpt.com/docs/app-server); missing, expired, or unavailable data displays `--`. Credentials stay with Codex, and the snapshot excludes account identifiers and email. See [account usage and pet integration](docs/development/codex-agent-tracking.md#chatgpt-pet-与周用量).
 
 | Snapshot | Default refresh | Collector |
 | --- | ---: | --- |

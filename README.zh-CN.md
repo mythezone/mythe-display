@@ -219,7 +219,7 @@ FAIO 音频会按来源类型处理：本地曲库和在线平台曲目都通过
 
 默认页面读取 `public/runtime/` 中的本地 JSON 快照。该目录已被 Git 忽略。
 
-Assistant 区域使用原版 ChatGPT Codex Pet 及其原生动作，下方显示当前 Codex 登录账号的周用量和实时重置倒计时。用量由现有采集器每五分钟通过[官方账号接口](https://learn.chatgpt.com/docs/app-server)读取；数据缺失、过期或不可用时显示 `--`。凭据由 Codex 自行管理，快照不包含账号标识或邮箱。详见[宠物与周用量接入](docs/development/codex-agent-tracking.md#chatgpt-pet-与周用量)。
+Assistant 区域使用当前账号已有的自定义 Frieren Pet 及其原生动作，下方显示当前 Codex 登录账号的周用量和实时重置倒计时。用量由现有采集器每五分钟通过[官方账号接口](https://learn.chatgpt.com/docs/app-server)读取；数据缺失、过期或不可用时显示 `--`。凭据由 Codex 自行管理，快照不包含账号标识或邮箱。详见[宠物与周用量接入](docs/development/codex-agent-tracking.md#chatgpt-pet-与周用量)。
 
 | 快照 | 默认刷新 | 采集脚本 |
 | --- | ---: | --- |

@@ -64,7 +64,7 @@
     "codexPet": {
       "enabled": true,
       "source": "chatgpt",
-      "manifest": "mascot/pets/chatgpt-codex/pet.json",
+      "manifest": "mascot/pets/chatgpt-frieren/pet.json",
       "columns": 8,
       "rows": 9,
       "frameWidth": 192,

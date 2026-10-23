@@ -4,7 +4,7 @@
 
 状态：原型
 
-更新：2026-10-23，接入原版 ChatGPT Pet 与官方账号周额度接口。
+更新：2026-10-23，接入自定义 Frieren Pet 与官方账号周额度接口。
 
 ## 结论
 
@@ -25,7 +25,7 @@ Agent 活动继续使用本机只读元信息适配器。账号周额度独立�
 
 ## ChatGPT Pet 与周用量
 
-Assistant 使用 ChatGPT Pets 中稳定 ID 为 `codex` 的原版素材，原图保存在主题资源内，不保存下载链接。使用原生九行动作及每行的实际帧数（6/8/8/4/5/8/6/6/6），避免播到透明占位帧；行位置按显示帧高计算，挥手、跳跃与失败短动作播放后回到待机。减少动态效果设置会暂停精灵动画。宠物展示动作与 Agent 元信息状态独立。
+Assistant 默认使用账号已有的自定义 Frieren Pet（稳定 ID `pet_6abb52ac5c5081918d069d899349ebdc`），原图保存在主题资源内，不保存下载链接。使用原生九行动作及每行的实际帧数（6/8/8/4/5/8/6/6/6），避免播到透明占位帧；行位置按显示帧高计算，挥手、跳跃与失败短动作播放后回到待机。减少动态效果设置会暂停精灵动画。宠物展示动作与 Agent 元信息状态独立。
 
 现有采集器每五分钟启动一次有 12 秒总期限的 `codex app-server --listen stdio://`，完成初始化后只调用 `account/read`（`refreshToken=false`）和 `account/rateLimits/read`。依据[官方契约](https://learn.chatgpt.com/docs/app-server)，优先取 `rateLimitsByLimitId.codex`，在 primary 或 secondary 中识别 `windowDurationMins=10080` 的七天窗口；`resetsAt` 为服务端 Unix 秒时间戳。没有模型请求、会话创建、额度重置或登录操作。
 
