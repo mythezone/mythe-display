@@ -80,7 +80,7 @@ class KaraokeOutput {
     const abort=this.startAbort=new AbortController(),timeout=setTimeout(()=>abort.abort(),8000);
     let unlocked=false;
     try{
-      await this.engine.unlock();unlocked=true;
+      await this.engine.unlock(this.audio);unlocked=true;
       if(this.continuous){
         for(let attempt=0;attempt<3;attempt++){
           const ping=this.now(),snapshot=await this.fetchSnapshot(ping,abort.signal);

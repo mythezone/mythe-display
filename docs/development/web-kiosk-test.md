@@ -419,6 +419,8 @@ sudo mdp restart
 
 播放时检查 `/proc/asound/card0/pcm3p/sub0/status` 应为 RUNNING，`hw_params` 应有采样格式和速率。页面“已同步”和 AudioContext running 只能证明浏览器状态，不能证明物理出声。
 
+2026-10-29 实机复现：房间和媒体代理正常，立体声原曲及同格式测试音在 snap Chromium 报 `AUDIO_RENDERER_ERROR`，单声道测试音可持续播放。浏览器 K歌输出改为单声道 AudioContext，原曲也经同一通道输出，避免 HTML media 另开失败的立体声通道；HDMI/PulseAudio sink 保持双声道。更新静态脚本后刷新副屏页面即可生效，验证浏览器音频时间与实际时间同步前进，不能只看状态文字。
+
 ### 公共扬声器与输出设备
 
 FAIO 的 `public_output.playing` 是独立于房间播放状态的公共扬声器开关。其他

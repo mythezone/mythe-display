@@ -203,6 +203,7 @@ Common environment variables:
 FAIO media is handled according to its source type. Library tracks and online-platform tracks are streamed through the local Mythe Display proxy with the private room session; online tracks remain behind FAIO's dynamic stream-ticket resolver. Plain external URLs remain direct. The private room cookies stay under `tmp/` and are never included in runtime JSON or committed to Git.
 
 Browser karaoke output (`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`) needs a working host audio server with snap Chromium. Install `pulseaudio` using `sudo apt-get install --no-install-recommends pulseaudio`, then `sudo mdp restart`. When no audio server is configured or running, the kiosk starts a local PulseAudio sink on `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` and stops it on exit. See [browser audio troubleshooting](docs/development/web-kiosk-test.md#浏览器-k歌音频).
+The browser routes original tracks and karaoke mixes through one mono AudioContext output because this kiosk's current Chromium/HDMI path fails to render stereo streams. The HDMI sink remains configured for two channels.
 
 Lyrics fill the available panel height with surrounding lines and automatically scroll to keep the current line centered and highlighted, including at the beginning and end of a song.
 

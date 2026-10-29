@@ -16,6 +16,7 @@ class Node {
 class Context {
   constructor() { this.currentTime=0; this.state='running'; this.destination={}; }
   createGain() { return new Node(); } createBufferSource() { return new Node(); }
+  createMediaElementSource(audio) { this.rawMedia=audio; const source=new Node();source.connect=destination=>{this.rawDestination=destination;};return source; }
   async resume() {}
 }
 const flush=()=>new Promise(setImmediate);
@@ -39,6 +40,9 @@ const flush=()=>new Promise(setImmediate);
       finally { activeProgress--; }
     }});
   await output.start();const socket=sockets[0];socket.onopen();assert.match(socket.url,/mode=events/);
+  assert.equal(context.destination.channelCount,1,'HDMI browser output uses a mono stream');
+  assert.equal(context.rawMedia,audio,'ordinary media shares the working AudioContext output');
+  assert.equal(context.rawDestination,context.destination);
   socket.onmessage({data:JSON.stringify(state)});await flush();await output.process();
   const graph=engine.graph,origin=graph.origin,nodes=[...graph.nodes];assert.ok(graph);
   const lease=output.leaseUntil;

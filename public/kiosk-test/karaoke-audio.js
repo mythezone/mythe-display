@@ -43,10 +43,18 @@
       this.prefetches = new Map(); this.retryAfter = new Map(); this.prefetchError = '';
       this.endedKey = ''; this.onBuffered = options.onBuffered || (() => {}); this.onEnded = options.onEnded || (() => {});
     }
-    async unlock() {
+    async unlock(audio) {
       if (!this.context) {
-        this.context = this.createContext(); this.gate = this.context.createGain();
+        this.context = this.createContext();
+        // This kiosk's Chromium/PulseAudio HDMI path rejects stereo streams.
+        this.context.destination.channelCount = 1;
+        this.context.destination.channelCountMode = 'explicit';
+        this.gate = this.context.createGain();
         this.gate.gain.value = 0; this.gate.connect(this.context.destination);
+      }
+      if (audio && !this.rawSource) {
+        this.rawSource = this.context.createMediaElementSource(audio);
+        this.rawSource.connect(this.context.destination);
       }
       await this.context.resume(); this.enabled = this.context.state === 'running';
       if (!this.enabled) throw Error('请再次点击开启本机音频');

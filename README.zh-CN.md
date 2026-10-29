@@ -202,6 +202,7 @@ cp .env.example .env
 FAIO 音频会按来源类型处理：本地曲库和在线平台曲目都通过带私有房间 session 的 Mythe Display 本地代理读取，其中在线曲目仍由 FAIO 动态生成 stream ticket；普通外链保持直连。房间 Cookie 只保存在被忽略的 `tmp/` 目录，不会写入公开 runtime JSON 或提交到 Git。
 
 启用浏览器 K歌输出（`MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT=1`）时，snap Chromium 需要可用的宿主音频服务。先执行 `sudo apt-get install --no-install-recommends pulseaudio`，再执行 `sudo mdp restart`。未配置或运行音频服务时，kiosk 会在 `MYTHE_DISPLAY_ALSA_OUTPUT_DEVICE` 上启动本机 PulseAudio 输出，并在退出时停止它。排查步骤见[浏览器 K歌音频](docs/development/web-kiosk-test.md#浏览器-k歌音频)。
+当前 Chromium/HDMI 通道无法渲染浏览器双声道流，因此浏览器原曲与 K歌混音共用单声道 AudioContext 输出；HDMI 音频设备本身仍配置为双声道。
 
 歌词区域按可用高度展示前后歌词，自动滚动并将当前句居中高亮；歌曲开头和结尾的当前句也保持居中。
 
