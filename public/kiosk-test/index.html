@@ -2168,6 +2168,7 @@
       let faioLoadSequence = 0;
       let faioLoadAbort = null;
       let faioLoadFailures = 0;
+      let faioLyricsRequest = null;
       let faioPublicOutput = { revision: 0, playing: true, volume: 70, updatedAt: "" };
       let faioAudioFileId = "";
       let faioPendingSeek = null;
@@ -3073,11 +3074,47 @@
         document.getElementById("karaoke-track").textContent = [faioListen?.playback?.title, faioListen?.playback?.artist].filter(Boolean).join(" · ") || "等待点歌";
       }
 
+      function faioLyricKey(payload = faioListen) {
+        return JSON.stringify([payload?.roomId, payload?.playback?.fileId, payload?.playback?.sourceType, payload?.karaoke?.mode]);
+      }
+
+      async function loadFaioLyrics() {
+        const room = faioListen;
+        const playback = room?.playback || {};
+        const key = faioLyricKey(room);
+        if (faioLyricsRequest?.key === key) return;
+        faioLyricsRequest?.abort.abort();
+        faioLyricsRequest = null;
+        if (room?.status !== "connected" || room.room?.status === "closed" || room.source === "faio.musicRoom.mock" || !room.roomId || !playback.fileId || playback.sourceType === "external") return;
+        const task = faioLyricsRequest = { key, abort: new AbortController(), lines: null };
+        const timeout = setTimeout(() => task.abort.abort(), 8000);
+        try {
+          const query = new URLSearchParams({ roomId: room.roomId, fileId: playback.fileId, sourceType: playback.sourceType || (String(playback.fileId).startsWith("online_") ? "online" : "library"), mode: room.karaoke?.mode === "karaoke" ? "karaoke" : "normal" });
+          const response = await fetch("/faio-listen/lyrics?" + query, { cache: "no-store", signal: task.abort.signal });
+          if (!response.ok) throw new Error(`Lyrics unavailable: ${response.status}`);
+          const payload = await response.json();
+          if (task.abort.signal.aborted || faioLyricsRequest !== task || faioLyricKey() !== key || faioListen.status !== "connected") return;
+          if (payload.roomId !== room.roomId || String(payload.fileId) !== String(playback.fileId) || !Array.isArray(payload.lyrics)) throw new Error("Invalid lyrics response");
+          task.lines = payload.lyrics;
+          if (task.lines.length) {
+            faioListen.lyrics = task.lines;
+            renderFaioPlaybackFrame();
+          } else faioLyricsRequest = null;
+        } catch {
+          if (faioLyricsRequest === task) faioLyricsRequest = null;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
       function renderFaioListen(payload, lyricsDeferred = false) {
         const previous = faioListen;
         faioListen = payload || {};
         if (lyricsDeferred && previous?.playback?.fileId && previous.roomId === faioListen.roomId && String(previous.playback.fileId) === String(faioListen.playback?.fileId)) {
           faioListen = { ...faioListen, lyrics: previous.lyrics || [] };
+        }
+        if (!faioListen.lyrics?.length && faioLyricsRequest?.key === faioLyricKey() && faioLyricsRequest.lines?.length) {
+          faioListen = { ...faioListen, lyrics: faioLyricsRequest.lines };
         }
         if (faioListen.publicOutput && typeof faioListen.publicOutput === "object") {
           faioPublicOutput = { ...faioPublicOutput, ...faioListen.publicOutput };
@@ -3104,6 +3141,7 @@
         renderFaioRoomJoin();
         renderFaioQueue(faioListen.queue);
         renderFaioPlaybackFrame();
+        void loadFaioLyrics();
         if (!karaokeOutputRequested) syncFaioAudio(playback, faioPublicOutput);
         karaokeOutputClient?.roomChanged();
       }
@@ -3480,7 +3518,9 @@
             onStatus:message=>{const status=document.getElementById("karaoke-output-status");status.hidden=false;status.textContent=message;toggle.title=message;toggle.textContent=karaokeOutputClient.startRequested?"关闭本机音频":"开启本机音频";},
             onState:state=>{
               if (!faioListen || String(faioListen.playback?.fileId)!==String(state.file_id)) return;
+              const previousMode=faioListen.karaoke?.mode;
               faioListen.karaoke={...faioListen.karaoke,connectionStatus:"connected",mode:state.active_version?"karaoke":"normal",ratio:state.ratio,positionSeconds:state.position,anchorSeconds:state.anchor,serverTimeSeconds:state.server_time,durationSeconds:state.duration,fileId:state.file_id};
+              if (previousMode!==faioListen.karaoke.mode) void loadFaioLyrics();
               renderKaraokeState(faioListen.status==="connected");
             }});
           toggle.addEventListener("click",async()=>{

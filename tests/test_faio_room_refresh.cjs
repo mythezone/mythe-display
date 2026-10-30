@@ -35,12 +35,13 @@ function snapshot() {
     karaoke: { fileId: 'song-a', mode: 'karaoke', status: 'playing', positionSeconds: 150, durationSeconds: 200 },
     lyrics, publicOutput: { playing: true, volume: 70 }, queue: [] };
 }
-const context = { ...nodes, console, Math, Number, String, AbortController,
+const context = { ...nodes, console, Math, Number, String, AbortController, URLSearchParams,
   Date: class extends Date { static now() { return clock; } },
   document: { createElement: () => new Element() },
   faioListen: null, faioPublicOutput: {}, browserAudioEnabled: false, karaokeOutputRequested: true,
   faioSourceUrl: '/runtime/faio-listen.json', faioFallbackUrl: './faio-listen.mock.json', faioRefreshMs: 10000,
   faioLoadTimer: null, faioLoadSequence: 0, faioLoadAbort: null, faioLoadFailures: 0,
+  faioLyricsRequest: null, loadFaioLyrics() {},
   karaokeOutputClient: { isPlayingLocally: true, latest: { file_id: 'song-a' },
     localProgress: () => ({ position_seconds: 25, playback_status: 'playing' }), roomChanged() {} },
   renderKaraokeState() {}, renderFaioRoomJoin() {}, renderFaioQueue() {}, syncFaioAudio() {}, formatTrackTime: String,
@@ -54,7 +55,7 @@ const context = { ...nodes, console, Math, Number, String, AbortController,
 };
 context.window = context;
 vm.createContext(context);
-for (const name of ['desiredFaioPosition', 'renderFaioLyrics', 'renderFaioPlaybackFrame', 'renderFaioListen']) {
+for (const name of ['desiredFaioPosition', 'renderFaioLyrics', 'renderFaioPlaybackFrame', 'faioLyricKey', 'renderFaioListen']) {
   vm.runInContext(source(name), context);
 }
 vm.runInContext(source('loadFaioListen', true), context);
@@ -98,4 +99,49 @@ vm.runInContext(source('loadFaioListen', true), context);
   assert.equal(context.faioRoomPill.dataset.connected, 'true');
   assert.equal(timers.size, 1, 'only one metadata refresh remains scheduled');
   console.log('FAIO room refresh: active playback, late lyrics, deferred lyrics, local clock, room/song changes, genuine expiry and recovery: PASS');
+
+  vm.runInContext(source('loadFaioLyrics', true), context);
+  const pending = [];
+  context.fetch = (url, options) => new Promise(resolve => pending.push({ url, options, resolve }));
+  const normal = { ...snapshot(), lyrics: [], karaoke: { mode: 'normal' } };
+  context.renderFaioListen(normal, true);
+  assert.equal(pending.length, 1, 'new song state immediately requests lyrics without waiting for the runtime collector');
+  assert.equal(new URL(pending[0].url, 'http://fixture').searchParams.get('fileId'), 'song-a');
+  context.renderFaioListen(normal, true);
+  assert.equal(pending.length, 1, 'same-song refreshes share the pending lyric request');
+  pending[0].resolve({ ok: true, json: async () => ({ roomId: 'room-a', fileId: 'song-a', lyrics }) });
+  await new Promise(setImmediate);
+  assert.equal(context.faioLyrics.children.length, 3, 'direct lyrics render before the next metadata poll');
+  assert.equal(context.faioLyrics.children.find(row => row.className.includes('is-active')).textContent, 'Singing now');
+  context.renderFaioListen(normal);
+  assert.equal(context.faioListen.lyrics.length, 3, 'an empty background snapshot cannot erase freshly fetched lyrics');
+  assert.equal(pending.length, 1, 'loaded lyrics are reused for the current song');
+
+  const next = { ...normal, playback: { ...normal.playback, fileId: 'online_song-b', sourceType: 'online' } };
+  context.renderFaioListen(next, true);
+  assert.equal(context.faioListen.lyrics.length, 0, 'changing songs clears the previous lyrics immediately');
+  assert.equal(new URL(pending[1].url, 'http://fixture').searchParams.get('sourceType'), 'online');
+  context.renderFaioListen({ ...next, roomId: 'room-b' }, true);
+  assert.equal(pending[1].options.signal.aborted, true, 'changing rooms cancels the old request');
+  pending[1].resolve({ ok: true, json: async () => ({ roomId: 'room-a', fileId: 'online_song-b', lyrics }) });
+  await new Promise(setImmediate);
+  assert.equal(context.faioListen.lyrics.length, 0, 'late replies from another room are ignored');
+  pending[2].resolve({ ok: true, json: async () => ({ roomId: 'room-b', fileId: 'online_song-b', lyrics }) });
+  await new Promise(setImmediate);
+  assert.equal(context.faioListen.lyrics.length, 3);
+
+  const callback = html.match(/onState:state=>\{([\s\S]*?)\n            }}/)[1];
+  vm.runInContext(`function audioState(state) {${callback}\n}`, context);
+  context.audioState({ file_id: 'online_song-b', active_version: 'karaoke-version' });
+  assert.equal(new URL(pending[3].url, 'http://fixture').searchParams.get('mode'), 'karaoke', 'switching into karaoke requests its authoritative lyrics immediately');
+  pending[3].resolve({ ok: false, status: 503 });
+  await new Promise(setImmediate);
+  assert.equal(context.faioListen.status, 'connected', 'lyric failures do not disconnect playback');
+  assert.equal(context.faioListen.lyrics.length, 3, 'lyric failures keep same-song fallback lyrics');
+  context.renderFaioListen(context.faioListen, true);
+  assert.equal(pending.length, 5, 'a failed lyric request can retry on the next room update');
+  context.renderFaioListen({ ...normal, playback: { ...normal.playback, fileId: 'external-song', sourceType: 'external' } });
+  assert.equal(pending[4].options.signal.aborted, true);
+  assert.equal(pending.length, 5, 'external songs do not query the room lyric APIs');
+  console.log('FAIO immediate lyrics: direct fetch, deduplication, local clock, stale replies, room/song changes, karaoke mode and failure recovery: PASS');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -37,6 +37,9 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = parse.urlparse(self.path)
+        if parsed.path == "/faio-listen/lyrics":
+            self.handle_faio_lyrics(parsed)
+            return
         if parsed.path == "/faio-listen/karaoke/capabilities":
             self.send_json({"enabled": os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") == "1", "continuous": True})
             return
@@ -61,6 +64,45 @@ class MytheDisplayHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def handle_faio_lyrics(self, parsed: parse.ParseResult) -> None:
+        query = parse.parse_qs(parsed.query)
+        room_id = query.get("roomId", [""])[0]
+        file_id = query.get("fileId", [""])[0]
+        source = query.get("sourceType", ["library"])[0]
+        mode = query.get("mode", ["normal"])[0]
+        if (not re.fullmatch(r"[A-Za-z0-9_-]{1,256}", file_id)
+                or source not in {"library", "online"} or mode not in {"normal", "karaoke"}):
+            self.send_error(400, "Invalid lyrics request")
+            return
+        try:
+            session = self.read_json(repo_path(os.environ.get("MYTHE_DISPLAY_FAIO_SESSION_FILE", DEFAULT_SESSION_FILE)))
+            base = str(session.get("baseUrl") or "").rstrip("/")
+            cookie = self.faio_cookie_header(session)
+            if not base or not cookie or room_id != session.get("roomId"):
+                self.send_error(503, "Existing room session unavailable")
+                return
+            prefix = f"/music/rooms/{parse.quote(room_id, safe='')}"
+            if mode == "karaoke":
+                suffix = f"/karaoke/lyrics/{file_id}"
+            elif source == "online":
+                suffix = f"/online/{file_id}/lyrics"
+            else:
+                suffix = f"/lyrics/{file_id}"
+            upstream = request.Request(base + prefix + suffix, headers={"Cookie": cookie, "Accept": "application/json"})
+            with request.urlopen(upstream, timeout=5) as response:
+                payload = json.load(response)
+            spec = importlib.util.spec_from_file_location("lyrics_collector", ROOT_DIR / "scripts/collect-faio-listen-snapshot.py")
+            collector = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(collector)
+            rows = payload.get("lyrics", []) if isinstance(payload, dict) else []
+            rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+            preferred = next((row for row in rows if row.get("synced")), None) or next(iter(rows), {})
+            self.send_json({"roomId": room_id, "fileId": file_id, "lyrics": collector.parse_lyrics(str(preferred.get("content") or ""))[:120]})
+        except error.HTTPError as exc:
+            self.send_error(exc.code, "Lyrics unavailable")
+        except (OSError, ValueError):
+            self.send_error(502, "Lyrics unavailable")
 
     def handle_karaoke_websocket(self, parsed: parse.ParseResult) -> None:
         if os.environ.get("MYTHE_DISPLAY_ENABLE_KARAOKE_OUTPUT", "0") != "1":
